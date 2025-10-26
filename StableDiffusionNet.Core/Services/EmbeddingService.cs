@@ -61,7 +61,8 @@ namespace StableDiffusionNet.Services
                     embeddings[property.Name] = new Embedding
                     {
                         Name = property.Name,
-                        VectorCount = embeddingData["vec"]?.ToObject<int?>(),
+                        Shape = embeddingData["shape"]?.ToObject<int?>() ?? 0,
+                        Vectors = embeddingData["vectors"]?.ToObject<int?>() ?? 0,
                         Step = embeddingData["step"]?.ToObject<int?>(),
                         SdCheckpoint = embeddingData["sd_checkpoint"]?.ToString(),
                         SdCheckpointName = embeddingData["sd_checkpoint_name"]?.ToString(),

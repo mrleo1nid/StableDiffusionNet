@@ -32,7 +32,10 @@ namespace StableDiffusionNet.Tests.Models.Requests
             request.Tiling.Should().BeFalse();
             request.ResizeMode.Should().Be(0);
             request.Mask.Should().BeNull();
-            request.MaskBlur.Should().Be(4);
+            request.MaskBlurX.Should().Be(4);
+            request.MaskBlurY.Should().Be(4);
+            request.MaskBlur.Should().BeNull(); // Legacy parameter
+            request.MaskRound.Should().BeTrue();
             request.InpaintingFill.Should().Be(0);
             request.InpaintFullRes.Should().BeTrue();
             request.InpaintFullResPadding.Should().Be(0);

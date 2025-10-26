@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace StableDiffusionNet.Models.Responses
 {
     /// <summary>
@@ -8,11 +10,13 @@ namespace StableDiffusionNet.Models.Responses
         /// <summary>
         /// Base64-закодированное обработанное изображение
         /// </summary>
-        public string Image { get; set; } = string.Empty;
+        [JsonProperty("image")]
+        public string? Image { get; set; }
 
         /// <summary>
         /// HTML с дополнительными результатами (если запрошено)
         /// </summary>
-        public string? Html_info { get; set; }
+        [JsonProperty("html_info")]
+        public string HtmlInfo { get; set; } = string.Empty;
     }
 }

@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace StableDiffusionNet.Models
 {
     /// <summary>
@@ -8,26 +10,37 @@ namespace StableDiffusionNet.Models
         /// <summary>
         /// Имя embedding
         /// </summary>
+        [JsonProperty("name")]
         public string Name { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Количество векторов
-        /// </summary>
-        public int? VectorCount { get; set; }
 
         /// <summary>
         /// Шаг обучения
         /// </summary>
+        [JsonProperty("step")]
         public int? Step { get; set; }
 
         /// <summary>
-        /// Checkpoint модели, на которой обучался
+        /// Hash checkpoint модели, на которой обучался
         /// </summary>
+        [JsonProperty("sd_checkpoint")]
         public string? SdCheckpoint { get; set; }
 
         /// <summary>
-        /// Имя checkpoint (короткое)
+        /// Имя checkpoint модели (короткое)
         /// </summary>
+        [JsonProperty("sd_checkpoint_name")]
         public string? SdCheckpointName { get; set; }
+
+        /// <summary>
+        /// Размер каждого вектора в embedding
+        /// </summary>
+        [JsonProperty("shape")]
+        public int Shape { get; set; }
+
+        /// <summary>
+        /// Количество векторов в embedding
+        /// </summary>
+        [JsonProperty("vectors")]
+        public int Vectors { get; set; }
     }
 }

@@ -61,7 +61,7 @@ namespace StableDiffusionNet.Tests.Services
 
             var expectedResponse = new ExtraSingleImageResponse
             {
-                Html_info = "<p>Image processed</p>",
+                HtmlInfo = "<p>Image processed</p>",
                 Image = "processed_base64_image_data",
             };
 
@@ -81,7 +81,7 @@ namespace StableDiffusionNet.Tests.Services
             // Assert
             result.Should().NotBeNull();
             result.Image.Should().Be("processed_base64_image_data");
-            result.Html_info.Should().Be("<p>Image processed</p>");
+            result.HtmlInfo.Should().Be("<p>Image processed</p>");
         }
 
         [Fact]

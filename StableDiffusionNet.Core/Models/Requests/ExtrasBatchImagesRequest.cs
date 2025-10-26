@@ -1,20 +1,21 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace StableDiffusionNet.Models.Requests
 {
     /// <summary>
-    /// Запрос для постобработки одного изображения
+    /// Запрос для постобработки батча изображений
     /// </summary>
-    public class ExtraSingleImageRequest
+    public class ExtrasBatchImagesRequest
     {
         /// <summary>
-        /// Base64-закодированное изображение для обработки
+        /// Список изображений в base64 для обработки
         /// </summary>
-        [JsonProperty("image")]
-        public string Image { get; set; } = string.Empty;
+        [JsonProperty("imageList")]
+        public List<FileData> ImageList { get; set; } = new List<FileData>();
 
         /// <summary>
-        /// Фактор масштабирования (resize mode = 0)
+        /// Режим изменения размера (0: upscale by upscaling_resize, 1: upscale to upscaling_resize_w x upscaling_resize_h)
         /// </summary>
         [JsonProperty("resize_mode")]
         public int ResizeMode { get; set; } = 0;
@@ -26,58 +27,58 @@ namespace StableDiffusionNet.Models.Requests
         public bool ShowExtrasResults { get; set; } = true;
 
         /// <summary>
-        /// Включить восстановление лиц с помощью GFPGAN
+        /// Включить восстановление лиц с помощью GFPGAN (0.0 - 1.0)
         /// </summary>
         [JsonProperty("gfpgan_visibility")]
         public double GfpganVisibility { get; set; } = 0;
 
         /// <summary>
-        /// Включить восстановление лиц с помощью CodeFormer
+        /// Включить восстановление лиц с помощью CodeFormer (0.0 - 1.0)
         /// </summary>
         [JsonProperty("codeformer_visibility")]
         public double CodeformerVisibility { get; set; } = 0;
 
         /// <summary>
-        /// Вес CodeFormer
+        /// Вес CodeFormer (0.0 - 1.0)
         /// </summary>
         [JsonProperty("codeformer_weight")]
-        public double CodeformerWeight { get; set; } = 0.5;
+        public double CodeformerWeight { get; set; } = 0;
 
         /// <summary>
-        /// Коэффициент увеличения (upscaling_resize)
+        /// Коэффициент увеличения (только для resize_mode = 0)
         /// </summary>
         [JsonProperty("upscaling_resize")]
         public double UpscalingResize { get; set; } = 2;
 
         /// <summary>
-        /// Ширина результата при resize mode = 1
+        /// Целевая ширина (только для resize_mode = 1)
         /// </summary>
         [JsonProperty("upscaling_resize_w")]
-        public int? UpscalingResizeW { get; set; }
+        public int UpscalingResizeW { get; set; } = 512;
 
         /// <summary>
-        /// Высота результата при resize mode = 1
+        /// Целевая высота (только для resize_mode = 1)
         /// </summary>
         [JsonProperty("upscaling_resize_h")]
-        public int? UpscalingResizeH { get; set; }
+        public int UpscalingResizeH { get; set; } = 512;
 
         /// <summary>
-        /// Обрезка при resize mode = 1
+        /// Обрезать изображение до целевого размера
         /// </summary>
         [JsonProperty("upscaling_crop")]
-        public bool? UpscalingCrop { get; set; }
+        public bool UpscalingCrop { get; set; } = true;
 
         /// <summary>
         /// Первый апскейлер
         /// </summary>
         [JsonProperty("upscaler_1")]
-        public string? Upscaler1 { get; set; }
+        public string Upscaler1 { get; set; } = "None";
 
         /// <summary>
         /// Второй апскейлер (для смешивания)
         /// </summary>
         [JsonProperty("upscaler_2")]
-        public string? Upscaler2 { get; set; }
+        public string Upscaler2 { get; set; } = "None";
 
         /// <summary>
         /// Видимость второго апскейлера (0.0 - 1.0)
@@ -90,5 +91,23 @@ namespace StableDiffusionNet.Models.Requests
         /// </summary>
         [JsonProperty("upscale_first")]
         public bool UpscaleFirst { get; set; } = false;
+    }
+
+    /// <summary>
+    /// Данные файла для пакетной обработки
+    /// </summary>
+    public class FileData
+    {
+        /// <summary>
+        /// Base64 представление файла
+        /// </summary>
+        [JsonProperty("data")]
+        public string Data { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Имя файла
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; } = string.Empty;
     }
 }

@@ -50,14 +50,16 @@ namespace StableDiffusionNet.Tests.Services
                 {
                     ["easy-negative"] = new JObject
                     {
-                        ["vec"] = 768,
+                        ["shape"] = 768,
+                        ["vectors"] = 1,
                         ["step"] = 1000,
                         ["sd_checkpoint"] = "abc123",
                         ["sd_checkpoint_name"] = "model_v1",
                     },
                     ["bad-hands"] = new JObject
                     {
-                        ["vec"] = 1024,
+                        ["shape"] = 1024,
+                        ["vectors"] = 2,
                         ["step"] = 2000,
                         ["sd_checkpoint"] = "def456",
                         ["sd_checkpoint_name"] = "model_v2",
@@ -82,14 +84,16 @@ namespace StableDiffusionNet.Tests.Services
 
             var easyNeg = result["easy-negative"];
             easyNeg.Name.Should().Be("easy-negative");
-            easyNeg.VectorCount.Should().Be(768);
+            easyNeg.Shape.Should().Be(768);
+            easyNeg.Vectors.Should().Be(1);
             easyNeg.Step.Should().Be(1000);
             easyNeg.SdCheckpoint.Should().Be("abc123");
             easyNeg.SdCheckpointName.Should().Be("model_v1");
 
             var badHands = result["bad-hands"];
             badHands.Name.Should().Be("bad-hands");
-            badHands.VectorCount.Should().Be(1024);
+            badHands.Shape.Should().Be(1024);
+            badHands.Vectors.Should().Be(2);
             badHands.Step.Should().Be(2000);
         }
 
@@ -200,7 +204,8 @@ namespace StableDiffusionNet.Tests.Services
                 {
                     ["incomplete-embedding"] = new JObject
                     {
-                        ["vec"] = null,
+                        ["shape"] = null,
+                        ["vectors"] = null,
                         ["step"] = null,
                         ["sd_checkpoint"] = null,
                         ["sd_checkpoint_name"] = null,
@@ -219,7 +224,8 @@ namespace StableDiffusionNet.Tests.Services
             result.Should().NotBeNull();
             result.Should().ContainKey("incomplete-embedding");
             var embedding = result["incomplete-embedding"];
-            embedding.VectorCount.Should().BeNull();
+            embedding.Shape.Should().Be(0); // Default value for missing data
+            embedding.Vectors.Should().Be(0); // Default value for missing data
             embedding.Step.Should().BeNull();
             embedding.SdCheckpoint.Should().BeNullOrEmpty();
             embedding.SdCheckpointName.Should().BeNullOrEmpty();

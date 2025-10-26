@@ -120,3 +120,5 @@ $RECYCLE.BIN/
 # Generated documentation
 docs/_site/
 
+# Example files
+/ApiExample/

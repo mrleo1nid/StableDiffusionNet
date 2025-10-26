@@ -32,6 +32,12 @@ namespace StableDiffusionNet.Models
         public string? Sha256 { get; set; }
 
         /// <summary>
+        /// Полный путь к файлу модели
+        /// </summary>
+        [JsonProperty("filename")]
+        public string Filename { get; set; } = string.Empty;
+
+        /// <summary>
         /// Имя файла конфигурации
         /// </summary>
         [JsonProperty("config")]

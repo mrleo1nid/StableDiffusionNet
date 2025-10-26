@@ -480,7 +480,7 @@ namespace StableDiffusionNet.Tests.Integration
             response.Should().NotBeNull();
             response.Image.Should().NotBeNullOrEmpty();
             // Для изображения 1x1 результат может быть того же размера или немного больше
-            response.Image.Length.Should().BeGreaterOrEqualTo(simpleImage.Length);
+            response.Image!.Length.Should().BeGreaterOrEqualTo(simpleImage.Length);
         }
 
         [Fact]
