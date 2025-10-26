@@ -36,6 +36,21 @@ namespace StableDiffusionNet
         /// <inheritdoc/>
         public ISchedulerService Schedulers { get; }
 
+        /// <inheritdoc/>
+        public IUpscalerService Upscalers { get; }
+
+        /// <inheritdoc/>
+        public IPngInfoService PngInfo { get; }
+
+        /// <inheritdoc/>
+        public IExtraService Extra { get; }
+
+        /// <inheritdoc/>
+        public IEmbeddingService Embeddings { get; }
+
+        /// <inheritdoc/>
+        public ILoraService Loras { get; }
+
         /// <summary>
         /// Создает экземпляр клиента с внедренными зависимостями
         /// </summary>
@@ -49,6 +64,11 @@ namespace StableDiffusionNet
             IOptionsService optionsService,
             ISamplerService samplerService,
             ISchedulerService schedulerService,
+            IUpscalerService upscalerService,
+            IPngInfoService pngInfoService,
+            IExtraService extraService,
+            IEmbeddingService embeddingService,
+            ILoraService loraService,
             IStableDiffusionLogger logger
         )
         {
@@ -62,6 +82,12 @@ namespace StableDiffusionNet
             Samplers = samplerService ?? throw new ArgumentNullException(nameof(samplerService));
             Schedulers =
                 schedulerService ?? throw new ArgumentNullException(nameof(schedulerService));
+            Upscalers = upscalerService ?? throw new ArgumentNullException(nameof(upscalerService));
+            PngInfo = pngInfoService ?? throw new ArgumentNullException(nameof(pngInfoService));
+            Extra = extraService ?? throw new ArgumentNullException(nameof(extraService));
+            Embeddings =
+                embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
+            Loras = loraService ?? throw new ArgumentNullException(nameof(loraService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 

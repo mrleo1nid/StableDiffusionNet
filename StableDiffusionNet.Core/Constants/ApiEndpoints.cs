@@ -59,5 +59,50 @@ namespace StableDiffusionNet.Constants
         /// Эндпоинт для получения списка доступных планировщиков (schedulers)
         /// </summary>
         public const string Schedulers = $"{ApiPrefix}/schedulers";
+
+        /// <summary>
+        /// Эндпоинт для получения списка доступных апскейлеров
+        /// </summary>
+        public const string Upscalers = $"{ApiPrefix}/upscalers";
+
+        /// <summary>
+        /// Эндпоинт для получения списка latent upscale режимов
+        /// </summary>
+        public const string LatentUpscaleModes = $"{ApiPrefix}/latent-upscale-modes";
+
+        /// <summary>
+        /// Эндпоинт для извлечения метаданных из PNG изображения
+        /// </summary>
+        public const string PngInfo = $"{ApiPrefix}/png-info";
+
+        /// <summary>
+        /// Эндпоинт для постобработки одного изображения (апскейл, face restoration)
+        /// </summary>
+        public const string ExtraSingleImage = $"{ApiPrefix}/extra-single-image";
+
+        /// <summary>
+        /// Эндпоинт для постобработки батча изображений
+        /// </summary>
+        public const string ExtraBatchImages = $"{ApiPrefix}/extra-batch-images";
+
+        /// <summary>
+        /// Эндпоинт для получения списка доступных embeddings
+        /// </summary>
+        public const string Embeddings = $"{ApiPrefix}/embeddings";
+
+        /// <summary>
+        /// Эндпоинт для обновления списка embeddings
+        /// </summary>
+        public const string RefreshEmbeddings = $"{ApiPrefix}/refresh-embeddings";
+
+        /// <summary>
+        /// Эндпоинт для получения списка доступных LoRA моделей
+        /// </summary>
+        public const string Loras = $"{ApiPrefix}/loras";
+
+        /// <summary>
+        /// Эндпоинт для обновления списка LoRA моделей
+        /// </summary>
+        public const string RefreshLoras = $"{ApiPrefix}/refresh-loras";
     }
 }

@@ -97,6 +97,11 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
             RegisterService<IOptionsService, OptionsService>(services);
             RegisterService<ISamplerService, SamplerService>(services);
             RegisterService<ISchedulerService, SchedulerService>(services);
+            RegisterService<IUpscalerService, UpscalerService>(services);
+            RegisterService<IPngInfoService, PngInfoService>(services);
+            RegisterService<IExtraService, ExtraService>(services);
+            RegisterService<IEmbeddingService, EmbeddingService>(services);
+            RegisterService<ILoraService, LoraService>(services);
 
             // Регистрация главного клиента
             services.AddTransient<IStableDiffusionClient>(sp =>
@@ -108,6 +113,11 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                 var options = sp.GetRequiredService<IOptionsService>();
                 var samplers = sp.GetRequiredService<ISamplerService>();
                 var schedulers = sp.GetRequiredService<ISchedulerService>();
+                var upscalers = sp.GetRequiredService<IUpscalerService>();
+                var pngInfo = sp.GetRequiredService<IPngInfoService>();
+                var extra = sp.GetRequiredService<IExtraService>();
+                var embeddings = sp.GetRequiredService<IEmbeddingService>();
+                var loras = sp.GetRequiredService<ILoraService>();
                 var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
 
                 return new StableDiffusionClient(
@@ -118,6 +128,11 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                     options,
                     samplers,
                     schedulers,
+                    upscalers,
+                    pngInfo,
+                    extra,
+                    embeddings,
+                    loras,
                     loggerFactory.CreateLogger<StableDiffusionClient>()
                 );
             });

@@ -17,6 +17,11 @@ namespace StableDiffusionNet.Tests
         private readonly Mock<IOptionsService> _optionsServiceMock;
         private readonly Mock<ISamplerService> _samplerServiceMock;
         private readonly Mock<ISchedulerService> _schedulerServiceMock;
+        private readonly Mock<IUpscalerService> _upscalerServiceMock;
+        private readonly Mock<IPngInfoService> _pngInfoServiceMock;
+        private readonly Mock<IExtraService> _extraServiceMock;
+        private readonly Mock<IEmbeddingService> _embeddingServiceMock;
+        private readonly Mock<ILoraService> _loraServiceMock;
         private readonly Mock<IStableDiffusionLogger> _loggerMock;
 
         public StableDiffusionClientTests()
@@ -28,6 +33,11 @@ namespace StableDiffusionNet.Tests
             _optionsServiceMock = new Mock<IOptionsService>();
             _samplerServiceMock = new Mock<ISamplerService>();
             _schedulerServiceMock = new Mock<ISchedulerService>();
+            _upscalerServiceMock = new Mock<IUpscalerService>();
+            _pngInfoServiceMock = new Mock<IPngInfoService>();
+            _extraServiceMock = new Mock<IExtraService>();
+            _embeddingServiceMock = new Mock<IEmbeddingService>();
+            _loraServiceMock = new Mock<ILoraService>();
             _loggerMock = new Mock<IStableDiffusionLogger>();
         }
 
@@ -41,6 +51,11 @@ namespace StableDiffusionNet.Tests
                 _optionsServiceMock.Object,
                 _samplerServiceMock.Object,
                 _schedulerServiceMock.Object,
+                _upscalerServiceMock.Object,
+                _pngInfoServiceMock.Object,
+                _extraServiceMock.Object,
+                _embeddingServiceMock.Object,
+                _loraServiceMock.Object,
                 _loggerMock.Object
             );
         }
@@ -60,6 +75,11 @@ namespace StableDiffusionNet.Tests
             client.Options.Should().NotBeNull();
             client.Samplers.Should().NotBeNull();
             client.Schedulers.Should().NotBeNull();
+            client.Upscalers.Should().NotBeNull();
+            client.PngInfo.Should().NotBeNull();
+            client.Extra.Should().NotBeNull();
+            client.Embeddings.Should().NotBeNull();
+            client.Loras.Should().NotBeNull();
         }
 
         [Fact]
@@ -75,6 +95,11 @@ namespace StableDiffusionNet.Tests
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
                     _schedulerServiceMock.Object,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -94,6 +119,11 @@ namespace StableDiffusionNet.Tests
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
                     _schedulerServiceMock.Object,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -113,6 +143,11 @@ namespace StableDiffusionNet.Tests
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
                     _schedulerServiceMock.Object,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -132,6 +167,11 @@ namespace StableDiffusionNet.Tests
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
                     _schedulerServiceMock.Object,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -151,6 +191,11 @@ namespace StableDiffusionNet.Tests
                     null!,
                     _samplerServiceMock.Object,
                     _schedulerServiceMock.Object,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -170,6 +215,11 @@ namespace StableDiffusionNet.Tests
                     _optionsServiceMock.Object,
                     null!,
                     _schedulerServiceMock.Object,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -189,6 +239,11 @@ namespace StableDiffusionNet.Tests
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
                     null!,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -208,6 +263,11 @@ namespace StableDiffusionNet.Tests
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
                     _schedulerServiceMock.Object,
+                    _upscalerServiceMock.Object,
+                    _pngInfoServiceMock.Object,
+                    _extraServiceMock.Object,
+                    _embeddingServiceMock.Object,
+                    _loraServiceMock.Object,
                     null!
                 );
 

@@ -183,6 +183,31 @@ namespace StableDiffusionNet
                 loggerFactory.CreateLogger<SchedulerService>()
             );
 
+            var upscalerService = new UpscalerService(
+                httpClientWrapper,
+                loggerFactory.CreateLogger<UpscalerService>()
+            );
+
+            var pngInfoService = new PngInfoService(
+                httpClientWrapper,
+                loggerFactory.CreateLogger<PngInfoService>()
+            );
+
+            var extraService = new ExtraService(
+                httpClientWrapper,
+                loggerFactory.CreateLogger<ExtraService>()
+            );
+
+            var embeddingService = new EmbeddingService(
+                httpClientWrapper,
+                loggerFactory.CreateLogger<EmbeddingService>()
+            );
+
+            var loraService = new LoraService(
+                httpClientWrapper,
+                loggerFactory.CreateLogger<LoraService>()
+            );
+
             // Создаем главный клиент
             return new StableDiffusionClient(
                 textToImageService,
@@ -192,6 +217,11 @@ namespace StableDiffusionNet
                 optionsService,
                 samplerService,
                 schedulerService,
+                upscalerService,
+                pngInfoService,
+                extraService,
+                embeddingService,
+                loraService,
                 loggerFactory.CreateLogger<StableDiffusionClient>()
             );
         }

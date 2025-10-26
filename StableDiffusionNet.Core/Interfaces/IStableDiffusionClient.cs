@@ -44,6 +44,31 @@ namespace StableDiffusionNet.Interfaces
         ISchedulerService Schedulers { get; }
 
         /// <summary>
+        /// Сервис для работы с апскейлерами
+        /// </summary>
+        IUpscalerService Upscalers { get; }
+
+        /// <summary>
+        /// Сервис для извлечения PNG метаданных
+        /// </summary>
+        IPngInfoService PngInfo { get; }
+
+        /// <summary>
+        /// Сервис для постобработки изображений
+        /// </summary>
+        IExtraService Extra { get; }
+
+        /// <summary>
+        /// Сервис для работы с embeddings
+        /// </summary>
+        IEmbeddingService Embeddings { get; }
+
+        /// <summary>
+        /// Сервис для работы с LoRA моделями
+        /// </summary>
+        ILoraService Loras { get; }
+
+        /// <summary>
         /// Проверка доступности API
         /// </summary>
         Task<bool> PingAsync(CancellationToken cancellationToken = default);

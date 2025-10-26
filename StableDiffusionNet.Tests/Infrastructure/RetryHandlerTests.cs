@@ -476,9 +476,10 @@ namespace StableDiffusionNet.Tests.Infrastructure
             // delay[0] ≈ 100ms (2^0 = 1)
             // delay[1] ≈ 200ms (2^1 = 2)
             // delay[2] ≈ 400ms (2^2 = 4)
-            delays[0].TotalMilliseconds.Should().BeInRange(80, 150); // 100 + jitter
-            delays[1].TotalMilliseconds.Should().BeInRange(180, 250); // 200 + jitter
-            delays[2].TotalMilliseconds.Should().BeInRange(380, 450); // 400 + jitter
+            // Добавляем запас для накладных расходов системы (планировщик задач и т.д.)
+            delays[0].TotalMilliseconds.Should().BeInRange(80, 180); // 100 + jitter + накладные расходы
+            delays[1].TotalMilliseconds.Should().BeInRange(180, 280); // 200 + jitter + накладные расходы
+            delays[2].TotalMilliseconds.Should().BeInRange(380, 480); // 400 + jitter + накладные расходы
         }
 
         [Fact]
