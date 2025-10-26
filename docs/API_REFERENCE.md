@@ -378,24 +378,25 @@ Task<IReadOnlyList<string>> GetSamplersAsync(
 
 ### `GetSchedulersAsync`
 
-Получает список доступных планировщиков шагов.
+Получает список доступных планировщиков шагов с полной информацией.
 
 **Сигнатура:**
 ```csharp
-Task<IReadOnlyList<string>> GetSchedulersAsync(
+Task<IReadOnlyList<Scheduler>> GetSchedulersAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
 **Эндпоинт**: `GET /sdapi/v1/schedulers`
 
-**Ответ:** Список названий планировщиков, например:
-- Automatic
-- Uniform
-- Karras
-- Exponential
-- Polyexponential
-- И другие...
+**Ответ:** Список объектов `Scheduler` с полями:
+- `Name` - внутреннее имя планировщика
+- `Label` - отображаемое имя планировщика
+- `Aliases` - список альтернативных имён (может быть null)
+- `DefaultRho` - значение rho по умолчанию
+- `NeedInnerModel` - требуется ли внутренняя модель
+
+**Примеры планировщиков:** Automatic, Karras, Exponential, Normal, Simple, Beta и другие.
 
 **Применение:** Выбор scheduler'а для более тонкой настройки генерации.
 

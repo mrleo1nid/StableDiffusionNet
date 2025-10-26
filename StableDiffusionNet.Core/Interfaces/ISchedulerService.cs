@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Interfaces
 {
@@ -13,7 +14,7 @@ namespace StableDiffusionNet.Interfaces
         /// <summary>
         /// Получает список доступных scheduler'ов (планировщиков шагов)
         /// </summary>
-        Task<IReadOnlyList<string>> GetSchedulersAsync(
+        Task<IReadOnlyList<Scheduler>> GetSchedulersAsync(
             CancellationToken cancellationToken = default
         );
     }

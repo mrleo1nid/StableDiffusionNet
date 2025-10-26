@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Moq;
-using Newtonsoft.Json.Linq;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
+using StableDiffusionNet.Models;
 using StableDiffusionNet.Services;
 
 namespace StableDiffusionNet.Tests.Services
@@ -40,21 +40,45 @@ namespace StableDiffusionNet.Tests.Services
         }
 
         [Fact]
-        public async Task GetSchedulersAsync_ReturnsListOfSchedulerNames()
+        public async Task GetSchedulersAsync_ReturnsListOfSchedulers()
         {
             // Arrange
-            var schedulersJson = new JArray
+            var schedulers = new List<Scheduler>
             {
-                new JObject { ["name"] = "Automatic", ["label"] = "Automatic" },
-                new JObject { ["name"] = "Uniform", ["label"] = "Uniform" },
-                new JObject { ["name"] = "Karras" },
+                new Scheduler
+                {
+                    Name = "automatic",
+                    Label = "Automatic",
+                    Aliases = null,
+                    DefaultRho = -1,
+                    NeedInnerModel = false,
+                },
+                new Scheduler
+                {
+                    Name = "karras",
+                    Label = "Karras",
+                    Aliases = null,
+                    DefaultRho = 7,
+                    NeedInnerModel = false,
+                },
+                new Scheduler
+                {
+                    Name = "beta",
+                    Label = "Beta",
+                    Aliases = null,
+                    DefaultRho = -1,
+                    NeedInnerModel = true,
+                },
             };
 
             _httpClientMock
                 .Setup(x =>
-                    x.GetAsync<JArray>("/sdapi/v1/schedulers", It.IsAny<CancellationToken>())
+                    x.GetAsync<List<Scheduler>>(
+                        "/sdapi/v1/schedulers",
+                        It.IsAny<CancellationToken>()
+                    )
                 )
-                .ReturnsAsync(schedulersJson);
+                .ReturnsAsync(schedulers);
 
             // Act
             var result = await _service.GetSchedulersAsync();
@@ -62,44 +86,63 @@ namespace StableDiffusionNet.Tests.Services
             // Assert
             result.Should().NotBeNull();
             result.Should().HaveCount(3);
-            result[0].Should().Be("Automatic");
-            result[1].Should().Be("Uniform");
-            result[2].Should().Be("Karras");
+            result[0].Name.Should().Be("automatic");
+            result[0].Label.Should().Be("Automatic");
+            result[0].DefaultRho.Should().Be(-1);
+            result[0].NeedInnerModel.Should().BeFalse();
+            result[1].Name.Should().Be("karras");
+            result[1].DefaultRho.Should().Be(7);
+            result[2].Name.Should().Be("beta");
+            result[2].NeedInnerModel.Should().BeTrue();
         }
 
         [Fact]
         public async Task GetSchedulersAsync_ReturnsReadOnlyList()
         {
             // Arrange
-            var schedulersJson = new JArray { new JObject { ["name"] = "Automatic" } };
+            var schedulers = new List<Scheduler>
+            {
+                new Scheduler { Name = "automatic", Label = "Automatic" },
+            };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             var result = await _service.GetSchedulersAsync();
 
             // Assert
-            result.Should().BeAssignableTo<IReadOnlyList<string>>();
+            result.Should().BeAssignableTo<IReadOnlyList<Scheduler>>();
         }
 
         [Fact]
         public async Task GetSchedulersAsync_CallsCorrectEndpoint()
         {
             // Arrange
-            var schedulersJson = new JArray { new JObject { ["name"] = "Automatic" } };
+            var schedulers = new List<Scheduler>
+            {
+                new Scheduler { Name = "automatic", Label = "Automatic" },
+            };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             await _service.GetSchedulersAsync();
 
             // Assert
             _httpClientMock.Verify(
-                x => x.GetAsync<JArray>("/sdapi/v1/schedulers", It.IsAny<CancellationToken>()),
+                x =>
+                    x.GetAsync<List<Scheduler>>(
+                        "/sdapi/v1/schedulers",
+                        It.IsAny<CancellationToken>()
+                    ),
                 Times.Once
             );
         }
@@ -109,78 +152,112 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             using var cts = new CancellationTokenSource();
-            var schedulersJson = new JArray { new JObject { ["name"] = "Automatic" } };
+            var schedulers = new List<Scheduler>
+            {
+                new Scheduler { Name = "automatic", Label = "Automatic" },
+            };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             await _service.GetSchedulersAsync(cts.Token);
 
             // Assert
             _httpClientMock.Verify(
-                x => x.GetAsync<JArray>("/sdapi/v1/schedulers", cts.Token),
+                x => x.GetAsync<List<Scheduler>>("/sdapi/v1/schedulers", cts.Token),
                 Times.Once
             );
         }
 
         [Fact]
-        public async Task GetSchedulersAsync_WithNullName_FiltersOut()
+        public async Task GetSchedulersAsync_WithAliases_ReturnsAliases()
         {
             // Arrange
-            var schedulersJson = new JArray
+            var schedulers = new List<Scheduler>
             {
-                new JObject { ["name"] = "Automatic" },
-                new JObject { ["name"] = null },
-                new JObject { ["name"] = "Karras" },
+                new Scheduler
+                {
+                    Name = "sgm_uniform",
+                    Label = "SGM Uniform",
+                    Aliases = new List<string> { "SGMUniform" },
+                    DefaultRho = -1,
+                    NeedInnerModel = true,
+                },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             var result = await _service.GetSchedulersAsync();
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().Contain("Automatic");
-            result.Should().Contain("Karras");
+            result.Should().HaveCount(1);
+            result[0].Name.Should().Be("sgm_uniform");
+            result[0].Aliases.Should().NotBeNull();
+            result[0].Aliases.Should().Contain("SGMUniform");
         }
 
         [Fact]
-        public async Task GetSchedulersAsync_WithEmptyName_FiltersOut()
+        public async Task GetSchedulersAsync_WithDifferentRhoValues_ReturnsCorrectRho()
         {
             // Arrange
-            var schedulersJson = new JArray
+            var schedulers = new List<Scheduler>
             {
-                new JObject { ["name"] = "Automatic" },
-                new JObject { ["name"] = "" },
-                new JObject { ["name"] = "Karras" },
+                new Scheduler
+                {
+                    Name = "automatic",
+                    Label = "Automatic",
+                    DefaultRho = -1,
+                },
+                new Scheduler
+                {
+                    Name = "polyexponential",
+                    Label = "Polyexponential",
+                    DefaultRho = 1,
+                },
+                new Scheduler
+                {
+                    Name = "karras",
+                    Label = "Karras",
+                    DefaultRho = 7,
+                },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             var result = await _service.GetSchedulersAsync();
 
             // Assert
-            result.Should().HaveCount(2);
-            result.Should().NotContain("");
+            result.Should().HaveCount(3);
+            result[0].DefaultRho.Should().Be(-1);
+            result[1].DefaultRho.Should().Be(1);
+            result[2].DefaultRho.Should().Be(7);
         }
 
         [Fact]
         public async Task GetSchedulersAsync_WithEmptyArray_ReturnsEmptyList()
         {
             // Arrange
-            var schedulersJson = new JArray();
+            var schedulers = new List<Scheduler>();
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             var result = await _service.GetSchedulersAsync();
@@ -193,15 +270,17 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetSchedulersAsync_LogsInformation()
         {
             // Arrange
-            var schedulersJson = new JArray
+            var schedulers = new List<Scheduler>
             {
-                new JObject { ["name"] = "Automatic" },
-                new JObject { ["name"] = "Karras" },
+                new Scheduler { Name = "automatic", Label = "Automatic" },
+                new Scheduler { Name = "karras", Label = "Karras" },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             await _service.GetSchedulersAsync();
@@ -211,60 +290,97 @@ namespace StableDiffusionNet.Tests.Services
         }
 
         [Fact]
-        public async Task GetSchedulersAsync_WithComplexSchedulerData_ExtractsNamesCorrectly()
+        public async Task GetSchedulersAsync_WithNeedInnerModel_ReturnsCorrectFlags()
         {
             // Arrange
-            var schedulersJson = new JArray
+            var schedulers = new List<Scheduler>
             {
-                new JObject
+                new Scheduler
                 {
-                    ["name"] = "Automatic",
-                    ["label"] = "Automatic",
-                    ["aliases"] = new JArray(),
+                    Name = "karras",
+                    Label = "Karras",
+                    NeedInnerModel = false,
                 },
-                new JObject
+                new Scheduler
                 {
-                    ["name"] = "Karras",
-                    ["label"] = "Karras",
-                    ["aliases"] = new JArray { "karras" },
+                    Name = "normal",
+                    Label = "Normal",
+                    NeedInnerModel = true,
+                },
+                new Scheduler
+                {
+                    Name = "simple",
+                    Label = "Simple",
+                    NeedInnerModel = true,
                 },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             var result = await _service.GetSchedulersAsync();
 
             // Assert
-            result.Should().HaveCount(2);
-            result[0].Should().Be("Automatic");
-            result[1].Should().Be("Karras");
+            result.Should().HaveCount(3);
+            result[0].NeedInnerModel.Should().BeFalse();
+            result[1].NeedInnerModel.Should().BeTrue();
+            result[2].NeedInnerModel.Should().BeTrue();
         }
 
         [Fact]
-        public async Task GetSchedulersAsync_WithObjectMissingNameProperty_HandlesGracefully()
+        public async Task GetSchedulersAsync_WithCompleteData_ReturnsAllFields()
         {
             // Arrange
-            var schedulersJson = new JArray
+            var schedulers = new List<Scheduler>
             {
-                new JObject { ["name"] = "Automatic" },
-                new JObject { ["otherProperty"] = "value" },
-                new JObject { ["name"] = "Karras" },
+                new Scheduler
+                {
+                    Name = "sgm_uniform",
+                    Label = "SGM Uniform",
+                    Aliases = new List<string> { "SGMUniform" },
+                    DefaultRho = -1,
+                    NeedInnerModel = true,
+                },
+                new Scheduler
+                {
+                    Name = "karras",
+                    Label = "Karras",
+                    Aliases = null,
+                    DefaultRho = 7,
+                    NeedInnerModel = false,
+                },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(schedulersJson);
+                .Setup(x =>
+                    x.GetAsync<List<Scheduler>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(schedulers);
 
             // Act
             var result = await _service.GetSchedulersAsync();
 
             // Assert
             result.Should().HaveCount(2);
-            result.Should().Contain("Automatic");
-            result.Should().Contain("Karras");
+
+            // First scheduler
+            result[0].Name.Should().Be("sgm_uniform");
+            result[0].Label.Should().Be("SGM Uniform");
+            result[0].Aliases.Should().NotBeNull();
+            result[0].Aliases.Should().HaveCount(1);
+            result[0].DefaultRho.Should().Be(-1);
+            result[0].NeedInnerModel.Should().BeTrue();
+
+            // Second scheduler
+            result[1].Name.Should().Be("karras");
+            result[1].Label.Should().Be("Karras");
+            result[1].Aliases.Should().BeNull();
+            result[1].DefaultRho.Should().Be(7);
+            result[1].NeedInnerModel.Should().BeFalse();
         }
     }
 }

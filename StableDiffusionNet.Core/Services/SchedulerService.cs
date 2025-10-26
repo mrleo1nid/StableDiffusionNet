@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
+using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Services
 {
@@ -30,26 +30,20 @@ namespace StableDiffusionNet.Services
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<string>> GetSchedulersAsync(
+        public async Task<IReadOnlyList<Scheduler>> GetSchedulersAsync(
             CancellationToken cancellationToken = default
         )
         {
             _logger.LogDebug("Getting list of available schedulers");
 
-            var schedulers = await _httpClient.GetAsync<JArray>(
+            var schedulers = await _httpClient.GetAsync<List<Scheduler>>(
                 ApiEndpoints.Schedulers,
                 cancellationToken
             );
 
-            var schedulerNames = schedulers
-                .Select(s => s["name"]?.ToString())
-                .Where(name => !string.IsNullOrEmpty(name))
-                .Select(name => name!)
-                .ToList();
+            _logger.LogInformation($"Schedulers retrieved: {schedulers.Count}");
 
-            _logger.LogInformation($"Schedulers retrieved: {schedulerNames.Count}");
-
-            return schedulerNames.AsReadOnly();
+            return schedulers.AsReadOnly();
         }
     }
 }

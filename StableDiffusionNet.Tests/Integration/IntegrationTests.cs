@@ -80,9 +80,9 @@ namespace StableDiffusionNet.Tests.Integration
             schedulers
                 .Should()
                 .Contain(s =>
-                    s.Contains("automatic", StringComparison.OrdinalIgnoreCase)
-                    || s.Contains("karras", StringComparison.OrdinalIgnoreCase)
-                    || s.Contains("uniform", StringComparison.OrdinalIgnoreCase)
+                    s.Name.Contains("automatic", StringComparison.OrdinalIgnoreCase)
+                    || s.Name.Contains("karras", StringComparison.OrdinalIgnoreCase)
+                    || s.Name.Contains("uniform", StringComparison.OrdinalIgnoreCase)
                 );
         }
 

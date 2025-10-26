@@ -804,7 +804,13 @@ var schedulers = await client.Schedulers.GetSchedulersAsync();
 Console.WriteLine("Доступные планировщики:");
 foreach (var scheduler in schedulers)
 {
-    Console.WriteLine($"  - {scheduler}");
+    Console.WriteLine($"  - {scheduler.Name} ({scheduler.Label})");
+    if (scheduler.Aliases != null && scheduler.Aliases.Count > 0)
+    {
+        Console.WriteLine($"    Алиасы: {string.Join(", ", scheduler.Aliases)}");
+    }
+    Console.WriteLine($"    Default Rho: {scheduler.DefaultRho}");
+    Console.WriteLine($"    Требует внутреннюю модель: {scheduler.NeedInnerModel}");
 }
 ```
 
@@ -881,8 +887,16 @@ var models = await client.Models.GetModelsAsync();
 // Теперь можно построить dropdown'ы в UI
 Console.WriteLine("Выберите опции для генерации:");
 Console.WriteLine($"Доступно сэмплеров: {samplers.Count}");
+Console.WriteLine($"Доступно планировщиков: {schedulers.Count}");
 Console.WriteLine($"Доступно моделей: {models.Count}");
 Console.WriteLine($"Доступно апскейлеров: {upscalers.Count}");
+
+// Пример построения списка планировщиков для UI
+foreach (var scheduler in schedulers)
+{
+    // В UI можно показать Label, а использовать Name
+    Console.WriteLine($"Планировщик: {scheduler.Label} (ID: {scheduler.Name})");
+}
 ```
 
 ---
