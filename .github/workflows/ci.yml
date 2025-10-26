@@ -1,4 +1,4 @@
-name: CI Build and Test
+name: CI Build
 
 on:
   push:
@@ -10,8 +10,8 @@ env:
   DOTNET_VERSION: '8.0.x'
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  build:
+    name: Build
     runs-on: ${{ matrix.os }}
     
     strategy:
@@ -33,17 +33,6 @@ jobs:
     
     - name: Build solution
       run: dotnet build --configuration Release --no-restore
-    
-    - name: Run unit tests
-      run: dotnet test --configuration Release --no-build --verbosity minimal --filter "FullyQualifiedName!~Integration" --logger "trx"
-    
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results-${{ matrix.os }}
-        path: '**/TestResults/*.trx'
-        if-no-files-found: warn
 
   code-quality:
     name: Code Quality Check

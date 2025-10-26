@@ -1,6 +1,6 @@
 # StableDiffusionNet
 
-[![CI Build and Test](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml)
+[![CI Build](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml)
 [![SonarQube](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/sonarqube.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/sonarqube.yml)
 
