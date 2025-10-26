@@ -1,10 +1,9 @@
 using System;
 using System.Net.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Infrastructure;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Services;
 
 namespace StableDiffusionNet
@@ -15,7 +14,7 @@ namespace StableDiffusionNet
     public class StableDiffusionClientBuilder
     {
         private StableDiffusionOptions _options = new StableDiffusionOptions();
-        private ILoggerFactory? _loggerFactory;
+        private IStableDiffusionLoggerFactory? _loggerFactory;
         private HttpClient? _httpClient;
 
         /// <summary>
@@ -76,7 +75,9 @@ namespace StableDiffusionNet
         /// Устанавливает фабрику логгеров
         /// </summary>
         /// <param name="loggerFactory">Фабрика логгеров</param>
-        public StableDiffusionClientBuilder WithLoggerFactory(ILoggerFactory loggerFactory)
+        public StableDiffusionClientBuilder WithLoggerFactory(
+            IStableDiffusionLoggerFactory loggerFactory
+        )
         {
             _loggerFactory = loggerFactory;
             return this;
@@ -123,8 +124,7 @@ namespace StableDiffusionNet
             }
             else
             {
-                // Создаем простой HttpClient без дополнительных handler'ов
-                // Polly политики будут применены через HttpClientWrapper
+                // Создаем простой HttpClient
                 httpClient = new HttpClient
                 {
                     BaseAddress = new Uri(_options.BaseUrl),
@@ -144,7 +144,7 @@ namespace StableDiffusionNet
             var httpClientWrapper = new HttpClientWrapper(
                 httpClient,
                 loggerFactory.CreateLogger<HttpClientWrapper>(),
-                Microsoft.Extensions.Options.Options.Create(_options)
+                _options
             );
 
             // Создаем сервисы

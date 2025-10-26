@@ -35,7 +35,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     
     - name: Run unit tests
-      run: dotnet test --configuration Release --no-build --verbosity minimal --filter "Category!=Integration" --logger "trx"
+      run: dotnet test --configuration Release --no-build --verbosity minimal --filter "FullyQualifiedName!~Integration" --logger "trx"
     
     - name: Upload test results
       if: always()

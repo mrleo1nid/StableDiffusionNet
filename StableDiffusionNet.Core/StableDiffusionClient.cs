@@ -1,8 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 
 namespace StableDiffusionNet
 {
@@ -13,7 +13,7 @@ namespace StableDiffusionNet
     /// </summary>
     public class StableDiffusionClient : IStableDiffusionClient
     {
-        private readonly ILogger<StableDiffusionClient> _logger;
+        private readonly IStableDiffusionLogger _logger;
 
         /// <inheritdoc/>
         public ITextToImageService TextToImage { get; }
@@ -43,7 +43,7 @@ namespace StableDiffusionNet
             IProgressService progressService,
             IOptionsService optionsService,
             ISamplerService samplerService,
-            ILogger<StableDiffusionClient> logger
+            IStableDiffusionLogger logger
         )
         {
             TextToImage =

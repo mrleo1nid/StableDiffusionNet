@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 
 namespace StableDiffusionNet.Services
 {
@@ -18,12 +18,12 @@ namespace StableDiffusionNet.Services
     public class SamplerService : ISamplerService
     {
         private readonly IHttpClientWrapper _httpClient;
-        private readonly ILogger<SamplerService> _logger;
+        private readonly IStableDiffusionLogger _logger;
 
         /// <summary>
         /// Создает новый экземпляр сервиса получения информации о sampler'ах
         /// </summary>
-        public SamplerService(IHttpClientWrapper httpClient, ILogger<SamplerService> logger)
+        public SamplerService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -47,7 +47,7 @@ namespace StableDiffusionNet.Services
                 .Select(name => name!)
                 .ToList();
 
-            _logger.LogInformation("Samplers retrieved: {Count}", samplerNames.Count);
+            _logger.LogInformation($"Samplers retrieved: {samplerNames.Count}");
 
             return samplerNames.AsReadOnly();
         }

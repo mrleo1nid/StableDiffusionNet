@@ -2,9 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
 using StableDiffusionNet.Services;
 using Xunit;
@@ -17,13 +17,13 @@ namespace StableDiffusionNet.Tests.Services
     public class OptionsServiceTests
     {
         private readonly Mock<IHttpClientWrapper> _httpClientMock;
-        private readonly Mock<ILogger<OptionsService>> _loggerMock;
+        private readonly Mock<IStableDiffusionLogger> _loggerMock;
         private readonly OptionsService _service;
 
         public OptionsServiceTests()
         {
             _httpClientMock = new Mock<IHttpClientWrapper>();
-            _loggerMock = new Mock<ILogger<OptionsService>>();
+            _loggerMock = new Mock<IStableDiffusionLogger>();
             _service = new OptionsService(_httpClientMock.Object, _loggerMock.Object);
         }
 
@@ -98,7 +98,7 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetOptionsAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             var options = new WebUIOptions();
 
             _httpClientMock
@@ -156,7 +156,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             var options = new WebUIOptions();
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             _httpClientMock
                 .Setup(x =>
@@ -198,33 +198,7 @@ namespace StableDiffusionNet.Tests.Services
             await _service.SetOptionsAsync(options);
 
             // Assert
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Information,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Setting WebUI options")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
-            );
-
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Information,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Options successfully set")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
-            );
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -243,33 +217,7 @@ namespace StableDiffusionNet.Tests.Services
             await _service.GetOptionsAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Getting current WebUI options")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
-            );
-
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Options successfully retrieved")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
-            );
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]

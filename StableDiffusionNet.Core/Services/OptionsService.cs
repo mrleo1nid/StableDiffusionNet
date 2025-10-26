@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Services
@@ -16,12 +16,12 @@ namespace StableDiffusionNet.Services
     public class OptionsService : IOptionsService
     {
         private readonly IHttpClientWrapper _httpClient;
-        private readonly ILogger<OptionsService> _logger;
+        private readonly IStableDiffusionLogger _logger;
 
         /// <summary>
         /// Создает новый экземпляр сервиса управления опциями
         /// </summary>
-        public OptionsService(IHttpClientWrapper httpClient, ILogger<OptionsService> logger)
+        public OptionsService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

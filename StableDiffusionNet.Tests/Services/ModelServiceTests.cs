@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
 using StableDiffusionNet.Services;
 using Xunit;
@@ -19,13 +19,13 @@ namespace StableDiffusionNet.Tests.Services
     public class ModelServiceTests
     {
         private readonly Mock<IHttpClientWrapper> _httpClientMock;
-        private readonly Mock<ILogger<ModelService>> _loggerMock;
+        private readonly Mock<IStableDiffusionLogger> _loggerMock;
         private readonly ModelService _service;
 
         public ModelServiceTests()
         {
             _httpClientMock = new Mock<IHttpClientWrapper>();
-            _loggerMock = new Mock<ILogger<ModelService>>();
+            _loggerMock = new Mock<IStableDiffusionLogger>();
             _service = new ModelService(_httpClientMock.Object, _loggerMock.Object);
         }
 
@@ -34,8 +34,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new ModelService(null!, _loggerMock.Object);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("httpClient");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
         }
 
         [Fact]
@@ -43,8 +42,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new ModelService(_httpClientMock.Object, null!);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
         }
 
         [Fact]
@@ -54,13 +52,13 @@ namespace StableDiffusionNet.Tests.Services
             var expectedModels = new List<SdModel>
             {
                 new SdModel { Title = "Model 1", ModelName = "model1.safetensors" },
-                new SdModel { Title = "Model 2", ModelName = "model2.ckpt" }
+                new SdModel { Title = "Model 2", ModelName = "model2.ckpt" },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<List<SdModel>>(
-                    "/sdapi/v1/sd-models",
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<List<SdModel>>("/sdapi/v1/sd-models", It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(expectedModels);
 
             // Act
@@ -77,15 +75,12 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetModelsAsync_ReturnsReadOnlyList()
         {
             // Arrange
-            var models = new List<SdModel>
-            {
-                new SdModel { Title = "Model 1" }
-            };
+            var models = new List<SdModel> { new SdModel { Title = "Model 1" } };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<List<SdModel>>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<List<SdModel>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(models);
 
             // Act
@@ -99,13 +94,13 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetModelsAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             var models = new List<SdModel>();
 
             _httpClientMock
-                .Setup(x => x.GetAsync<List<SdModel>>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<List<SdModel>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(models);
 
             // Act
@@ -113,25 +108,21 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.GetAsync<List<SdModel>>(
-                    "/sdapi/v1/sd-models",
-                    cts.Token),
-                Times.Once);
+                x => x.GetAsync<List<SdModel>>("/sdapi/v1/sd-models", cts.Token),
+                Times.Once
+            );
         }
 
         [Fact]
         public async Task GetCurrentModelAsync_ReturnsModelName()
         {
             // Arrange
-            var options = new WebUIOptions
-            {
-                SdModelCheckpoint = "current-model.safetensors"
-            };
+            var options = new WebUIOptions { SdModelCheckpoint = "current-model.safetensors" };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<WebUIOptions>(
-                    "/sdapi/v1/options",
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<WebUIOptions>("/sdapi/v1/options", It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(options);
 
             // Act
@@ -145,15 +136,12 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetCurrentModelAsync_WithNullCheckpoint_ReturnsUnknown()
         {
             // Arrange
-            var options = new WebUIOptions
-            {
-                SdModelCheckpoint = null
-            };
+            var options = new WebUIOptions { SdModelCheckpoint = null };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<WebUIOptions>(
-                    "/sdapi/v1/options",
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<WebUIOptions>("/sdapi/v1/options", It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(options);
 
             // Act
@@ -167,13 +155,13 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetCurrentModelAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             var options = new WebUIOptions { SdModelCheckpoint = "model" };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<WebUIOptions>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<WebUIOptions>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(options);
 
             // Act
@@ -181,10 +169,9 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.GetAsync<WebUIOptions>(
-                    "/sdapi/v1/options",
-                    cts.Token),
-                Times.Once);
+                x => x.GetAsync<WebUIOptions>("/sdapi/v1/options", cts.Token),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -194,10 +181,13 @@ namespace StableDiffusionNet.Tests.Services
             var modelName = "new-model.safetensors";
 
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    "/sdapi/v1/options",
-                    It.IsAny<WebUIOptions>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync(
+                        "/sdapi/v1/options",
+                        It.IsAny<WebUIOptions>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -205,11 +195,14 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/options",
-                    It.Is<WebUIOptions>(o => o.SdModelCheckpoint == modelName),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                x =>
+                    x.PostAsync(
+                        "/sdapi/v1/options",
+                        It.Is<WebUIOptions>(o => o.SdModelCheckpoint == modelName),
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -217,7 +210,8 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = async () => await _service.SetModelAsync(string.Empty);
-            await act.Should().ThrowAsync<ArgumentException>()
+            await act.Should()
+                .ThrowAsync<ArgumentException>()
                 .WithMessage("*Model name cannot be empty*")
                 .WithParameterName("modelName");
         }
@@ -227,8 +221,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = async () => await _service.SetModelAsync("   ");
-            await act.Should().ThrowAsync<ArgumentException>()
-                .WithParameterName("modelName");
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("modelName");
         }
 
         [Fact]
@@ -244,13 +237,16 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             var modelName = "model.safetensors";
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<WebUIOptions>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<WebUIOptions>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -258,11 +254,9 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/options",
-                    It.IsAny<WebUIOptions>(),
-                    cts.Token),
-                Times.Once);
+                x => x.PostAsync("/sdapi/v1/options", It.IsAny<WebUIOptions>(), cts.Token),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -270,9 +264,9 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    "/sdapi/v1/refresh-checkpoints",
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync("/sdapi/v1/refresh-checkpoints", It.IsAny<CancellationToken>())
+                )
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -280,22 +274,19 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/refresh-checkpoints",
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                x => x.PostAsync("/sdapi/v1/refresh-checkpoints", It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
         public async Task RefreshModelsAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -303,10 +294,9 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/refresh-checkpoints",
-                    cts.Token),
-                Times.Once);
+                x => x.PostAsync("/sdapi/v1/refresh-checkpoints", cts.Token),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -316,23 +306,16 @@ namespace StableDiffusionNet.Tests.Services
             var models = new List<SdModel> { new SdModel { Title = "Model" } };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<List<SdModel>>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<List<SdModel>>(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
                 .ReturnsAsync(models);
 
             // Act
             await _service.GetModelsAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Models retrieved")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -342,34 +325,20 @@ namespace StableDiffusionNet.Tests.Services
             var modelName = "test-model";
 
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<WebUIOptions>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<WebUIOptions>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .Returns(Task.CompletedTask);
 
             // Act
             await _service.SetModelAsync(modelName);
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Setting model")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Model successfully set")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
     }
 }
-

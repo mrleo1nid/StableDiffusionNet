@@ -1,5 +1,9 @@
 name: Release and Publish to NuGet
 
+# Этот workflow публикует два пакета:
+# - StableDiffusionNet.Core (базовая библиотека без DI)
+# - StableDiffusionNet.DependencyInjection (расширения для DI)
+
 on:
   push:
     tags:
@@ -7,7 +11,8 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  PROJECT_PATH: 'StableDiffusionNet/StableDiffusionNet.csproj'
+  CORE_PROJECT_PATH: 'StableDiffusionNet.Core/StableDiffusionNet.Core.csproj'
+  DI_PROJECT_PATH: 'StableDiffusionNet.DependencyInjection/StableDiffusionNet.DependencyInjection.csproj'
   PACKAGE_OUTPUT_DIR: ${{ github.workspace }}/output
 
 jobs:
@@ -58,8 +63,15 @@ jobs:
         ## 🎉 StableDiffusionNet ${{ steps.get_version.outputs.TAG_NAME }}
         
         ### 📦 Установка
+        
+        **Для использования без DI:**
         \`\`\`bash
-        dotnet add package StableDiffusionNet --version ${{ steps.get_version.outputs.VERSION }}
+        dotnet add package StableDiffusionNet.Core --version ${{ steps.get_version.outputs.VERSION }}
+        \`\`\`
+        
+        **Для использования с DI (ASP.NET Core):**
+        \`\`\`bash
+        dotnet add package StableDiffusionNet.DependencyInjection --version ${{ steps.get_version.outputs.VERSION }}
         \`\`\`
         
         ### ✨ Изменения в этом релизе
@@ -67,7 +79,8 @@ jobs:
         ${COMMITS}
         
         ### 🔗 Полезные ссылки
-        - [NuGet Package](https://www.nuget.org/packages/StableDiffusionNet/${{ steps.get_version.outputs.VERSION }})
+        - [StableDiffusionNet.Core on NuGet](https://www.nuget.org/packages/StableDiffusionNet.Core/${{ steps.get_version.outputs.VERSION }})
+        - [StableDiffusionNet.DependencyInjection on NuGet](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/${{ steps.get_version.outputs.VERSION }})
         - [Документация](https://github.com/${{ github.repository }}/blob/master/README.md)
         - [Все релизы](https://github.com/${{ github.repository }}/releases)
         EOF
@@ -77,8 +90,15 @@ jobs:
         ## 🎉 StableDiffusionNet ${{ steps.get_version.outputs.TAG_NAME }}
         
         ### 📦 Установка
+        
+        **Для использования без DI:**
         \`\`\`bash
-        dotnet add package StableDiffusionNet --version ${{ steps.get_version.outputs.VERSION }}
+        dotnet add package StableDiffusionNet.Core --version ${{ steps.get_version.outputs.VERSION }}
+        \`\`\`
+        
+        **Для использования с DI (ASP.NET Core):**
+        \`\`\`bash
+        dotnet add package StableDiffusionNet.DependencyInjection --version ${{ steps.get_version.outputs.VERSION }}
         \`\`\`
         
         ### ✨ Изменения в этом релизе
@@ -86,7 +106,8 @@ jobs:
         ${COMMITS}
         
         ### 🔗 Полезные ссылки
-        - [NuGet Package](https://www.nuget.org/packages/StableDiffusionNet/${{ steps.get_version.outputs.VERSION }})
+        - [StableDiffusionNet.Core on NuGet](https://www.nuget.org/packages/StableDiffusionNet.Core/${{ steps.get_version.outputs.VERSION }})
+        - [StableDiffusionNet.DependencyInjection on NuGet](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/${{ steps.get_version.outputs.VERSION }})
         - [Документация](https://github.com/${{ github.repository }}/blob/master/README.md)
         - [Все релизы](https://github.com/${{ github.repository }}/releases)
         
@@ -106,11 +127,20 @@ jobs:
           /p:Version=${{ steps.get_version.outputs.VERSION }}
     
     - name: Run unit tests
-      run: dotnet test --configuration Release --no-build --verbosity minimal --filter "Category!=Integration"
+      run: dotnet test --configuration Release --no-build --verbosity minimal --filter "FullyQualifiedName!~Integration"
     
-    - name: Pack NuGet package
+    - name: Pack NuGet packages
       run: |
-        dotnet pack ${{ env.PROJECT_PATH }} \
+        # Pack Core package
+        dotnet pack ${{ env.CORE_PROJECT_PATH }} \
+          --configuration Release \
+          --no-build \
+          --output ${{ env.PACKAGE_OUTPUT_DIR }} \
+          /p:Version=${{ steps.get_version.outputs.VERSION }} \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
+        
+        # Pack DependencyInjection package
+        dotnet pack ${{ env.DI_PROJECT_PATH }} \
           --configuration Release \
           --no-build \
           --output ${{ env.PACKAGE_OUTPUT_DIR }} \
@@ -149,6 +179,10 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "- **Version:** ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Tag:** ${{ steps.get_version.outputs.TAG_NAME }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **NuGet:** https://www.nuget.org/packages/StableDiffusionNet/${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 NuGet Packages:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Core:** https://www.nuget.org/packages/StableDiffusionNet.Core/${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **DependencyInjection:** https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         echo "- **Release:** https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.TAG_NAME }}" >> $GITHUB_STEP_SUMMARY
 

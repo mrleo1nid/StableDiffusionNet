@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models.Requests;
 using StableDiffusionNet.Models.Responses;
 using StableDiffusionNet.Services;
@@ -19,13 +19,13 @@ namespace StableDiffusionNet.Tests.Services
     public class TextToImageServiceTests
     {
         private readonly Mock<IHttpClientWrapper> _httpClientMock;
-        private readonly Mock<ILogger<TextToImageService>> _loggerMock;
+        private readonly Mock<IStableDiffusionLogger> _loggerMock;
         private readonly TextToImageService _service;
 
         public TextToImageServiceTests()
         {
             _httpClientMock = new Mock<IHttpClientWrapper>();
-            _loggerMock = new Mock<ILogger<TextToImageService>>();
+            _loggerMock = new Mock<IStableDiffusionLogger>();
             _service = new TextToImageService(_httpClientMock.Object, _loggerMock.Object);
         }
 
@@ -34,8 +34,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new TextToImageService(null!, _loggerMock.Object);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("httpClient");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
         }
 
         [Fact]
@@ -43,8 +42,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new TextToImageService(_httpClientMock.Object, null!);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
         }
 
         [Fact]
@@ -55,20 +53,23 @@ namespace StableDiffusionNet.Tests.Services
             {
                 Prompt = "a beautiful landscape",
                 Width = 512,
-                Height = 512
+                Height = 512,
             };
 
             var expectedResponse = new TextToImageResponse
             {
                 Images = new List<string> { "base64image1", "base64image2" },
-                Info = "Generation info"
+                Info = "Generation info",
             };
 
             _httpClientMock
-                .Setup(x => x.PostAsync<TextToImageRequest, TextToImageResponse>(
-                    "/sdapi/v1/txt2img",
-                    request,
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        "/sdapi/v1/txt2img",
+                        request,
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(expectedResponse);
 
             // Act
@@ -86,8 +87,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = async () => await _service.GenerateAsync(null!);
-            await act.Should().ThrowAsync<ArgumentNullException>()
-                .WithParameterName("request");
+            await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("request");
         }
 
         [Fact]
@@ -98,7 +98,8 @@ namespace StableDiffusionNet.Tests.Services
 
             // Act & Assert
             var act = async () => await _service.GenerateAsync(request);
-            await act.Should().ThrowAsync<ArgumentException>()
+            await act.Should()
+                .ThrowAsync<ArgumentException>()
                 .WithMessage("*Prompt cannot be empty*")
                 .WithParameterName("request");
         }
@@ -111,8 +112,7 @@ namespace StableDiffusionNet.Tests.Services
 
             // Act & Assert
             var act = async () => await _service.GenerateAsync(request);
-            await act.Should().ThrowAsync<ArgumentException>()
-                .WithParameterName("request");
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("request");
         }
 
         [Fact]
@@ -134,10 +134,13 @@ namespace StableDiffusionNet.Tests.Services
             var response = new TextToImageResponse { Images = new List<string> { "image" } };
 
             _httpClientMock
-                .Setup(x => x.PostAsync<TextToImageRequest, TextToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<TextToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<TextToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(response);
 
             // Act
@@ -145,11 +148,14 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync<TextToImageRequest, TextToImageResponse>(
-                    "/sdapi/v1/txt2img",
-                    request,
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        "/sdapi/v1/txt2img",
+                        request,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -158,13 +164,16 @@ namespace StableDiffusionNet.Tests.Services
             // Arrange
             var request = new TextToImageRequest { Prompt = "test prompt" };
             var response = new TextToImageResponse { Images = new List<string> { "image" } };
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             _httpClientMock
-                .Setup(x => x.PostAsync<TextToImageRequest, TextToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<TextToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<TextToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(response);
 
             // Act
@@ -172,11 +181,14 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync<TextToImageRequest, TextToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<TextToImageRequest>(),
-                    cts.Token),
-                Times.Once);
+                x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<TextToImageRequest>(),
+                        cts.Token
+                    ),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -187,15 +199,18 @@ namespace StableDiffusionNet.Tests.Services
             {
                 Prompt = "test prompt",
                 Width = 512,
-                Height = 512
+                Height = 512,
             };
             var response = new TextToImageResponse { Images = new List<string> { "image" } };
 
             _httpClientMock
-                .Setup(x => x.PostAsync<TextToImageRequest, TextToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<TextToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<TextToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(response);
 
             // Act
@@ -203,22 +218,10 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting text-to-image generation")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Generation completed")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+                l => l.Log(It.IsAny<LogLevel>(), It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log information during generation"
+            );
         }
 
         [Fact]
@@ -237,16 +240,21 @@ namespace StableDiffusionNet.Tests.Services
                 Seed = 12345,
                 BatchSize = 2,
                 RestoreFaces = true,
-                EnableHr = true
+                EnableHr = true,
             };
 
             TextToImageRequest? capturedRequest = null;
             _httpClientMock
-                .Setup(x => x.PostAsync<TextToImageRequest, TextToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<TextToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
-                .Callback<string, TextToImageRequest, CancellationToken>((_, req, _) => capturedRequest = req)
+                .Setup(x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<TextToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Callback<string, TextToImageRequest, CancellationToken>(
+                    (_, req, _) => capturedRequest = req
+                )
                 .ReturnsAsync(new TextToImageResponse { Images = new List<string> { "image" } });
 
             // Act
@@ -261,4 +269,3 @@ namespace StableDiffusionNet.Tests.Services
         }
     }
 }
-

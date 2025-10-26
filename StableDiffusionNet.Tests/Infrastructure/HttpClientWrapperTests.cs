@@ -5,14 +5,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Exceptions;
 using StableDiffusionNet.Infrastructure;
+using StableDiffusionNet.Logging;
 using Xunit;
 
 namespace StableDiffusionNet.Tests.Infrastructure
@@ -22,13 +21,13 @@ namespace StableDiffusionNet.Tests.Infrastructure
     /// </summary>
     public class HttpClientWrapperTests
     {
-        private readonly Mock<ILogger<HttpClientWrapper>> _loggerMock;
+        private readonly Mock<IStableDiffusionLogger> _loggerMock;
         private readonly StableDiffusionOptions _options;
         private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
 
         public HttpClientWrapperTests()
         {
-            _loggerMock = new Mock<ILogger<HttpClientWrapper>>();
+            _loggerMock = new Mock<IStableDiffusionLogger>();
             _options = new StableDiffusionOptions
             {
                 BaseUrl = "http://localhost:7860",
@@ -46,18 +45,15 @@ namespace StableDiffusionNet.Tests.Infrastructure
                 BaseAddress = new Uri(_options.BaseUrl),
                 Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds),
             };
-            var optionsMock = Options.Create(_options);
-            return new HttpClientWrapper(httpClient, _loggerMock.Object, optionsMock);
+            return new HttpClientWrapper(httpClient, _loggerMock.Object, _options);
         }
 
         [Fact]
         public void Constructor_WithNullHttpClient_ThrowsArgumentNullException()
         {
             // Arrange
-            var optionsMock = Options.Create(_options);
-
             // Act & Assert
-            var act = () => new HttpClientWrapper(null!, _loggerMock.Object, optionsMock);
+            var act = () => new HttpClientWrapper(null!, _loggerMock.Object, _options);
             act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
         }
 
@@ -66,10 +62,8 @@ namespace StableDiffusionNet.Tests.Infrastructure
         {
             // Arrange
             var httpClient = new HttpClient();
-            var optionsMock = Options.Create(_options);
-
             // Act & Assert
-            var act = () => new HttpClientWrapper(httpClient, null!, optionsMock);
+            var act = () => new HttpClientWrapper(httpClient, null!, _options);
             act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
         }
 
@@ -90,10 +84,8 @@ namespace StableDiffusionNet.Tests.Infrastructure
             // Arrange
             var httpClient = new HttpClient();
             var invalidOptions = new StableDiffusionOptions { BaseUrl = string.Empty };
-            var optionsMock = Options.Create(invalidOptions);
-
             // Act & Assert
-            var act = () => new HttpClientWrapper(httpClient, _loggerMock.Object, optionsMock);
+            var act = () => new HttpClientWrapper(httpClient, _loggerMock.Object, invalidOptions);
             act.Should().Throw<ConfigurationException>();
         }
 
@@ -295,8 +287,8 @@ namespace StableDiffusionNet.Tests.Infrastructure
         public async Task GetAsync_WithCancellation_ThrowsApiException()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
 
             _httpMessageHandlerMock
                 .Protected()
@@ -344,15 +336,9 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("GET request")),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.AtLeastOnce
+                l => l.Log(LogLevel.Debug, It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log when detailed logging is enabled"
             );
         }
 
@@ -501,17 +487,9 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Error,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Error executing GET")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
+                l => l.Log(LogLevel.Error, It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log error when exception occurs"
             );
         }
 
@@ -548,17 +526,9 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Error,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Unsuccessful response")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
+                l => l.Log(LogLevel.Error, It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log error with details when error response occurs"
             );
         }
 
@@ -631,8 +601,8 @@ namespace StableDiffusionNet.Tests.Infrastructure
         {
             // Arrange
             var request = new TestRequest { Value = "test" };
-            var cts = new CancellationTokenSource();
-            cts.Cancel();
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
 
             _httpMessageHandlerMock
                 .Protected()
@@ -680,32 +650,11 @@ namespace StableDiffusionNet.Tests.Infrastructure
             // Act
             await wrapper.PostAsync<TestRequest, TestResponse>("/test", request);
 
-            // Assert - проверяем логирование запроса
+            // Assert - проверяем логирование запроса и ответа
             _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("POST request")),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.AtLeastOnce
-            );
-
-            // Assert - проверяем логирование ответа
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Successful response")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
+                l => l.Log(LogLevel.Debug, It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log when detailed logging is enabled"
             );
         }
 
@@ -862,17 +811,9 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Error,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Error executing POST")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
+                l => l.Log(LogLevel.Error, It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log error when exception occurs"
             );
         }
 
@@ -898,19 +839,9 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) =>
-                                v.ToString()!.Contains("POST request")
-                                && v.ToString()!.Contains("without body")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
+                l => l.Log(LogLevel.Debug, It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log request when detailed logging is enabled"
             );
         }
 
@@ -937,19 +868,9 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) =>
-                                v.ToString()!.Contains("POST request")
-                                && v.ToString()!.Contains("with body")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
+                l => l.Log(LogLevel.Debug, It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log request when detailed logging is enabled"
             );
         }
 

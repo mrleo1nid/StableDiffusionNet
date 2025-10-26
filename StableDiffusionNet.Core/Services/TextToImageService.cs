@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models.Requests;
 using StableDiffusionNet.Models.Responses;
 
@@ -17,12 +17,12 @@ namespace StableDiffusionNet.Services
     public class TextToImageService : ITextToImageService
     {
         private readonly IHttpClientWrapper _httpClient;
-        private readonly ILogger<TextToImageService> _logger;
+        private readonly IStableDiffusionLogger _logger;
 
         /// <summary>
         /// Создает новый экземпляр сервиса генерации изображений из текста
         /// </summary>
-        public TextToImageService(IHttpClientWrapper httpClient, ILogger<TextToImageService> logger)
+        public TextToImageService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -40,10 +40,7 @@ namespace StableDiffusionNet.Services
             request.Validate(nameof(request));
 
             _logger.LogInformation(
-                "Starting text-to-image generation. Prompt: {Prompt}, Size: {Width}x{Height}",
-                request.Prompt,
-                request.Width,
-                request.Height
+                $"Starting text-to-image generation. Prompt: {request.Prompt}, Size: {request.Width}x{request.Height}"
             );
 
             var response = await _httpClient.PostAsync<TextToImageRequest, TextToImageResponse>(
@@ -53,8 +50,7 @@ namespace StableDiffusionNet.Services
             );
 
             _logger.LogInformation(
-                "Generation completed. Images generated: {Count}",
-                response.Images.Count
+                $"Generation completed. Images generated: {response.Images.Count}"
             );
 
             return response;

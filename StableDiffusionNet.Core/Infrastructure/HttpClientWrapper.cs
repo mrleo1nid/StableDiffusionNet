@@ -3,28 +3,28 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Exceptions;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 
 namespace StableDiffusionNet.Infrastructure
 {
     /// <summary>
-    /// Обертка над HttpClient с обработкой ошибок и логированием
+    /// Обертка над HttpClient с обработкой ошибок, логированием и retry логикой
     /// Dependency Inversion Principle - реализует интерфейс IHttpClientWrapper
     /// Single Responsibility - отвечает только за HTTP коммуникацию
     ///
     /// Примечание: Класс не реализует IDisposable, так как HttpClient управляется
-    /// через IHttpClientFactory в DI контейнере и не должен диспозиться вручную.
+    /// извне и не должен диспозиться вручную.
     /// </summary>
     public class HttpClientWrapper : IHttpClientWrapper
     {
         private readonly HttpClient _httpClient;
-        private readonly ILogger<HttpClientWrapper> _logger;
+        private readonly IStableDiffusionLogger _logger;
         private readonly StableDiffusionOptions _options;
+        private readonly RetryHandler _retryHandler;
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
@@ -35,17 +35,16 @@ namespace StableDiffusionNet.Infrastructure
         /// </summary>
         public HttpClientWrapper(
             HttpClient httpClient,
-            ILogger<HttpClientWrapper> logger,
-            IOptions<StableDiffusionOptions> options
+            IStableDiffusionLogger logger,
+            StableDiffusionOptions options
         )
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _options = options ?? throw new ArgumentNullException(nameof(options));
 
             _options.Validate();
-            // HttpClient уже настроен в ServiceCollectionExtensions
-            // (BaseAddress, Timeout, Authorization header)
+            _retryHandler = new RetryHandler(_options, _logger);
         }
 
         /// <inheritdoc/>
@@ -59,15 +58,22 @@ namespace StableDiffusionNet.Infrastructure
             {
                 if (_options.EnableDetailedLogging)
                 {
-                    _logger.LogDebug("GET request to {Endpoint}", endpoint);
+                    _logger.LogDebug($"GET request to {endpoint}");
                 }
 
-                var response = await _httpClient.GetAsync(endpoint, cancellationToken);
-                return await HandleResponseAsync<TResponse>(response, endpoint, cancellationToken);
+                var response = await _retryHandler
+                    .ExecuteWithRetryAsync(
+                        () => _httpClient.GetAsync(endpoint, cancellationToken),
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
+
+                return await HandleResponseAsync<TResponse>(response, endpoint, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Error executing GET request to {Endpoint}", endpoint);
+                _logger.LogError(ex, $"Error executing GET request to {endpoint}");
                 throw new ApiException($"Error executing GET request to {endpoint}", ex);
             }
         }
@@ -87,20 +93,25 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        "POST request to {Endpoint} with body: {Body}",
-                        endpoint,
-                        SanitizeJsonForLogging(json)
+                        $"POST request to {endpoint} with body: {SanitizeJsonForLogging(json)}"
                     );
                 }
 
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(endpoint, content, cancellationToken);
 
-                return await HandleResponseAsync<TResponse>(response, endpoint, cancellationToken);
+                var response = await _retryHandler
+                    .ExecuteWithRetryAsync(
+                        () => _httpClient.PostAsync(endpoint, content, cancellationToken),
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
+
+                return await HandleResponseAsync<TResponse>(response, endpoint, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Error executing POST request to {Endpoint}", endpoint);
+                _logger.LogError(ex, $"Error executing POST request to {endpoint}");
                 throw new ApiException($"Error executing POST request to {endpoint}", ex);
             }
         }
@@ -112,15 +123,22 @@ namespace StableDiffusionNet.Infrastructure
             {
                 if (_options.EnableDetailedLogging)
                 {
-                    _logger.LogDebug("POST request to {Endpoint} without body", endpoint);
+                    _logger.LogDebug($"POST request to {endpoint} without body");
                 }
 
-                var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
-                await EnsureSuccessAsync(response, endpoint, cancellationToken);
+                var response = await _retryHandler
+                    .ExecuteWithRetryAsync(
+                        () => _httpClient.PostAsync(endpoint, null, cancellationToken),
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
+
+                await EnsureSuccessAsync(response, endpoint, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Error executing POST request to {Endpoint}", endpoint);
+                _logger.LogError(ex, $"Error executing POST request to {endpoint}");
                 throw new ApiException($"Error executing POST request to {endpoint}", ex);
             }
         }
@@ -139,20 +157,25 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        "POST request to {Endpoint} with body: {Body}",
-                        endpoint,
-                        SanitizeJsonForLogging(json)
+                        $"POST request to {endpoint} with body: {SanitizeJsonForLogging(json)}"
                     );
                 }
 
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync(endpoint, content, cancellationToken);
 
-                await EnsureSuccessAsync(response, endpoint, cancellationToken);
+                var response = await _retryHandler
+                    .ExecuteWithRetryAsync(
+                        () => _httpClient.PostAsync(endpoint, content, cancellationToken),
+                        cancellationToken
+                    )
+                    .ConfigureAwait(false);
+
+                await EnsureSuccessAsync(response, endpoint, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Error executing POST request to {Endpoint}", endpoint);
+                _logger.LogError(ex, $"Error executing POST request to {endpoint}");
                 throw new ApiException($"Error executing POST request to {endpoint}", ex);
             }
         }
@@ -167,18 +190,17 @@ namespace StableDiffusionNet.Infrastructure
             // В .NET Standard 2.0 и 2.1 ReadAsStringAsync не поддерживает CancellationToken
 #if NETSTANDARD2_0 || NETSTANDARD2_1
             _ = cancellationToken; // Подавляем предупреждение о неиспользуемом параметре
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 #else
-            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            var content = await response
+                .Content.ReadAsStringAsync(cancellationToken)
+                .ConfigureAwait(false);
 #endif
 
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError(
-                    "Unsuccessful response from {Endpoint}. Status: {StatusCode}, Body: {Body}",
-                    endpoint,
-                    response.StatusCode,
-                    content
+                    $"Unsuccessful response from {endpoint}. Status: {response.StatusCode}, Body: {content}"
                 );
 
                 throw new ApiException(
@@ -191,9 +213,7 @@ namespace StableDiffusionNet.Infrastructure
             if (_options.EnableDetailedLogging)
             {
                 _logger.LogDebug(
-                    "Successful response from {Endpoint}: {Body}",
-                    endpoint,
-                    SanitizeJsonForLogging(content)
+                    $"Successful response from {endpoint}: {SanitizeJsonForLogging(content)}"
                 );
             }
 
@@ -208,7 +228,7 @@ namespace StableDiffusionNet.Infrastructure
             }
             catch (JsonException ex)
             {
-                _logger.LogError(ex, "Error deserializing response from {Endpoint}", endpoint);
+                _logger.LogError(ex, $"Error deserializing response from {endpoint}");
                 throw new ApiException($"Error deserializing response from {endpoint}", ex);
             }
         }
@@ -234,8 +254,12 @@ namespace StableDiffusionNet.Infrastructure
             }
 
             // Обрезаем длинные JSON
+#if NETSTANDARD2_0
             return json.Substring(0, maxLength)
                 + $"... [truncated, total length: {json.Length} chars]";
+#else
+            return json[..maxLength] + $"... [truncated, total length: {json.Length} chars]";
+#endif
         }
 
         private async Task EnsureSuccessAsync(
@@ -249,15 +273,14 @@ namespace StableDiffusionNet.Infrastructure
                 // В .NET Standard 2.0 и 2.1 ReadAsStringAsync не поддерживает CancellationToken
 #if NETSTANDARD2_0 || NETSTANDARD2_1
                 _ = cancellationToken; // Подавляем предупреждение о неиспользуемом параметре
-                var content = await response.Content.ReadAsStringAsync();
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 #else
-                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                var content = await response
+                    .Content.ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
 #endif
                 _logger.LogError(
-                    "Unsuccessful response from {Endpoint}. Status: {StatusCode}, Body: {Body}",
-                    endpoint,
-                    response.StatusCode,
-                    content
+                    $"Unsuccessful response from {endpoint}. Status: {response.StatusCode}, Body: {content}"
                 );
 
                 throw new ApiException(

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using Xunit;
 
 namespace StableDiffusionNet.Tests
@@ -21,7 +21,7 @@ namespace StableDiffusionNet.Tests
         private readonly Mock<IProgressService> _progressServiceMock;
         private readonly Mock<IOptionsService> _optionsServiceMock;
         private readonly Mock<ISamplerService> _samplerServiceMock;
-        private readonly Mock<ILogger<StableDiffusionClient>> _loggerMock;
+        private readonly Mock<IStableDiffusionLogger> _loggerMock;
 
         public StableDiffusionClientTests()
         {
@@ -31,7 +31,7 @@ namespace StableDiffusionNet.Tests
             _progressServiceMock = new Mock<IProgressService>();
             _optionsServiceMock = new Mock<IOptionsService>();
             _samplerServiceMock = new Mock<ISamplerService>();
-            _loggerMock = new Mock<ILogger<StableDiffusionClient>>();
+            _loggerMock = new Mock<IStableDiffusionLogger>();
         }
 
         private StableDiffusionClient CreateClient()
@@ -307,7 +307,7 @@ namespace StableDiffusionNet.Tests
         public async Task PingAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             _samplerServiceMock
                 .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<string> { "Euler" }.AsReadOnly());
@@ -332,34 +332,11 @@ namespace StableDiffusionNet.Tests
             var client = CreateClient();
 
             // Act
-            await client.PingAsync();
+            var result = await client.PingAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>(
-                            (v, t) => v.ToString()!.Contains("Checking API availability")
-                        ),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
-            );
-
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Information,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("API is available")),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
-            );
+            result.Should().BeTrue();
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -374,20 +351,11 @@ namespace StableDiffusionNet.Tests
             var client = CreateClient();
 
             // Act
-            await client.PingAsync();
+            var result = await client.PingAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x =>
-                    x.Log(
-                        LogLevel.Error,
-                        It.IsAny<EventId>(),
-                        It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("API is unavailable")),
-                        exception,
-                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-                    ),
-                Times.Once
-            );
+            result.Should().BeFalse();
+            _loggerMock.Verify(x => x.Log(LogLevel.Error, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]

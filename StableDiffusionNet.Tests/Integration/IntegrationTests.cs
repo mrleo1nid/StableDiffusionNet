@@ -6,7 +6,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using StableDiffusionNet.Configuration;
-using StableDiffusionNet.Extensions;
+using StableDiffusionNet.DependencyInjection.Extensions;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Models.Requests;
 using Xunit;
@@ -83,8 +83,8 @@ namespace StableDiffusionNet.Tests.Integration
             // Assert
             models.Should().NotBeNull();
             models.Should().NotBeEmpty();
-            models.First().Title.Should().NotBeNullOrEmpty();
-            models.First().ModelName.Should().NotBeNullOrEmpty();
+            models[0].Title.Should().NotBeNullOrEmpty();
+            models[0].ModelName.Should().NotBeNullOrEmpty();
         }
 
         [Fact]
@@ -185,7 +185,7 @@ namespace StableDiffusionNet.Tests.Integration
             var models = await _client.Models.GetModelsAsync();
             models.Should().NotBeEmpty("No models available for testing");
 
-            var targetModel = models.First().Title;
+            var targetModel = models[0].Title;
             var originalModel = await _client.Models.GetCurrentModelAsync();
 
             // Act
@@ -219,7 +219,8 @@ namespace StableDiffusionNet.Tests.Integration
         {
             // Arrange
             var originalOptions = await _client.Options.GetOptionsAsync();
-            var newClipValue = (originalOptions.ClipStopAtLastLayers ?? 1.0) == 1.0 ? 2.0 : 1.0;
+            var currentValue = originalOptions.ClipStopAtLastLayers ?? 1.0;
+            var newClipValue = Math.Abs(currentValue - 1.0) < 0.001 ? 2.0 : 1.0;
 
             var updatedOptions = new StableDiffusionNet.Models.WebUIOptions
             {
@@ -247,7 +248,7 @@ namespace StableDiffusionNet.Tests.Integration
             var request = new TextToImageRequest { Prompt = "test", Steps = 50 };
 
             // Act
-            var generationTask = _client.TextToImage.GenerateAsync(request);
+            _ = _client.TextToImage.GenerateAsync(request);
             await Task.Delay(1000); // Даем время начать генерацию
 
             await _client.Progress.InterruptAsync();

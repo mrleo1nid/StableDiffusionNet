@@ -1,9 +1,9 @@
 using System;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using Xunit;
 
 namespace StableDiffusionNet.Tests
@@ -52,10 +52,14 @@ namespace StableDiffusionNet.Tests
         public void Build_WithLoggerFactory_CreatesClient_Successfully()
         {
             // Arrange
-            var loggerFactory = Mock.Of<ILoggerFactory>();
+            var logger = Mock.Of<IStableDiffusionLogger>();
+            var loggerFactoryMock = new Mock<IStableDiffusionLoggerFactory>();
+            loggerFactoryMock.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(logger);
+            loggerFactoryMock.Setup(x => x.CreateLogger<It.IsAnyType>()).Returns(logger);
+
             var builder = new StableDiffusionClientBuilder()
                 .WithBaseUrl("http://localhost:7860")
-                .WithLoggerFactory(loggerFactory);
+                .WithLoggerFactory(loggerFactoryMock.Object);
 
             // Act
             var client = builder.Build();

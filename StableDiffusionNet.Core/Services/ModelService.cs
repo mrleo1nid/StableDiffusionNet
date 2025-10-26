@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Services
@@ -17,12 +17,12 @@ namespace StableDiffusionNet.Services
     public class ModelService : IModelService
     {
         private readonly IHttpClientWrapper _httpClient;
-        private readonly ILogger<ModelService> _logger;
+        private readonly IStableDiffusionLogger _logger;
 
         /// <summary>
         /// Создает новый экземпляр сервиса управления моделями
         /// </summary>
-        public ModelService(IHttpClientWrapper httpClient, ILogger<ModelService> logger)
+        public ModelService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -40,7 +40,7 @@ namespace StableDiffusionNet.Services
                 cancellationToken
             );
 
-            _logger.LogInformation("Models retrieved: {Count}", models.Count);
+            _logger.LogInformation($"Models retrieved: {models.Count}");
 
             return models.AsReadOnly();
         }
@@ -58,7 +58,7 @@ namespace StableDiffusionNet.Services
             );
 
             var currentModel = options.SdModelCheckpoint ?? "unknown";
-            _logger.LogInformation("Current model: {Model}", currentModel);
+            _logger.LogInformation($"Current model: {currentModel}");
 
             return currentModel;
         }
@@ -72,13 +72,13 @@ namespace StableDiffusionNet.Services
             if (string.IsNullOrWhiteSpace(modelName))
                 throw new ArgumentException("Model name cannot be empty", nameof(modelName));
 
-            _logger.LogInformation("Setting model: {Model}", modelName);
+            _logger.LogInformation($"Setting model: {modelName}");
 
             var options = new WebUIOptions { SdModelCheckpoint = modelName };
 
             await _httpClient.PostAsync(ApiEndpoints.Options, options, cancellationToken);
 
-            _logger.LogInformation("Model successfully set: {Model}", modelName);
+            _logger.LogInformation($"Model successfully set: {modelName}");
         }
 
         /// <inheritdoc/>

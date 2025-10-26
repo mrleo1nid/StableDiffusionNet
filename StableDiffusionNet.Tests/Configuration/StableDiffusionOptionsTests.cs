@@ -33,7 +33,7 @@ namespace StableDiffusionNet.Tests.Configuration
             {
                 BaseUrl = "http://localhost:7860",
                 TimeoutSeconds = 300,
-                RetryCount = 3
+                RetryCount = 3,
             };
 
             // Act & Assert
@@ -49,8 +49,7 @@ namespace StableDiffusionNet.Tests.Configuration
 
             // Act & Assert
             var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>()
-                .WithMessage("*BaseUrl cannot be empty*");
+            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
@@ -61,8 +60,7 @@ namespace StableDiffusionNet.Tests.Configuration
 
             // Act & Assert
             var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>()
-                .WithMessage("*BaseUrl cannot be empty*");
+            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
@@ -73,8 +71,7 @@ namespace StableDiffusionNet.Tests.Configuration
 
             // Act & Assert
             var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>()
-                .WithMessage("*BaseUrl cannot be empty*");
+            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
@@ -85,7 +82,8 @@ namespace StableDiffusionNet.Tests.Configuration
 
             // Act & Assert
             var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>()
+            act.Should()
+                .Throw<ConfigurationException>()
                 .WithMessage("*BaseUrl must be a valid URL*");
         }
 
@@ -100,7 +98,8 @@ namespace StableDiffusionNet.Tests.Configuration
 
             // Act & Assert
             var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>()
+            act.Should()
+                .Throw<ConfigurationException>()
                 .WithMessage("*TimeoutSeconds must be a positive number*");
         }
 
@@ -114,7 +113,8 @@ namespace StableDiffusionNet.Tests.Configuration
 
             // Act & Assert
             var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>()
+            act.Should()
+                .Throw<ConfigurationException>()
                 .WithMessage("*RetryCount cannot be negative*");
         }
 
@@ -198,4 +198,3 @@ namespace StableDiffusionNet.Tests.Configuration
         }
     }
 }
-

@@ -1,9 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Services
@@ -16,12 +16,12 @@ namespace StableDiffusionNet.Services
     public class ProgressService : IProgressService
     {
         private readonly IHttpClientWrapper _httpClient;
-        private readonly ILogger<ProgressService> _logger;
+        private readonly IStableDiffusionLogger _logger;
 
         /// <summary>
         /// Создает новый экземпляр сервиса отслеживания прогресса
         /// </summary>
-        public ProgressService(IHttpClientWrapper httpClient, ILogger<ProgressService> logger)
+        public ProgressService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -40,10 +40,7 @@ namespace StableDiffusionNet.Services
             if (progress.State != null)
             {
                 _logger.LogDebug(
-                    "Progress: {Progress:P}, Step: {CurrentStep}/{TotalSteps}",
-                    progress.Progress,
-                    progress.State.SamplingStep,
-                    progress.State.SamplingSteps
+                    $"Progress: {progress.Progress:P}, Step: {progress.State.SamplingStep}/{progress.State.SamplingSteps}"
                 );
             }
 

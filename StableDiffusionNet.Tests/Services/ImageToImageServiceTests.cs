@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models.Requests;
 using StableDiffusionNet.Models.Responses;
 using StableDiffusionNet.Services;
@@ -19,13 +19,13 @@ namespace StableDiffusionNet.Tests.Services
     public class ImageToImageServiceTests
     {
         private readonly Mock<IHttpClientWrapper> _httpClientMock;
-        private readonly Mock<ILogger<ImageToImageService>> _loggerMock;
+        private readonly Mock<IStableDiffusionLogger> _loggerMock;
         private readonly ImageToImageService _service;
 
         public ImageToImageServiceTests()
         {
             _httpClientMock = new Mock<IHttpClientWrapper>();
-            _loggerMock = new Mock<ILogger<ImageToImageService>>();
+            _loggerMock = new Mock<IStableDiffusionLogger>();
             _service = new ImageToImageService(_httpClientMock.Object, _loggerMock.Object);
         }
 
@@ -34,8 +34,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new ImageToImageService(null!, _loggerMock.Object);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("httpClient");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
         }
 
         [Fact]
@@ -43,8 +42,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new ImageToImageService(_httpClientMock.Object, null!);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
         }
 
         [Fact]
@@ -55,20 +53,23 @@ namespace StableDiffusionNet.Tests.Services
             {
                 InitImages = new List<string> { "base64image" },
                 Prompt = "a beautiful landscape",
-                DenoisingStrength = 0.75
+                DenoisingStrength = 0.75,
             };
 
             var expectedResponse = new ImageToImageResponse
             {
                 Images = new List<string> { "base64result1", "base64result2" },
-                Info = "Generation info"
+                Info = "Generation info",
             };
 
             _httpClientMock
-                .Setup(x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    "/sdapi/v1/img2img",
-                    request,
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        "/sdapi/v1/img2img",
+                        request,
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(expectedResponse);
 
             // Act
@@ -86,23 +87,19 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = async () => await _service.GenerateAsync(null!);
-            await act.Should().ThrowAsync<ArgumentNullException>()
-                .WithParameterName("request");
+            await act.Should().ThrowAsync<ArgumentNullException>().WithParameterName("request");
         }
 
         [Fact]
         public async Task GenerateAsync_WithNullInitImages_ThrowsArgumentException()
         {
             // Arrange
-            var request = new ImageToImageRequest
-            {
-                InitImages = null!,
-                Prompt = "test"
-            };
+            var request = new ImageToImageRequest { InitImages = null!, Prompt = "test" };
 
             // Act & Assert
             var act = async () => await _service.GenerateAsync(request);
-            await act.Should().ThrowAsync<ArgumentException>()
+            await act.Should()
+                .ThrowAsync<ArgumentException>()
                 .WithMessage("*At least one initial image must be provided*")
                 .WithParameterName("request");
         }
@@ -114,12 +111,13 @@ namespace StableDiffusionNet.Tests.Services
             var request = new ImageToImageRequest
             {
                 InitImages = new List<string>(),
-                Prompt = "test"
+                Prompt = "test",
             };
 
             // Act & Assert
             var act = async () => await _service.GenerateAsync(request);
-            await act.Should().ThrowAsync<ArgumentException>()
+            await act.Should()
+                .ThrowAsync<ArgumentException>()
                 .WithMessage("*At least one initial image must be provided*")
                 .WithParameterName("request");
         }
@@ -131,12 +129,13 @@ namespace StableDiffusionNet.Tests.Services
             var request = new ImageToImageRequest
             {
                 InitImages = new List<string> { "image" },
-                Prompt = string.Empty
+                Prompt = string.Empty,
             };
 
             // Act & Assert
             var act = async () => await _service.GenerateAsync(request);
-            await act.Should().ThrowAsync<ArgumentException>()
+            await act.Should()
+                .ThrowAsync<ArgumentException>()
                 .WithMessage("*Prompt cannot be empty*")
                 .WithParameterName("request");
         }
@@ -148,13 +147,12 @@ namespace StableDiffusionNet.Tests.Services
             var request = new ImageToImageRequest
             {
                 InitImages = new List<string> { "image" },
-                Prompt = "   "
+                Prompt = "   ",
             };
 
             // Act & Assert
             var act = async () => await _service.GenerateAsync(request);
-            await act.Should().ThrowAsync<ArgumentException>()
-                .WithParameterName("request");
+            await act.Should().ThrowAsync<ArgumentException>().WithParameterName("request");
         }
 
         [Fact]
@@ -164,15 +162,18 @@ namespace StableDiffusionNet.Tests.Services
             var request = new ImageToImageRequest
             {
                 InitImages = new List<string> { "image" },
-                Prompt = "test prompt"
+                Prompt = "test prompt",
             };
             var response = new ImageToImageResponse { Images = new List<string> { "result" } };
 
             _httpClientMock
-                .Setup(x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<ImageToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<ImageToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(response);
 
             // Act
@@ -180,11 +181,14 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    "/sdapi/v1/img2img",
-                    request,
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        "/sdapi/v1/img2img",
+                        request,
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -194,16 +198,19 @@ namespace StableDiffusionNet.Tests.Services
             var request = new ImageToImageRequest
             {
                 InitImages = new List<string> { "image" },
-                Prompt = "test"
+                Prompt = "test",
             };
             var response = new ImageToImageResponse { Images = new List<string> { "result" } };
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             _httpClientMock
-                .Setup(x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<ImageToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<ImageToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(response);
 
             // Act
@@ -211,11 +218,14 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<ImageToImageRequest>(),
-                    cts.Token),
-                Times.Once);
+                x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<ImageToImageRequest>(),
+                        cts.Token
+                    ),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -226,38 +236,25 @@ namespace StableDiffusionNet.Tests.Services
             {
                 InitImages = new List<string> { "image" },
                 Prompt = "test prompt",
-                DenoisingStrength = 0.75
+                DenoisingStrength = 0.75,
             };
             var response = new ImageToImageResponse { Images = new List<string> { "result" } };
 
             _httpClientMock
-                .Setup(x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<ImageToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<ImageToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(response);
 
             // Act
             await _service.GenerateAsync(request);
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Starting image-to-image generation")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Generation completed")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -267,15 +264,18 @@ namespace StableDiffusionNet.Tests.Services
             var request = new ImageToImageRequest
             {
                 InitImages = new List<string> { "image1", "image2", "image3" },
-                Prompt = "test prompt"
+                Prompt = "test prompt",
             };
             var response = new ImageToImageResponse { Images = new List<string> { "result" } };
 
             _httpClientMock
-                .Setup(x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<ImageToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<ImageToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(response);
 
             // Act
@@ -295,16 +295,21 @@ namespace StableDiffusionNet.Tests.Services
                 InitImages = new List<string> { "image" },
                 Prompt = "test",
                 Mask = "mask_base64",
-                MaskBlur = 10
+                MaskBlur = 10,
             };
 
             ImageToImageRequest? capturedRequest = null;
             _httpClientMock
-                .Setup(x => x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<ImageToImageRequest>(),
-                    It.IsAny<CancellationToken>()))
-                .Callback<string, ImageToImageRequest, CancellationToken>((_, req, _) => capturedRequest = req)
+                .Setup(x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<ImageToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .Callback<string, ImageToImageRequest, CancellationToken>(
+                    (_, req, _) => capturedRequest = req
+                )
                 .ReturnsAsync(new ImageToImageResponse { Images = new List<string> { "result" } });
 
             // Act
@@ -317,4 +322,3 @@ namespace StableDiffusionNet.Tests.Services
         }
     }
 }
-

@@ -4,7 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using StableDiffusionNet.Configuration;
-using StableDiffusionNet.Extensions;
+using StableDiffusionNet.DependencyInjection.Extensions;
 using StableDiffusionNet.Interfaces;
 using Xunit;
 

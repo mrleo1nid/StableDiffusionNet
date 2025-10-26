@@ -8,34 +8,73 @@
 
 .NET клиент для Stable Diffusion WebUI API
 
+## 🎯 Выберите подходящий пакет
+
+StableDiffusionNet предлагает два пакета для разных сценариев использования:
+
+### StableDiffusionNet.Core
+**Lightweight пакет без Dependency Injection**
+
+[![NuGet](https://img.shields.io/nuget/v/StableDiffusionNet.Core.svg)](https://www.nuget.org/packages/StableDiffusionNet.Core/)
+
+Идеален для:
+- ✨ Консольных приложений
+- 🚀 Простых скриптов и утилит
+- 📦 Проектов без инфраструктуры DI
+- ⚡ Минимальных зависимостей
+
+```bash
+dotnet add package StableDiffusionNet.Core
+```
+
+### StableDiffusionNet.DependencyInjection
+**Расширения для Microsoft.Extensions.DependencyInjection**
+
+[![NuGet](https://img.shields.io/nuget/v/StableDiffusionNet.DependencyInjection.svg)](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/)
+
+Идеален для:
+- 🌐 ASP.NET Core приложений
+- 🏗️ Проектов с DI контейнером
+- 📊 Интеграции с Microsoft.Extensions.*
+- ⚙️ IOptions pattern и конфигурации
+
+```bash
+dotnet add package StableDiffusionNet.DependencyInjection
+```
+
 ## Особенности
 
-- 🎯 **Два варианта использования**: с Dependency Injection или без него
-- 🏗️ **Builder Pattern**: удобное создание клиента без DI
-- 🔄 Встроенная retry-логика с использованием Polly
-- ⚡ Асинхронные операции с поддержкой async/await и CancellationToken
-- 📝 XML документация для всех публичных API
-- 📊 Интеграция с Microsoft.Extensions.Logging
-- 🎨 Поддержка .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
+- 🎯 **Два варианта использования**: Core (без DI) или DependencyInjection (с полной интеграцией DI)
+- 🏗️ **Builder Pattern**: удобное создание клиента в Core пакете
+- 🔄 **Надежная retry-логика**: собственная быстрая реализация с экспоненциальной задержкой
+- ⚡ **Асинхронные операции**: полная поддержка async/await и CancellationToken
+- 📝 **XML документация**: для всех публичных API
+- 📊 **Гибкое логирование**: собственная абстракция в Core, интеграция с Microsoft.Extensions.Logging в DI
+- 🎨 **Multi-targeting**: .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
 
 ## 📦 Установка
 
+### Для проектов без DI (Console, Scripts, Utilities)
+
 ```bash
-dotnet add package StableDiffusionNet
+dotnet add package StableDiffusionNet.Core
 ```
 
-Или через NuGet Package Manager:
+### Для проектов с DI (ASP.NET Core, Modern Apps)
 
+```bash
+dotnet add package StableDiffusionNet.DependencyInjection
 ```
-Install-Package StableDiffusionNet
-```
+
+Пакет `StableDiffusionNet.DependencyInjection` автоматически установит `StableDiffusionNet.Core` как зависимость.
 
 ## 🚀 Быстрый старт
 
-### Вариант 1: Использование без Dependency Injection (самый простой)
+### Вариант 1: StableDiffusionNet.Core (без DI)
 
 ```csharp
 using StableDiffusionNet;
+using StableDiffusionNet.Models.Requests;
 
 // Создание клиента с настройками по умолчанию
 var client = StableDiffusionClientBuilder.CreateDefault("http://localhost:7860");
@@ -49,15 +88,21 @@ var client = new StableDiffusionClientBuilder()
     .Build();
 
 // Готово! Можно использовать
+var request = new TextToImageRequest
+{
+    Prompt = "a beautiful sunset",
+    Width = 512,
+    Height = 512
+};
 var response = await client.TextToImage.GenerateAsync(request);
 ```
 
-### Вариант 2: Настройка с Dependency Injection
+### Вариант 2: StableDiffusionNet.DependencyInjection (с DI)
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using StableDiffusionNet.Extensions;
+using StableDiffusionNet.DependencyInjection.Extensions;
 
 // Настройка DI контейнера
 var services = new ServiceCollection();
@@ -78,11 +123,22 @@ var serviceProvider = services.BuildServiceProvider();
 var client = serviceProvider.GetRequiredService<IStableDiffusionClient>();
 ```
 
-### Простая настройка с DI
+### ASP.NET Core Integration
 
 ```csharp
-// Для быстрого старта с настройками по умолчанию
-services.AddStableDiffusion("http://localhost:7860");
+// Program.cs
+var builder = WebApplication.CreateBuilder(args);
+
+// Простая регистрация
+builder.Services.AddStableDiffusion("http://localhost:7860");
+
+// Или с полной конфигурацией
+builder.Services.AddStableDiffusion(options =>
+{
+    builder.Configuration.GetSection("StableDiffusion").Bind(options);
+});
+
+var app = builder.Build();
 ```
 
 ## 📚 Примеры использования
@@ -391,13 +447,14 @@ catch (StableDiffusionException ex)
 
 ## 🔄 Retry Policy
 
-Библиотека использует Polly для автоматических повторов при временных ошибках:
+Библиотека включает собственную надежную и быструю реализацию retry логики:
 
-- Транзитные HTTP ошибки
-- Ошибки сети
-- HTTP 429 (Too Many Requests)
+- Транзитные HTTP ошибки (500, 502, 503, 504)
+- Ошибки сети и таймауты
+- HTTP 429 (Too Many Requests) с увеличенной задержкой
+- Экспоненциальный backoff с jitter для избежания thundering herd
 
-Повторы выполняются с экспоненциальной задержкой.
+Повторы выполняются автоматически без внешних зависимостей.
 
 ## 🎯 Требования
 

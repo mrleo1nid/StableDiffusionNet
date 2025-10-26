@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net8.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Package Information -->
+    <PackageId>StableDiffusionNet.Core</PackageId>
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
+    <Authors>StableDiffusionNet Contributors</Authors>
+    <Company>StableDiffusionNet</Company>
+    <Product>StableDiffusionNet.Core</Product>
+    <Description>Core .NET client library for Stable Diffusion WebUI (AUTOMATIC1111) API without dependency injection. Lightweight package with minimal dependencies. Supports Text-to-Image, Image-to-Image generation, model management, progress tracking, and more. Compatible with .NET Standard 2.0+, .NET Framework 4.7.2+, .NET Core 2.0+, .NET 5.0+.</Description>
+    <Copyright>Copyright © 2025 StableDiffusionNet Contributors</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/mrleo1nid/StableDiffusionNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mrleo1nid/StableDiffusionNet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>stable-diffusion;ai;image-generation;webui;api-client;automatic1111;text-to-image;image-to-image;dotnet;csharp;core;lightweight</PackageTags>
+    <PackageReleaseNotes>See CHANGELOG.md for details</PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <!-- SourceLink -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" Condition="Exists('README.md')" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

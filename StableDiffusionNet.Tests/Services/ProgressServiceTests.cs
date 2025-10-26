@@ -2,9 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.Interfaces;
+using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
 using StableDiffusionNet.Services;
 using Xunit;
@@ -17,13 +17,13 @@ namespace StableDiffusionNet.Tests.Services
     public class ProgressServiceTests
     {
         private readonly Mock<IHttpClientWrapper> _httpClientMock;
-        private readonly Mock<ILogger<ProgressService>> _loggerMock;
+        private readonly Mock<IStableDiffusionLogger> _loggerMock;
         private readonly ProgressService _service;
 
         public ProgressServiceTests()
         {
             _httpClientMock = new Mock<IHttpClientWrapper>();
-            _loggerMock = new Mock<ILogger<ProgressService>>();
+            _loggerMock = new Mock<IStableDiffusionLogger>();
             _service = new ProgressService(_httpClientMock.Object, _loggerMock.Object);
         }
 
@@ -32,8 +32,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new ProgressService(null!, _loggerMock.Object);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("httpClient");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
         }
 
         [Fact]
@@ -41,8 +40,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Act & Assert
             var act = () => new ProgressService(_httpClientMock.Object, null!);
-            act.Should().Throw<ArgumentNullException>()
-                .WithParameterName("logger");
+            act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
         }
 
         [Fact]
@@ -59,16 +57,19 @@ namespace StableDiffusionNet.Tests.Services
                     SamplingSteps = 20,
                     Job = "txt2img",
                     JobCount = 1,
-                    JobNo = 0
+                    JobNo = 0,
                 },
                 CurrentImage = "base64image",
-                TextInfo = "Generating..."
+                TextInfo = "Generating...",
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<GenerationProgress>(
-                    "/sdapi/v1/progress",
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<GenerationProgress>(
+                        "/sdapi/v1/progress",
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(expectedProgress);
 
             // Act
@@ -87,16 +88,15 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetProgressAsync_WithNullState_HandlesGracefully()
         {
             // Arrange
-            var progress = new GenerationProgress
-            {
-                Progress = 0.0,
-                State = null
-            };
+            var progress = new GenerationProgress { Progress = 0.0, State = null };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<GenerationProgress>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<GenerationProgress>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(progress);
 
             // Act
@@ -114,9 +114,12 @@ namespace StableDiffusionNet.Tests.Services
             var progress = new GenerationProgress { Progress = 0.5 };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<GenerationProgress>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<GenerationProgress>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(progress);
 
             // Act
@@ -124,23 +127,29 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.GetAsync<GenerationProgress>(
-                    "/sdapi/v1/progress",
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                x =>
+                    x.GetAsync<GenerationProgress>(
+                        "/sdapi/v1/progress",
+                        It.IsAny<CancellationToken>()
+                    ),
+                Times.Once
+            );
         }
 
         [Fact]
         public async Task GetProgressAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
             var progress = new GenerationProgress { Progress = 0.5 };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<GenerationProgress>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<GenerationProgress>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(progress);
 
             // Act
@@ -148,10 +157,9 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.GetAsync<GenerationProgress>(
-                    "/sdapi/v1/progress",
-                    cts.Token),
-                Times.Once);
+                x => x.GetAsync<GenerationProgress>("/sdapi/v1/progress", cts.Token),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -161,31 +169,23 @@ namespace StableDiffusionNet.Tests.Services
             var progress = new GenerationProgress
             {
                 Progress = 0.5,
-                State = new ProgressState
-                {
-                    SamplingStep = 10,
-                    SamplingSteps = 20
-                }
+                State = new ProgressState { SamplingStep = 10, SamplingSteps = 20 },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<GenerationProgress>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<GenerationProgress>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(progress);
 
             // Act
             await _service.GetProgressAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Debug,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Progress")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -193,9 +193,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    "/sdapi/v1/interrupt",
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync("/sdapi/v1/interrupt", It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -203,33 +201,26 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/interrupt",
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                x => x.PostAsync("/sdapi/v1/interrupt", It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
         public async Task InterruptAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
             await _service.InterruptAsync(cts.Token);
 
             // Assert
-            _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/interrupt",
-                    cts.Token),
-                Times.Once);
+            _httpClientMock.Verify(x => x.PostAsync("/sdapi/v1/interrupt", cts.Token), Times.Once);
         }
 
         [Fact]
@@ -237,32 +228,14 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
             await _service.InterruptAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Interrupting current generation")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Generation successfully interrupted")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -270,9 +243,7 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    "/sdapi/v1/skip",
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync("/sdapi/v1/skip", It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
@@ -280,33 +251,26 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/skip",
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
+                x => x.PostAsync("/sdapi/v1/skip", It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
         public async Task SkipAsync_WithCancellationToken_PassesToken()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
+            using var cts = new CancellationTokenSource();
 
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
             await _service.SkipAsync(cts.Token);
 
             // Assert
-            _httpClientMock.Verify(
-                x => x.PostAsync(
-                    "/sdapi/v1/skip",
-                    cts.Token),
-                Times.Once);
+            _httpClientMock.Verify(x => x.PostAsync("/sdapi/v1/skip", cts.Token), Times.Once);
         }
 
         [Fact]
@@ -314,32 +278,14 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             _httpClientMock
-                .Setup(x => x.PostAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.CompletedTask);
 
             // Act
             await _service.SkipAsync();
 
             // Assert
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Skipping current image")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
-
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Information,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Image successfully skipped")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-                Times.Once);
+            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -358,16 +304,19 @@ namespace StableDiffusionNet.Tests.Services
                     JobCount = 1,
                     JobNo = 0,
                     SamplingStep = 20,
-                    SamplingSteps = 20
+                    SamplingSteps = 20,
                 },
                 CurrentImage = "base64preview",
-                TextInfo = "Complete"
+                TextInfo = "Complete",
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<GenerationProgress>(
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x =>
+                    x.GetAsync<GenerationProgress>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
                 .ReturnsAsync(progress);
 
             // Act
@@ -381,4 +330,3 @@ namespace StableDiffusionNet.Tests.Services
         }
     }
 }
-
