@@ -43,7 +43,8 @@ namespace StableDiffusionNet.Configuration
         /// </summary>
         /// <exception cref="ConfigurationException">
         /// Выбрасывается, если BaseUrl пустой, невалидный,
-        /// TimeoutSeconds не положительный или RetryCount отрицательный
+        /// TimeoutSeconds не положительный, RetryCount отрицательный
+        /// или RetryDelayMilliseconds отрицательный
         /// </exception>
         public void Validate()
         {
@@ -58,6 +59,9 @@ namespace StableDiffusionNet.Configuration
 
             if (RetryCount < 0)
                 throw new ConfigurationException("RetryCount cannot be negative");
+
+            if (RetryDelayMilliseconds < 0)
+                throw new ConfigurationException("RetryDelayMilliseconds cannot be negative");
         }
     }
 }

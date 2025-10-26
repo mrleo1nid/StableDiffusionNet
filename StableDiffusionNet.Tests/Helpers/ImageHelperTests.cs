@@ -10,9 +10,11 @@ namespace StableDiffusionNet.Tests.Helpers
     {
         private readonly string _testDirectory;
         private readonly string _testImagePath;
+        private readonly ImageHelper _imageHelper;
 
         public ImageHelperTests()
         {
+            _imageHelper = ImageHelper.Instance;
             _testDirectory = Path.Combine(Path.GetTempPath(), "StableDiffusionNet.Tests");
             Directory.CreateDirectory(_testDirectory);
 
@@ -97,7 +99,7 @@ namespace StableDiffusionNet.Tests.Helpers
         public void ImageToBase64_ValidPngFile_ReturnsBase64String()
         {
             // Act
-            var result = ImageHelper.ImageToBase64(_testImagePath);
+            var result = _imageHelper.ImageToBase64(_testImagePath);
 
             // Assert
             result.Should().NotBeNullOrEmpty();
@@ -113,7 +115,7 @@ namespace StableDiffusionNet.Tests.Helpers
             File.WriteAllBytes(jpegPath, new byte[] { 0xFF, 0xD8, 0xFF });
 
             // Act
-            var result = ImageHelper.ImageToBase64(jpegPath);
+            var result = _imageHelper.ImageToBase64(jpegPath);
 
             // Assert
             result.Should().StartWith("data:image/jpeg;base64,");
@@ -123,7 +125,7 @@ namespace StableDiffusionNet.Tests.Helpers
         public void ImageToBase64_EmptyPath_ThrowsArgumentException()
         {
             // Act & Assert
-            var act = () => ImageHelper.ImageToBase64(string.Empty);
+            var act = () => _imageHelper.ImageToBase64(string.Empty);
             act.Should()
                 .Throw<ArgumentException>()
                 .WithParameterName("filePath")
@@ -134,7 +136,7 @@ namespace StableDiffusionNet.Tests.Helpers
         public void ImageToBase64_NullPath_ThrowsArgumentException()
         {
             // Act & Assert
-            var act = () => ImageHelper.ImageToBase64(null!);
+            var act = () => _imageHelper.ImageToBase64(null!);
             act.Should().Throw<ArgumentException>().WithParameterName("filePath");
         }
 
@@ -145,7 +147,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var nonExistentPath = Path.Combine(_testDirectory, "nonexistent.png");
 
             // Act & Assert
-            var act = () => ImageHelper.ImageToBase64(nonExistentPath);
+            var act = () => _imageHelper.ImageToBase64(nonExistentPath);
             act.Should().Throw<FileNotFoundException>();
         }
 
@@ -167,7 +169,7 @@ namespace StableDiffusionNet.Tests.Helpers
             File.WriteAllBytes(filePath, new byte[] { 0x01, 0x02, 0x03 });
 
             // Act
-            var result = ImageHelper.ImageToBase64(filePath);
+            var result = _imageHelper.ImageToBase64(filePath);
 
             // Assert
             result.Should().StartWith($"data:{expectedMime};base64,");
@@ -181,7 +183,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var outputPath = Path.Combine(_testDirectory, "output.png");
 
             // Act
-            ImageHelper.Base64ToImage(base64, outputPath);
+            _imageHelper.Base64ToImage(base64, outputPath);
 
             // Assert
             File.Exists(outputPath).Should().BeTrue();
@@ -195,7 +197,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var outputPath = Path.Combine(_testDirectory, "output2.png");
 
             // Act
-            ImageHelper.Base64ToImage(base64, outputPath);
+            _imageHelper.Base64ToImage(base64, outputPath);
 
             // Assert
             File.Exists(outputPath).Should().BeTrue();
@@ -210,7 +212,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var outputPath = Path.Combine(subdirectory, "output.png");
 
             // Act
-            ImageHelper.Base64ToImage(base64, outputPath);
+            _imageHelper.Base64ToImage(base64, outputPath);
 
             // Assert
             Directory.Exists(subdirectory).Should().BeTrue();
@@ -224,7 +226,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var outputPath = Path.Combine(_testDirectory, "output.png");
 
             // Act & Assert
-            var act = () => ImageHelper.Base64ToImage(string.Empty, outputPath);
+            var act = () => _imageHelper.Base64ToImage(string.Empty, outputPath);
             act.Should().Throw<ArgumentException>().WithParameterName("base64String");
         }
 
@@ -232,7 +234,7 @@ namespace StableDiffusionNet.Tests.Helpers
         public void Base64ToImage_EmptyOutputPath_ThrowsArgumentException()
         {
             // Act & Assert
-            var act = () => ImageHelper.Base64ToImage("base64data", string.Empty);
+            var act = () => _imageHelper.Base64ToImage("base64data", string.Empty);
             act.Should().Throw<ArgumentException>().WithParameterName("outputPath");
         }
 
@@ -243,7 +245,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var bytes = new byte[] { 0x01, 0x02, 0x03, 0x04 };
 
             // Act
-            var result = ImageHelper.BytesToBase64(bytes);
+            var result = _imageHelper.BytesToBase64(bytes);
 
             // Assert
             result.Should().NotBeNullOrEmpty();
@@ -258,7 +260,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var mimeType = "image/jpeg";
 
             // Act
-            var result = ImageHelper.BytesToBase64(bytes, mimeType);
+            var result = _imageHelper.BytesToBase64(bytes, mimeType);
 
             // Assert
             result.Should().StartWith($"data:{mimeType};base64,");
@@ -268,7 +270,7 @@ namespace StableDiffusionNet.Tests.Helpers
         public void BytesToBase64_NullBytes_ThrowsArgumentException()
         {
             // Act & Assert
-            var act = () => ImageHelper.BytesToBase64(null!);
+            var act = () => _imageHelper.BytesToBase64(null!);
             act.Should().Throw<ArgumentException>().WithParameterName("imageBytes");
         }
 
@@ -276,7 +278,7 @@ namespace StableDiffusionNet.Tests.Helpers
         public void BytesToBase64_EmptyBytes_ThrowsArgumentException()
         {
             // Act & Assert
-            var act = () => ImageHelper.BytesToBase64(Array.Empty<byte>());
+            var act = () => _imageHelper.BytesToBase64(Array.Empty<byte>());
             act.Should().Throw<ArgumentException>().WithParameterName("imageBytes");
         }
 
@@ -287,7 +289,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var base64 = "data:image/png;base64,ABCD1234";
 
             // Act
-            var result = ImageHelper.ExtractBase64Data(base64);
+            var result = _imageHelper.ExtractBase64Data(base64);
 
             // Assert
             result.Should().Be("ABCD1234");
@@ -300,7 +302,7 @@ namespace StableDiffusionNet.Tests.Helpers
             var base64 = "ABCD1234";
 
             // Act
-            var result = ImageHelper.ExtractBase64Data(base64);
+            var result = _imageHelper.ExtractBase64Data(base64);
 
             // Assert
             result.Should().Be("ABCD1234");
@@ -310,7 +312,7 @@ namespace StableDiffusionNet.Tests.Helpers
         public void ExtractBase64Data_EmptyString_ThrowsArgumentException()
         {
             // Act & Assert
-            var act = () => ImageHelper.ExtractBase64Data(string.Empty);
+            var act = () => _imageHelper.ExtractBase64Data(string.Empty);
             act.Should().Throw<ArgumentException>().WithParameterName("base64String");
         }
 
@@ -321,9 +323,9 @@ namespace StableDiffusionNet.Tests.Helpers
             var originalBytes = File.ReadAllBytes(_testImagePath);
 
             // Act
-            var base64 = ImageHelper.ImageToBase64(_testImagePath);
+            var base64 = _imageHelper.ImageToBase64(_testImagePath);
             var outputPath = Path.Combine(_testDirectory, "roundtrip.png");
-            ImageHelper.Base64ToImage(base64, outputPath);
+            _imageHelper.Base64ToImage(base64, outputPath);
             var resultBytes = File.ReadAllBytes(outputPath);
 
             // Assert

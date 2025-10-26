@@ -1,13 +1,24 @@
 using System;
 using System.IO;
+using StableDiffusionNet.Interfaces;
 
 namespace StableDiffusionNet.Helpers
 {
     /// <summary>
     /// Вспомогательные методы для работы с изображениями
     /// </summary>
-    public static class ImageHelper
+    public class ImageHelper : IImageHelper
     {
+        /// <summary>
+        /// Singleton экземпляр для использования без DI
+        /// </summary>
+        public static readonly ImageHelper Instance = new ImageHelper();
+
+        /// <summary>
+        /// Публичный конструктор для использования с DI
+        /// </summary>
+        public ImageHelper() { }
+
         /// <summary>
         /// Максимальный размер файла изображения в байтах (50 МБ)
         /// </summary>
@@ -26,7 +37,7 @@ namespace StableDiffusionNet.Helpers
         /// <param name="filePath">Путь к файлу изображения</param>
         /// <returns>Base64 строка с префиксом data:image</returns>
         /// <exception cref="ArgumentException">Выбрасывается если файл слишком большой</exception>
-        public static string ImageToBase64(string filePath)
+        public string ImageToBase64(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("File path cannot be empty", nameof(filePath));
@@ -63,7 +74,7 @@ namespace StableDiffusionNet.Helpers
         /// </summary>
         /// <param name="base64String">Base64 строка (с или без префикса data:image)</param>
         /// <param name="outputPath">Путь для сохранения файла</param>
-        public static void Base64ToImage(string base64String, string outputPath)
+        public void Base64ToImage(string base64String, string outputPath)
         {
             if (string.IsNullOrWhiteSpace(base64String))
                 throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));
@@ -90,7 +101,7 @@ namespace StableDiffusionNet.Helpers
         /// <param name="imageBytes">Массив байт изображения</param>
         /// <param name="mimeType">MIME тип (по умолчанию image/png)</param>
         /// <returns>Base64 строка с префиксом data:image</returns>
-        public static string BytesToBase64(byte[] imageBytes, string mimeType = "image/png")
+        public string BytesToBase64(byte[] imageBytes, string mimeType = "image/png")
         {
             if (imageBytes == null || imageBytes.Length == 0)
                 throw new ArgumentException("Byte array cannot be empty", nameof(imageBytes));
@@ -104,7 +115,7 @@ namespace StableDiffusionNet.Helpers
         /// </summary>
         /// <param name="base64String">Base64 строка с префиксом или без</param>
         /// <returns>Чистая base64 строка</returns>
-        public static string ExtractBase64Data(string base64String)
+        public string ExtractBase64Data(string base64String)
         {
             if (string.IsNullOrWhiteSpace(base64String))
                 throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));

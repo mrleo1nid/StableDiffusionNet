@@ -15,6 +15,8 @@ namespace StableDiffusionNet.Infrastructure
     {
         private readonly StableDiffusionOptions _options;
         private readonly IStableDiffusionLogger _logger;
+        private static readonly Random _random = new Random();
+        private static readonly object _randomLock = new object();
 
         public RetryHandler(StableDiffusionOptions options, IStableDiffusionLogger logger)
         {
@@ -162,7 +164,15 @@ namespace StableDiffusionNet.Infrastructure
             var delay = baseDelay * (1 << attempt);
 
             // Добавляем небольшую случайную задержку (jitter) для избежания thundering herd
-            var jitter = new Random().Next(0, baseDelay / 4);
+#if NET6_0_OR_GREATER
+            var jitter = Random.Shared.Next(0, baseDelay / 4);
+#else
+            int jitter;
+            lock (_randomLock)
+            {
+                jitter = _random.Next(0, baseDelay / 4);
+            }
+#endif
             return delay + jitter;
         }
     }
