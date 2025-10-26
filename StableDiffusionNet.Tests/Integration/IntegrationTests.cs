@@ -159,8 +159,9 @@ namespace StableDiffusionNet.Tests.Integration
 
             // Assert
             response.Should().NotBeNull();
+            response.Images.Should().NotBeNull();
             response.Images.Should().NotBeEmpty();
-            response.Images[0].Should().NotBeNullOrEmpty();
+            response.Images![0].Should().NotBeNullOrEmpty();
             // Image should be base64 encoded or be raw base64 (length > 1000)
             var hasPrefix = response.Images[0].Contains("base64");
             var isLong = response.Images[0].Length > 1000;
@@ -414,11 +415,12 @@ namespace StableDiffusionNet.Tests.Integration
             };
 
             var generateResponse = await _client.TextToImage.GenerateAsync(generateRequest);
+            generateResponse.Images.Should().NotBeNull();
             generateResponse.Images.Should().NotBeEmpty();
 
             var pngInfoRequest = new StableDiffusionNet.Models.Requests.PngInfoRequest
             {
-                Image = generateResponse.Images[0],
+                Image = generateResponse.Images![0],
             };
 
             // Act

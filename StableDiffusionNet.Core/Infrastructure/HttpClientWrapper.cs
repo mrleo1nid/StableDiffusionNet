@@ -15,9 +15,6 @@ namespace StableDiffusionNet.Infrastructure
     /// Обертка над HttpClient с обработкой ошибок, логированием и retry логикой
     /// Dependency Inversion Principle - реализует интерфейс IHttpClientWrapper
     /// Single Responsibility - отвечает только за HTTP коммуникацию
-    ///
-    /// Примечание: Класс не реализует IDisposable, так как HttpClient управляется
-    /// извне и не должен диспозиться вручную.
     /// </summary>
     public class HttpClientWrapper : IHttpClientWrapper
     {
@@ -25,6 +22,10 @@ namespace StableDiffusionNet.Infrastructure
         private readonly IStableDiffusionLogger _logger;
         private readonly StableDiffusionOptions _options;
         private readonly RetryHandler _retryHandler;
+        private readonly IJsonSanitizer _jsonSanitizer;
+        private readonly bool _ownsHttpClient;
+        private bool _disposed;
+
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
         {
             NullValueHandling = NullValueHandling.Ignore,
@@ -33,15 +34,22 @@ namespace StableDiffusionNet.Infrastructure
         /// <summary>
         /// Создает новый экземпляр HTTP клиента
         /// </summary>
+        /// <param name="httpClient">HttpClient для использования</param>
+        /// <param name="logger">Логгер</param>
+        /// <param name="options">Опции конфигурации</param>
+        /// <param name="ownsHttpClient">Если true, HttpClient будет disposed при dispose wrapper'а</param>
         public HttpClientWrapper(
             HttpClient httpClient,
             IStableDiffusionLogger logger,
-            StableDiffusionOptions options
+            StableDiffusionOptions options,
+            bool ownsHttpClient = false
         )
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _ownsHttpClient = ownsHttpClient;
+            _jsonSanitizer = new JsonSanitizer();
 
             _options.Validate();
             _retryHandler = new RetryHandler(_options, _logger);
@@ -93,7 +101,7 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        $"POST request to {endpoint} with body: {SanitizeJsonForLogging(json)}"
+                        $"POST request to {endpoint} with body: {_jsonSanitizer.SanitizeForLogging(json)}"
                     );
                 }
 
@@ -157,7 +165,7 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        $"POST request to {endpoint} with body: {SanitizeJsonForLogging(json)}"
+                        $"POST request to {endpoint} with body: {_jsonSanitizer.SanitizeForLogging(json)}"
                     );
                 }
 
@@ -213,7 +221,7 @@ namespace StableDiffusionNet.Infrastructure
             if (_options.EnableDetailedLogging)
             {
                 _logger.LogDebug(
-                    $"Successful response from {endpoint}: {SanitizeJsonForLogging(content)}"
+                    $"Successful response from {endpoint}: {_jsonSanitizer.SanitizeForLogging(content)}"
                 );
             }
 
@@ -231,35 +239,6 @@ namespace StableDiffusionNet.Infrastructure
                 _logger.LogError(ex, $"Error deserializing response from {endpoint}");
                 throw new ApiException($"Error deserializing response from {endpoint}", ex);
             }
-        }
-
-        /// <summary>
-        /// Очищает JSON для безопасного логирования, обрезая base64 данные и большие строки
-        /// </summary>
-        private string SanitizeJsonForLogging(string json)
-        {
-            const int maxLength = 500;
-
-            if (json.Length <= maxLength)
-                return json;
-
-            // Проверяем, содержит ли JSON base64 данные (длинные строки без пробелов)
-            if (
-                json.Contains("\"data:image")
-                || json.Contains("\"init_images\"")
-                || json.Contains("\"mask\"")
-            )
-            {
-                return $"[Request with image data, length: {json.Length} chars]";
-            }
-
-            // Обрезаем длинные JSON
-#if NETSTANDARD2_0
-            return json.Substring(0, maxLength)
-                + $"... [truncated, total length: {json.Length} chars]";
-#else
-            return json[..maxLength] + $"... [truncated, total length: {json.Length} chars]";
-#endif
         }
 
         private async Task EnsureSuccessAsync(
@@ -289,6 +268,33 @@ namespace StableDiffusionNet.Infrastructure
                     content
                 );
             }
+        }
+
+        /// <summary>
+        /// Освобождает ресурсы
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Освобождает управляемые и неуправляемые ресурсы
+        /// </summary>
+        /// <param name="disposing">True если вызван из Dispose, false из финализатора</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            // Освобождаем HttpClient только если мы владеем им
+            if (disposing && _ownsHttpClient)
+            {
+                _httpClient?.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }

@@ -118,6 +118,7 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                 var extra = sp.GetRequiredService<IExtraService>();
                 var embeddings = sp.GetRequiredService<IEmbeddingService>();
                 var loras = sp.GetRequiredService<ILoraService>();
+                var httpClientWrapper = sp.GetRequiredService<IHttpClientWrapper>();
                 var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
 
                 return new StableDiffusionClient(
@@ -133,6 +134,7 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                     extra,
                     embeddings,
                     loras,
+                    httpClientWrapper,
                     loggerFactory.CreateLogger<StableDiffusionClient>()
                 );
             });

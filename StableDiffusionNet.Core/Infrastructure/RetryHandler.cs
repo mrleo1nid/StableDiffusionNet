@@ -15,8 +15,14 @@ namespace StableDiffusionNet.Infrastructure
     {
         private readonly StableDiffusionOptions _options;
         private readonly IStableDiffusionLogger _logger;
-        private static readonly Random _random = new Random();
-        private static readonly object _randomLock = new object();
+
+#if !NET6_0_OR_GREATER
+        // ThreadLocal<Random> для thread-safety в старых версиях .NET
+        private static readonly ThreadLocal<Random> _threadLocalRandom = new ThreadLocal<Random>(
+            () =>
+                new Random(Guid.NewGuid().GetHashCode())
+        );
+#endif
 
         public RetryHandler(StableDiffusionOptions options, IStableDiffusionLogger logger)
         {
@@ -167,11 +173,7 @@ namespace StableDiffusionNet.Infrastructure
 #if NET6_0_OR_GREATER
             var jitter = Random.Shared.Next(0, baseDelay / 4);
 #else
-            int jitter;
-            lock (_randomLock)
-            {
-                jitter = _random.Next(0, baseDelay / 4);
-            }
+            var jitter = _threadLocalRandom.Value!.Next(0, baseDelay / 4);
 #endif
             return delay + jitter;
         }

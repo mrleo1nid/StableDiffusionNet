@@ -14,6 +14,8 @@ namespace StableDiffusionNet
     public class StableDiffusionClient : IStableDiffusionClient
     {
         private readonly IStableDiffusionLogger _logger;
+        private readonly IHttpClientWrapper _httpClientWrapper;
+        private bool _disposed;
 
         /// <inheritdoc/>
         public ITextToImageService TextToImage { get; }
@@ -69,6 +71,7 @@ namespace StableDiffusionNet
             IExtraService extraService,
             IEmbeddingService embeddingService,
             ILoraService loraService,
+            IHttpClientWrapper httpClientWrapper,
             IStableDiffusionLogger logger
         )
         {
@@ -88,6 +91,8 @@ namespace StableDiffusionNet
             Embeddings =
                 embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
             Loras = loraService ?? throw new ArgumentNullException(nameof(loraService));
+            _httpClientWrapper =
+                httpClientWrapper ?? throw new ArgumentNullException(nameof(httpClientWrapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -109,6 +114,33 @@ namespace StableDiffusionNet
                 _logger.LogError(ex, "API is unavailable");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Освобождает ресурсы, используемые клиентом
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Освобождает управляемые и неуправляемые ресурсы
+        /// </summary>
+        /// <param name="disposing">True если вызван из Dispose, false из финализатора</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                // Освобождаем HttpClientWrapper, который освободит HttpClient если владеет им
+                _httpClientWrapper?.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }

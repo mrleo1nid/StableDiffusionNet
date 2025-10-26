@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using StableDiffusionNet.Helpers;
 
 namespace StableDiffusionNet.Models.Requests
 {
@@ -9,16 +10,6 @@ namespace StableDiffusionNet.Models.Requests
     /// </summary>
     public class TextToImageRequest
     {
-        /// <summary>
-        /// Максимальный размер изображения
-        /// </summary>
-        private const int MaxImageSize = 4096;
-
-        /// <summary>
-        /// Минимальный размер изображения
-        /// </summary>
-        private const int MinImageSize = 64;
-
         /// <summary>
         /// Промпт для генерации
         /// </summary>
@@ -383,8 +374,8 @@ namespace StableDiffusionNet.Models.Requests
             if (string.IsNullOrWhiteSpace(Prompt))
                 throw new ArgumentException("Prompt cannot be empty", paramName ?? nameof(Prompt));
 
-            ValidateImageDimension(Width, nameof(Width));
-            ValidateImageDimension(Height, nameof(Height));
+            ImageRequestValidator.ValidateImageDimension(Width, nameof(Width));
+            ImageRequestValidator.ValidateImageDimension(Height, nameof(Height));
 
             if (Steps <= 0)
                 throw new ArgumentException("Steps must be greater than 0", paramName);
@@ -403,17 +394,6 @@ namespace StableDiffusionNet.Models.Requests
                     "HrScale must be greater than 0 when EnableHr is true",
                     paramName
                 );
-        }
-
-        private static void ValidateImageDimension(int value, string dimensionName)
-        {
-            if (value < MinImageSize || value > MaxImageSize)
-                throw new ArgumentException(
-                    $"{dimensionName} must be between {MinImageSize} and {MaxImageSize}"
-                );
-
-            if (value % 8 != 0)
-                throw new ArgumentException($"{dimensionName} must be divisible by 8");
         }
     }
 }

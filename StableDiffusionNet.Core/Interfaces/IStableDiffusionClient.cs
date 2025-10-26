@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,7 +7,7 @@ namespace StableDiffusionNet.Interfaces
     /// <summary>
     /// Главный интерфейс клиента Stable Diffusion WebUI API
     /// </summary>
-    public interface IStableDiffusionClient
+    public interface IStableDiffusionClient : IDisposable
     {
         /// <summary>
         /// Сервис для генерации изображений из текста

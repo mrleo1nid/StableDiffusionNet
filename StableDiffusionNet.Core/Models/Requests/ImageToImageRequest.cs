@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using StableDiffusionNet.Helpers;
 
 namespace StableDiffusionNet.Models.Requests
 {
@@ -9,16 +10,6 @@ namespace StableDiffusionNet.Models.Requests
     /// </summary>
     public class ImageToImageRequest
     {
-        /// <summary>
-        /// Максимальный размер изображения
-        /// </summary>
-        private const int MaxImageSize = 4096;
-
-        /// <summary>
-        /// Минимальный размер изображения
-        /// </summary>
-        private const int MinImageSize = 64;
-
         /// <summary>
         /// Массив изображений в base64
         /// </summary>
@@ -389,8 +380,8 @@ namespace StableDiffusionNet.Models.Requests
                     paramName ?? nameof(InitImages)
                 );
 
-            ValidateImageDimension(Width, nameof(Width));
-            ValidateImageDimension(Height, nameof(Height));
+            ImageRequestValidator.ValidateImageDimension(Width, nameof(Width));
+            ImageRequestValidator.ValidateImageDimension(Height, nameof(Height));
 
             if (Steps <= 0)
                 throw new ArgumentException("Steps must be greater than 0", paramName);
@@ -406,17 +397,6 @@ namespace StableDiffusionNet.Models.Requests
 
             if (NIter <= 0)
                 throw new ArgumentException("NIter must be greater than 0", paramName);
-        }
-
-        private static void ValidateImageDimension(int value, string dimensionName)
-        {
-            if (value < MinImageSize || value > MaxImageSize)
-                throw new ArgumentException(
-                    $"{dimensionName} must be between {MinImageSize} and {MaxImageSize}"
-                );
-
-            if (value % 8 != 0)
-                throw new ArgumentException($"{dimensionName} must be divisible by 8");
         }
     }
 }

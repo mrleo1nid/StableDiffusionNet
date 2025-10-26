@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using StableDiffusionNet.Interfaces;
 
 namespace StableDiffusionNet.Helpers
@@ -9,11 +11,6 @@ namespace StableDiffusionNet.Helpers
     /// </summary>
     public class ImageHelper : IImageHelper
     {
-        /// <summary>
-        /// Singleton экземпляр для использования без DI
-        /// </summary>
-        public static readonly ImageHelper Instance = new ImageHelper();
-
         /// <summary>
         /// Публичный конструктор для использования с DI
         /// </summary>
@@ -83,7 +80,20 @@ namespace StableDiffusionNet.Helpers
                 throw new ArgumentException("Output path cannot be empty", nameof(outputPath));
 
             var base64Data = ExtractBase64Data(base64String);
-            var bytes = Convert.FromBase64String(base64Data);
+
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(base64Data);
+            }
+            catch (FormatException ex)
+            {
+                throw new ArgumentException(
+                    "Invalid base64 string format",
+                    nameof(base64String),
+                    ex
+                );
+            }
 
             // Создаем директорию если не существует
             var directory = Path.GetDirectoryName(outputPath);
@@ -131,6 +141,107 @@ namespace StableDiffusionNet.Helpers
             }
 
             return base64String;
+        }
+
+        /// <summary>
+        /// Асинхронно преобразует изображение из файла в base64 строку
+        /// </summary>
+        /// <param name="filePath">Путь к файлу изображения</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        /// <returns>Base64 строка с префиксом data:image</returns>
+        /// <exception cref="ArgumentException">Выбрасывается если файл слишком большой</exception>
+        public async Task<string> ImageToBase64Async(
+            string filePath,
+            CancellationToken cancellationToken = default
+        )
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+                throw new ArgumentException("File path cannot be empty", nameof(filePath));
+
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("File not found", filePath);
+
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Length > MaxFileSize)
+                throw new ArgumentException(
+                    $"File size ({fileInfo.Length} bytes) exceeds maximum allowed size ({MaxFileSize} bytes)",
+                    nameof(filePath)
+                );
+
+            byte[] bytes;
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+            // .NET Standard 2.0/2.1 не имеет File.ReadAllBytesAsync
+            bytes = await Task.Run(() => File.ReadAllBytes(filePath), cancellationToken)
+                .ConfigureAwait(false);
+#else
+            bytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
+#endif
+
+            var base64 = Convert.ToBase64String(bytes);
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+
+            var mimeType = extension switch
+            {
+                ".png" => MimeTypePng,
+                ".jpg" or ".jpeg" => MimeTypeJpeg,
+                ".gif" => MimeTypeGif,
+                ".webp" => MimeTypeWebp,
+                ".bmp" => MimeTypeBmp,
+                _ => MimeTypePng,
+            };
+
+            return $"data:{mimeType};base64,{base64}";
+        }
+
+        /// <summary>
+        /// Асинхронно сохраняет base64 строку как файл изображения
+        /// </summary>
+        /// <param name="base64String">Base64 строка (с или без префикса data:image)</param>
+        /// <param name="outputPath">Путь для сохранения файла</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        public async Task Base64ToImageAsync(
+            string base64String,
+            string outputPath,
+            CancellationToken cancellationToken = default
+        )
+        {
+            if (string.IsNullOrWhiteSpace(base64String))
+                throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));
+
+            if (string.IsNullOrWhiteSpace(outputPath))
+                throw new ArgumentException("Output path cannot be empty", nameof(outputPath));
+
+            var base64Data = ExtractBase64Data(base64String);
+
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(base64Data);
+            }
+            catch (FormatException ex)
+            {
+                throw new ArgumentException(
+                    "Invalid base64 string format",
+                    nameof(base64String),
+                    ex
+                );
+            }
+
+            // Создаем директорию если не существует
+            var directory = Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+            // .NET Standard 2.0/2.1 не имеет File.WriteAllBytesAsync
+            await Task.Run(() => File.WriteAllBytes(outputPath, bytes), cancellationToken)
+                .ConfigureAwait(false);
+#else
+            await File.WriteAllBytesAsync(outputPath, bytes, cancellationToken)
+                .ConfigureAwait(false);
+#endif
         }
     }
 }

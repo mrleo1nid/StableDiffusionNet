@@ -2,6 +2,14 @@
 
 [![CI Build and Test](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml)
+[![SonarQube](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/sonarqube.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/sonarqube.yml)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mrleo1nid_StableDiffusionNet&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mrleo1nid_StableDiffusionNet)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mrleo1nid_StableDiffusionNet&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mrleo1nid_StableDiffusionNet)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=mrleo1nid_StableDiffusionNet&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=mrleo1nid_StableDiffusionNet)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=mrleo1nid_StableDiffusionNet&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=mrleo1nid_StableDiffusionNet)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=mrleo1nid_StableDiffusionNet&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=mrleo1nid_StableDiffusionNet)
+
 [![NuGet Core](https://img.shields.io/nuget/v/StableDiffusionNet.Core.svg?label=Core)](https://www.nuget.org/packages/StableDiffusionNet.Core/)
 [![NuGet DI](https://img.shields.io/nuget/v/StableDiffusionNet.DependencyInjection.svg?label=DI)](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

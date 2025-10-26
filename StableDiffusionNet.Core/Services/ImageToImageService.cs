@@ -50,7 +50,7 @@ namespace StableDiffusionNet.Services
             );
 
             _logger.LogInformation(
-                $"Generation completed. Images generated: {response.Images.Count}"
+                $"Generation completed. Images generated: {response.Images?.Count ?? 0}"
             );
 
             return response;

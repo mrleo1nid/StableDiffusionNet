@@ -14,7 +14,7 @@ namespace StableDiffusionNet.Tests.Helpers
 
         public ImageHelperTests()
         {
-            _imageHelper = ImageHelper.Instance;
+            _imageHelper = new ImageHelper();
             _testDirectory = Path.Combine(Path.GetTempPath(), "StableDiffusionNet.Tests");
             Directory.CreateDirectory(_testDirectory);
 

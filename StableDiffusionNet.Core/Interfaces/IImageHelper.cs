@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace StableDiffusionNet.Interfaces
 {
     /// <summary>
@@ -13,11 +16,34 @@ namespace StableDiffusionNet.Interfaces
         string ImageToBase64(string filePath);
 
         /// <summary>
+        /// Асинхронно преобразует изображение из файла в base64 строку
+        /// </summary>
+        /// <param name="filePath">Путь к файлу изображения</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        /// <returns>Base64 строка с префиксом data:image</returns>
+        Task<string> ImageToBase64Async(
+            string filePath,
+            CancellationToken cancellationToken = default
+        );
+
+        /// <summary>
         /// Сохраняет base64 строку как файл изображения
         /// </summary>
         /// <param name="base64String">Base64 строка (с или без префикса data:image)</param>
         /// <param name="outputPath">Путь для сохранения файла</param>
         void Base64ToImage(string base64String, string outputPath);
+
+        /// <summary>
+        /// Асинхронно сохраняет base64 строку как файл изображения
+        /// </summary>
+        /// <param name="base64String">Base64 строка (с или без префикса data:image)</param>
+        /// <param name="outputPath">Путь для сохранения файла</param>
+        /// <param name="cancellationToken">Токен отмены</param>
+        Task Base64ToImageAsync(
+            string base64String,
+            string outputPath,
+            CancellationToken cancellationToken = default
+        );
 
         /// <summary>
         /// Преобразует массив байт в base64 строку

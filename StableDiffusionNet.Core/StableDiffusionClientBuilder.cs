@@ -141,10 +141,12 @@ namespace StableDiffusionNet
             }
 
             // Создаем wrapper для HttpClient
+            // ownsHttpClient = true только если мы создали HttpClient сами (не был передан через WithHttpClient)
             var httpClientWrapper = new HttpClientWrapper(
                 httpClient,
                 loggerFactory.CreateLogger<HttpClientWrapper>(),
-                _options
+                _options,
+                ownsHttpClient: _httpClient == null
             );
 
             // Создаем сервисы
@@ -222,6 +224,7 @@ namespace StableDiffusionNet
                 extraService,
                 embeddingService,
                 loraService,
+                httpClientWrapper,
                 loggerFactory.CreateLogger<StableDiffusionClient>()
             );
         }

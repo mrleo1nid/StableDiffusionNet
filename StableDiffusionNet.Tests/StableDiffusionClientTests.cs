@@ -23,6 +23,7 @@ namespace StableDiffusionNet.Tests
         private readonly Mock<IExtraService> _extraServiceMock;
         private readonly Mock<IEmbeddingService> _embeddingServiceMock;
         private readonly Mock<ILoraService> _loraServiceMock;
+        private readonly Mock<IHttpClientWrapper> _httpClientWrapperMock;
         private readonly Mock<IStableDiffusionLogger> _loggerMock;
 
         public StableDiffusionClientTests()
@@ -39,6 +40,7 @@ namespace StableDiffusionNet.Tests
             _extraServiceMock = new Mock<IExtraService>();
             _embeddingServiceMock = new Mock<IEmbeddingService>();
             _loraServiceMock = new Mock<ILoraService>();
+            _httpClientWrapperMock = new Mock<IHttpClientWrapper>();
             _loggerMock = new Mock<IStableDiffusionLogger>();
         }
 
@@ -57,6 +59,7 @@ namespace StableDiffusionNet.Tests
                 _extraServiceMock.Object,
                 _embeddingServiceMock.Object,
                 _loraServiceMock.Object,
+                _httpClientWrapperMock.Object,
                 _loggerMock.Object
             );
         }
@@ -101,6 +104,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
 
@@ -125,6 +129,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
 
@@ -149,6 +154,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
 
@@ -173,6 +179,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
 
@@ -197,6 +204,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
 
@@ -221,6 +229,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
 
@@ -245,6 +254,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
 
@@ -269,6 +279,7 @@ namespace StableDiffusionNet.Tests
                     _extraServiceMock.Object,
                     _embeddingServiceMock.Object,
                     _loraServiceMock.Object,
+                    _httpClientWrapperMock.Object,
                     null!
                 );
 

@@ -12,7 +12,7 @@ namespace StableDiffusionNet.Models.Responses
         /// Сгенерированные изображения в base64
         /// </summary>
         [JsonProperty("images")]
-        public List<string> Images { get; set; } = new List<string>();
+        public List<string>? Images { get; set; }
 
         /// <summary>
         /// Параметры генерации

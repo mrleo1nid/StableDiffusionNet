@@ -1,0 +1,105 @@
+name: SonarQube Analysis
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  sonarqube:
+    name: SonarQube Code Analysis
+    runs-on: windows-latest
+    
+    steps:
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: 17
+        distribution: 'zulu'
+    
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Отключаем shallow clone для лучшей релевантности анализа
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Cache SonarQube packages
+      uses: actions/cache@v4
+      with:
+        path: ~\sonar\cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+    
+    - name: Cache SonarQube scanner
+      id: cache-sonar-scanner
+      uses: actions/cache@v4
+      with:
+        path: .\.sonar\scanner
+        key: ${{ runner.os }}-sonar-scanner
+        restore-keys: ${{ runner.os }}-sonar-scanner
+    
+    - name: Install SonarQube scanner
+      if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+      shell: powershell
+      run: |
+        New-Item -Path .\.sonar\scanner -ItemType Directory -Force
+        dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+    
+    - name: Install dotnet-coverage tool
+      shell: powershell
+      run: |
+        dotnet tool install --global dotnet-coverage
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build and analyze
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Нужен для Pull Request decoration
+      shell: powershell
+      run: |
+        .\.sonar\scanner\dotnet-sonarscanner begin `
+          /k:"mrleo1nid_StableDiffusionNet" `
+          /o:"mrleo1nid" `
+          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+          /d:sonar.host.url="https://sonarcloud.io" `
+          /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
+        
+        # Сборка проекта
+        dotnet build --configuration Release --no-restore --no-incremental
+        
+        # Запуск тестов с покрытием кода (исключая интеграционные тесты)
+        dotnet-coverage collect "dotnet test --configuration Release --no-build --verbosity minimal --filter `"FullyQualifiedName!~Integration`"" -f xml -o "coverage.xml"
+        
+        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+    
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage-report
+        path: coverage.xml
+        if-no-files-found: warn
+    
+    - name: Summary
+      if: success()
+      run: |
+        echo "## ✅ SonarQube Analysis Completed" >> $env:GITHUB_STEP_SUMMARY
+        echo "" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **Project:** mrleo1nid_StableDiffusionNet" >> $env:GITHUB_STEP_SUMMARY
+        echo "- **Dashboard:** https://sonarcloud.io/dashboard?id=mrleo1nid_StableDiffusionNet" >> $env:GITHUB_STEP_SUMMARY
+        echo "" >> $env:GITHUB_STEP_SUMMARY
+        echo "📊 Покрытие кода и результаты анализа доступны в SonarCloud." >> $env:GITHUB_STEP_SUMMARY
+

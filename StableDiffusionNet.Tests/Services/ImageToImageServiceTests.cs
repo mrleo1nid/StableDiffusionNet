@@ -72,8 +72,9 @@ namespace StableDiffusionNet.Tests.Services
 
             // Assert
             result.Should().NotBeNull();
+            result.Images.Should().NotBeNull();
             result.Images.Should().HaveCount(2);
-            result.Images[0].Should().Be("base64result1");
+            result.Images![0].Should().Be("base64result1");
             result.Info.Should().Be("Generation info");
         }
 
