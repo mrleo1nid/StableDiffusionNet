@@ -150,7 +150,7 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
         /// <returns>Коллекция сервисов для цепочки вызовов</returns>
         public static IServiceCollection AddStableDiffusion(
             this IServiceCollection services,
-            string baseUrl = "http://localhost:7860"
+            string baseUrl = StableDiffusionNet.Configuration.StableDiffusionOptions.DefaultBaseUrl
         )
         {
             return services.AddStableDiffusion(options =>

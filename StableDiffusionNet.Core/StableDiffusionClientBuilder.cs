@@ -234,7 +234,9 @@ namespace StableDiffusionNet
         /// </summary>
         /// <param name="baseUrl">Базовый URL API (по умолчанию: http://localhost:7860)</param>
         /// <returns>Клиент с настройками по умолчанию</returns>
-        public static IStableDiffusionClient CreateDefault(string baseUrl = "http://localhost:7860")
+        public static IStableDiffusionClient CreateDefault(
+            string baseUrl = StableDiffusionOptions.DefaultBaseUrl
+        )
         {
             return new StableDiffusionClientBuilder().WithBaseUrl(baseUrl).Build();
         }

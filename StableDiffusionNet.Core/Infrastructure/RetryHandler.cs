@@ -18,6 +18,12 @@ namespace StableDiffusionNet.Infrastructure
 
 #if !NET6_0_OR_GREATER
         // ThreadLocal<Random> для thread-safety в старых версиях .NET
+        // SuppressMessage: Random используется только для jitter в retry логике, не для криптографии
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Security",
+            "S2245:Make sure that using this pseudorandom number generator is safe here.",
+            Justification = "Random используется только для добавления jitter к retry задержкам, не требует криптографической стойкости"
+        )]
         private static readonly ThreadLocal<Random> _threadLocalRandom = new ThreadLocal<Random>(
             () =>
                 new Random(Guid.NewGuid().GetHashCode())
