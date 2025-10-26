@@ -35,14 +35,14 @@ namespace StableDiffusionNet.Services
             CancellationToken cancellationToken = default
         )
         {
-            _logger.LogDebug("Получение списка доступных моделей");
+            _logger.LogDebug("Getting list of available models");
 
             var models = await _httpClient.GetAsync<List<SdModel>>(
                 ModelsEndpoint,
                 cancellationToken
             );
 
-            _logger.LogInformation("Получено моделей: {Count}", models.Count);
+            _logger.LogInformation("Models retrieved: {Count}", models.Count);
 
             return models.AsReadOnly();
         }
@@ -52,7 +52,7 @@ namespace StableDiffusionNet.Services
             CancellationToken cancellationToken = default
         )
         {
-            _logger.LogDebug("Получение текущей активной модели");
+            _logger.LogDebug("Getting current active model");
 
             var options = await _httpClient.GetAsync<WebUIOptions>(
                 OptionsEndpoint,
@@ -60,7 +60,7 @@ namespace StableDiffusionNet.Services
             );
 
             var currentModel = options.SdModelCheckpoint ?? "unknown";
-            _logger.LogInformation("Текущая модель: {Model}", currentModel);
+            _logger.LogInformation("Current model: {Model}", currentModel);
 
             return currentModel;
         }
@@ -72,28 +72,25 @@ namespace StableDiffusionNet.Services
         )
         {
             if (string.IsNullOrWhiteSpace(modelName))
-                throw new ArgumentException(
-                    "Название модели не может быть пустым",
-                    nameof(modelName)
-                );
+                throw new ArgumentException("Model name cannot be empty", nameof(modelName));
 
-            _logger.LogInformation("Установка модели: {Model}", modelName);
+            _logger.LogInformation("Setting model: {Model}", modelName);
 
             var options = new WebUIOptions { SdModelCheckpoint = modelName };
 
             await _httpClient.PostAsync(OptionsEndpoint, options, cancellationToken);
 
-            _logger.LogInformation("Модель успешно установлена: {Model}", modelName);
+            _logger.LogInformation("Model successfully set: {Model}", modelName);
         }
 
         /// <inheritdoc/>
         public async Task RefreshModelsAsync(CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Обновление списка моделей");
+            _logger.LogInformation("Refreshing models list");
 
             await _httpClient.PostAsync(RefreshEndpoint, cancellationToken);
 
-            _logger.LogInformation("Список моделей успешно обновлен");
+            _logger.LogInformation("Models list successfully refreshed");
         }
     }
 }

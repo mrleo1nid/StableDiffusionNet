@@ -42,15 +42,15 @@ namespace StableDiffusionNet.Services
 
             if (request.InitImages == null || request.InitImages.Count == 0)
                 throw new ArgumentException(
-                    "Необходимо предоставить хотя бы одно исходное изображение",
+                    "At least one initial image must be provided",
                     nameof(request)
                 );
 
             if (string.IsNullOrWhiteSpace(request.Prompt))
-                throw new ArgumentException("Prompt не может быть пустым", nameof(request));
+                throw new ArgumentException("Prompt cannot be empty", nameof(request));
 
             _logger.LogInformation(
-                "Начинается генерация изображения из изображения. Промпт: {Prompt}, Denoising: {Denoising}",
+                "Starting image-to-image generation. Prompt: {Prompt}, Denoising: {Denoising}",
                 request.Prompt,
                 request.DenoisingStrength
             );
@@ -62,7 +62,7 @@ namespace StableDiffusionNet.Services
             );
 
             _logger.LogInformation(
-                "Генерация завершена. Сгенерировано изображений: {Count}",
+                "Generation completed. Images generated: {Count}",
                 response.Images.Count
             );
 

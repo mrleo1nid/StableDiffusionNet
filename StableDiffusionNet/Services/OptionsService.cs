@@ -32,11 +32,11 @@ namespace StableDiffusionNet.Services
             CancellationToken cancellationToken = default
         )
         {
-            _logger.LogDebug("Получение текущих опций WebUI");
+            _logger.LogDebug("Getting current WebUI options");
 
             var options = await _httpClient.GetAsync<WebUIOptions>(Endpoint, cancellationToken);
 
-            _logger.LogDebug("Опции успешно получены");
+            _logger.LogDebug("Options successfully retrieved");
 
             return options;
         }
@@ -50,11 +50,11 @@ namespace StableDiffusionNet.Services
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
-            _logger.LogInformation("Установка опций WebUI");
+            _logger.LogInformation("Setting WebUI options");
 
             await _httpClient.PostAsync(Endpoint, options, cancellationToken);
 
-            _logger.LogInformation("Опции успешно установлены");
+            _logger.LogInformation("Options successfully set");
         }
     }
 }

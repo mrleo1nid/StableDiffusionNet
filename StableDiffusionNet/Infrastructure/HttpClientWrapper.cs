@@ -62,7 +62,7 @@ namespace StableDiffusionNet.Infrastructure
             {
                 if (_options.EnableDetailedLogging)
                 {
-                    _logger.LogDebug("GET запрос к {Endpoint}", endpoint);
+                    _logger.LogDebug("GET request to {Endpoint}", endpoint);
                 }
 
                 var response = await _httpClient.GetAsync(endpoint, cancellationToken);
@@ -70,8 +70,8 @@ namespace StableDiffusionNet.Infrastructure
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Ошибка при выполнении GET запроса к {Endpoint}", endpoint);
-                throw new ApiException($"Ошибка при выполнении GET запроса к {endpoint}", ex);
+                _logger.LogError(ex, "Error executing GET request to {Endpoint}", endpoint);
+                throw new ApiException($"Error executing GET request to {endpoint}", ex);
             }
         }
 
@@ -92,7 +92,11 @@ namespace StableDiffusionNet.Infrastructure
 
                 if (_options.EnableDetailedLogging)
                 {
-                    _logger.LogDebug("POST запрос к {Endpoint} с телом: {Body}", endpoint, json);
+                    _logger.LogDebug(
+                        "POST request to {Endpoint} with body: {Body}",
+                        endpoint,
+                        json
+                    );
                 }
 
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -102,8 +106,8 @@ namespace StableDiffusionNet.Infrastructure
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Ошибка при выполнении POST запроса к {Endpoint}", endpoint);
-                throw new ApiException($"Ошибка при выполнении POST запроса к {endpoint}", ex);
+                _logger.LogError(ex, "Error executing POST request to {Endpoint}", endpoint);
+                throw new ApiException($"Error executing POST request to {endpoint}", ex);
             }
         }
 
@@ -114,7 +118,7 @@ namespace StableDiffusionNet.Infrastructure
             {
                 if (_options.EnableDetailedLogging)
                 {
-                    _logger.LogDebug("POST запрос к {Endpoint} без тела", endpoint);
+                    _logger.LogDebug("POST request to {Endpoint} without body", endpoint);
                 }
 
                 var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
@@ -122,8 +126,8 @@ namespace StableDiffusionNet.Infrastructure
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Ошибка при выполнении POST запроса к {Endpoint}", endpoint);
-                throw new ApiException($"Ошибка при выполнении POST запроса к {endpoint}", ex);
+                _logger.LogError(ex, "Error executing POST request to {Endpoint}", endpoint);
+                throw new ApiException($"Error executing POST request to {endpoint}", ex);
             }
         }
 
@@ -143,7 +147,11 @@ namespace StableDiffusionNet.Infrastructure
 
                 if (_options.EnableDetailedLogging)
                 {
-                    _logger.LogDebug("POST запрос к {Endpoint} с телом: {Body}", endpoint, json);
+                    _logger.LogDebug(
+                        "POST request to {Endpoint} with body: {Body}",
+                        endpoint,
+                        json
+                    );
                 }
 
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -153,8 +161,8 @@ namespace StableDiffusionNet.Infrastructure
             }
             catch (Exception ex) when (ex is not ApiException)
             {
-                _logger.LogError(ex, "Ошибка при выполнении POST запроса к {Endpoint}", endpoint);
-                throw new ApiException($"Ошибка при выполнении POST запроса к {endpoint}", ex);
+                _logger.LogError(ex, "Error executing POST request to {Endpoint}", endpoint);
+                throw new ApiException($"Error executing POST request to {endpoint}", ex);
             }
         }
 
@@ -169,14 +177,14 @@ namespace StableDiffusionNet.Infrastructure
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError(
-                    "Неуспешный ответ от {Endpoint}. Статус: {StatusCode}, Тело: {Body}",
+                    "Unsuccessful response from {Endpoint}. Status: {StatusCode}, Body: {Body}",
                     endpoint,
                     response.StatusCode,
                     content
                 );
 
                 throw new ApiException(
-                    $"API вернул ошибку для {endpoint}",
+                    $"API returned error for {endpoint}",
                     response.StatusCode,
                     content
                 );
@@ -184,7 +192,7 @@ namespace StableDiffusionNet.Infrastructure
 
             if (_options.EnableDetailedLogging)
             {
-                _logger.LogDebug("Успешный ответ от {Endpoint}: {Body}", endpoint, content);
+                _logger.LogDebug("Successful response from {Endpoint}: {Body}", endpoint, content);
             }
 
             try
@@ -192,14 +200,14 @@ namespace StableDiffusionNet.Infrastructure
                 var result = JsonConvert.DeserializeObject<TResponse>(content);
                 if (result == null)
                 {
-                    throw new ApiException($"Не удалось десериализовать ответ от {endpoint}");
+                    throw new ApiException($"Failed to deserialize response from {endpoint}");
                 }
                 return result;
             }
             catch (JsonException ex)
             {
-                _logger.LogError(ex, "Ошибка десериализации ответа от {Endpoint}", endpoint);
-                throw new ApiException($"Ошибка десериализации ответа от {endpoint}", ex);
+                _logger.LogError(ex, "Error deserializing response from {Endpoint}", endpoint);
+                throw new ApiException($"Error deserializing response from {endpoint}", ex);
             }
         }
 
@@ -209,14 +217,14 @@ namespace StableDiffusionNet.Infrastructure
             {
                 var content = await response.Content.ReadAsStringAsync();
                 _logger.LogError(
-                    "Неуспешный ответ от {Endpoint}. Статус: {StatusCode}, Тело: {Body}",
+                    "Unsuccessful response from {Endpoint}. Status: {StatusCode}, Body: {Body}",
                     endpoint,
                     response.StatusCode,
                     content
                 );
 
                 throw new ApiException(
-                    $"API вернул ошибку для {endpoint}",
+                    $"API returned error for {endpoint}",
                     response.StatusCode,
                     content
                 );

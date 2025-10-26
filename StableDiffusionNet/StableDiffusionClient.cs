@@ -62,17 +62,17 @@ namespace StableDiffusionNet
         {
             try
             {
-                _logger.LogDebug("Проверка доступности API");
+                _logger.LogDebug("Checking API availability");
 
                 // Используем эндпоинт /sdapi/v1/samplers как простую проверку
                 await Samplers.GetSamplersAsync(cancellationToken);
 
-                _logger.LogInformation("API доступен");
+                _logger.LogInformation("API is available");
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "API недоступен");
+                _logger.LogError(ex, "API is unavailable");
                 return false;
             }
         }

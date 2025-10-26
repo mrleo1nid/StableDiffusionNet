@@ -34,7 +34,7 @@ namespace StableDiffusionNet.Services
             CancellationToken cancellationToken = default
         )
         {
-            _logger.LogDebug("Получение списка доступных sampler'ов");
+            _logger.LogDebug("Getting list of available samplers");
 
             var samplers = await _httpClient.GetAsync<JArray>(Endpoint, cancellationToken);
 
@@ -44,7 +44,7 @@ namespace StableDiffusionNet.Services
                 .Cast<string>()
                 .ToList();
 
-            _logger.LogInformation("Получено sampler'ов: {Count}", samplerNames.Count);
+            _logger.LogInformation("Samplers retrieved: {Count}", samplerNames.Count);
 
             return samplerNames.AsReadOnly();
         }

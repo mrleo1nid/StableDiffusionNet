@@ -42,7 +42,7 @@ namespace StableDiffusionNet.Services
             if (progress.State != null)
             {
                 _logger.LogDebug(
-                    "Прогресс: {Progress:P}, Шаг: {CurrentStep}/{TotalSteps}",
+                    "Progress: {Progress:P}, Step: {CurrentStep}/{TotalSteps}",
                     progress.Progress,
                     progress.State.SamplingStep,
                     progress.State.SamplingSteps
@@ -55,21 +55,21 @@ namespace StableDiffusionNet.Services
         /// <inheritdoc/>
         public async Task InterruptAsync(CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Прерывание текущей генерации");
+            _logger.LogInformation("Interrupting current generation");
 
             await _httpClient.PostAsync(InterruptEndpoint, cancellationToken);
 
-            _logger.LogInformation("Генерация успешно прервана");
+            _logger.LogInformation("Generation successfully interrupted");
         }
 
         /// <inheritdoc/>
         public async Task SkipAsync(CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Пропуск текущего изображения");
+            _logger.LogInformation("Skipping current image");
 
             await _httpClient.PostAsync(SkipEndpoint, cancellationToken);
 
-            _logger.LogInformation("Изображение успешно пропущено");
+            _logger.LogInformation("Image successfully skipped");
         }
     }
 }

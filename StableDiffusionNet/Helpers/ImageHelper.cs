@@ -16,10 +16,10 @@ namespace StableDiffusionNet.Helpers
         public static string ImageToBase64(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath))
-                throw new ArgumentException("Путь к файлу не может быть пустым", nameof(filePath));
+                throw new ArgumentException("File path cannot be empty", nameof(filePath));
 
             if (!File.Exists(filePath))
-                throw new FileNotFoundException("Файл не найден", filePath);
+                throw new FileNotFoundException("File not found", filePath);
 
             var bytes = File.ReadAllBytes(filePath);
             var base64 = Convert.ToBase64String(bytes);
@@ -46,16 +46,10 @@ namespace StableDiffusionNet.Helpers
         public static void Base64ToImage(string base64String, string outputPath)
         {
             if (string.IsNullOrWhiteSpace(base64String))
-                throw new ArgumentException(
-                    "Base64 строка не может быть пустой",
-                    nameof(base64String)
-                );
+                throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));
 
             if (string.IsNullOrWhiteSpace(outputPath))
-                throw new ArgumentException(
-                    "Путь для сохранения не может быть пустым",
-                    nameof(outputPath)
-                );
+                throw new ArgumentException("Output path cannot be empty", nameof(outputPath));
 
             // Убираем префикс data:image/xxx;base64, если он есть
             var base64Data = base64String;
@@ -87,7 +81,7 @@ namespace StableDiffusionNet.Helpers
         public static string BytesToBase64(byte[] imageBytes, string mimeType = "image/png")
         {
             if (imageBytes == null || imageBytes.Length == 0)
-                throw new ArgumentException("Массив байт не может быть пустым", nameof(imageBytes));
+                throw new ArgumentException("Byte array cannot be empty", nameof(imageBytes));
 
             var base64 = Convert.ToBase64String(imageBytes);
             return $"data:{mimeType};base64,{base64}";
@@ -101,10 +95,7 @@ namespace StableDiffusionNet.Helpers
         public static string ExtractBase64Data(string base64String)
         {
             if (string.IsNullOrWhiteSpace(base64String))
-                throw new ArgumentException(
-                    "Base64 строка не может быть пустой",
-                    nameof(base64String)
-                );
+                throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));
 
             if (base64String.Contains(","))
             {

@@ -48,16 +48,16 @@ namespace StableDiffusionNet.Configuration
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(BaseUrl))
-                throw new ConfigurationException("BaseUrl не может быть пустым");
+                throw new ConfigurationException("BaseUrl cannot be empty");
 
             if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out _))
-                throw new ConfigurationException("BaseUrl должен быть валидным URL");
+                throw new ConfigurationException("BaseUrl must be a valid URL");
 
             if (TimeoutSeconds <= 0)
-                throw new ConfigurationException("TimeoutSeconds должен быть положительным числом");
+                throw new ConfigurationException("TimeoutSeconds must be a positive number");
 
             if (RetryCount < 0)
-                throw new ConfigurationException("RetryCount не может быть отрицательным");
+                throw new ConfigurationException("RetryCount cannot be negative");
         }
     }
 }

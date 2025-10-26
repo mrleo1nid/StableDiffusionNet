@@ -38,10 +38,10 @@ namespace StableDiffusionNet.Services
                 throw new ArgumentNullException(nameof(request));
 
             if (string.IsNullOrWhiteSpace(request.Prompt))
-                throw new ArgumentException("Prompt не может быть пустым", nameof(request));
+                throw new ArgumentException("Prompt cannot be empty", nameof(request));
 
             _logger.LogInformation(
-                "Начинается генерация изображения из текста. Промпт: {Prompt}, Размер: {Width}x{Height}",
+                "Starting text-to-image generation. Prompt: {Prompt}, Size: {Width}x{Height}",
                 request.Prompt,
                 request.Width,
                 request.Height
@@ -54,7 +54,7 @@ namespace StableDiffusionNet.Services
             );
 
             _logger.LogInformation(
-                "Генерация завершена. Сгенерировано изображений: {Count}",
+                "Generation completed. Images generated: {Count}",
                 response.Images.Count
             );
 
