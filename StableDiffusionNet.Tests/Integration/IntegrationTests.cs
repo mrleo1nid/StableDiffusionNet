@@ -64,7 +64,9 @@ namespace StableDiffusionNet.Tests.Integration
             // Assert
             samplers.Should().NotBeNull();
             samplers.Should().NotBeEmpty();
-            samplers.Should().Contain(s => s.Contains("Euler"));
+            samplers
+                .Should()
+                .Contain(s => s.Name.Contains("Euler", StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -391,7 +393,7 @@ namespace StableDiffusionNet.Tests.Integration
             // Assert
             modes.Should().NotBeNull();
             modes.Should().NotBeEmpty();
-            modes.Should().Contain(m => !string.IsNullOrEmpty(m));
+            modes.Should().Contain(m => !string.IsNullOrEmpty(m.Name));
         }
 
         #endregion

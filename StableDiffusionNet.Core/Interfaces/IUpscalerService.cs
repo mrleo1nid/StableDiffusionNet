@@ -21,7 +21,7 @@ namespace StableDiffusionNet.Interfaces
         /// <summary>
         /// Получает список доступных latent upscale режимов
         /// </summary>
-        Task<IReadOnlyList<string>> GetLatentUpscaleModesAsync(
+        Task<IReadOnlyList<LatentUpscaleMode>> GetLatentUpscaleModesAsync(
             CancellationToken cancellationToken = default
         );
     }

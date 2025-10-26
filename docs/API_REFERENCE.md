@@ -347,26 +347,23 @@ Task SetOptionsAsync(
 
 ### `GetSamplersAsync`
 
-Получает список доступных сэмплеров.
+Получает список доступных сэмплеров с полной информацией.
 
 **Сигнатура:**
 ```csharp
-Task<IReadOnlyList<string>> GetSamplersAsync(
+Task<IReadOnlyList<Sampler>> GetSamplersAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
 **Эндпоинт**: `GET /sdapi/v1/samplers`
 
-**Ответ:** Список названий сэмплеров, например:
-- Euler
-- Euler a
-- LMS
-- Heun
-- DPM++ 2M
-- DPM++ SDE
-- DDIM
-- И другие...
+**Ответ:** Список объектов `Sampler` с полями:
+- `Name` - название сэмплера
+- `Aliases` - список альтернативных имён
+- `Options` - словарь дополнительных опций сэмплера
+
+**Примеры сэмплеров:** Euler a, Euler, DPM++ 2M Karras, LMS Karras и другие.
 
 **Применение:** Динамическое построение UI с выбором сэмплера.
 
@@ -444,20 +441,16 @@ public class Upscaler
 
 **Сигнатура:**
 ```csharp
-Task<IReadOnlyList<string>> GetLatentUpscaleModesAsync(
+Task<IReadOnlyList<LatentUpscaleMode>> GetLatentUpscaleModesAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
 **Эндпоинт**: `GET /sdapi/v1/latent-upscale-modes`
 
-**Ответ:** Список режимов latent upscale:
-- Latent
-- Latent (antialiased)
-- Latent (bicubic)
-- Latent (bicubic antialiased)
-- Latent (nearest)
-- Latent (nearest-exact)
+**Ответ:** Список объектов `LatentUpscaleMode` с полем `Name`, содержащим название режима.
+
+**Примеры режимов:** Latent, Latent (antialiased), Latent (bicubic), Latent (bicubic antialiased), Latent (nearest), Latent (nearest-exact).
 
 **Применение:** Используется для Hires.fix с latent upscale.
 

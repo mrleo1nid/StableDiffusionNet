@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
+using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Services
 {
@@ -30,26 +30,20 @@ namespace StableDiffusionNet.Services
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<string>> GetSamplersAsync(
+        public async Task<IReadOnlyList<Sampler>> GetSamplersAsync(
             CancellationToken cancellationToken = default
         )
         {
             _logger.LogDebug("Getting list of available samplers");
 
-            var samplers = await _httpClient.GetAsync<JArray>(
+            var samplers = await _httpClient.GetAsync<List<Sampler>>(
                 ApiEndpoints.Samplers,
                 cancellationToken
             );
 
-            var samplerNames = samplers
-                .Select(s => s["name"]?.ToString())
-                .Where(name => !string.IsNullOrEmpty(name))
-                .Select(name => name!)
-                .ToList();
+            _logger.LogInformation($"Samplers retrieved: {samplers.Count}");
 
-            _logger.LogInformation($"Samplers retrieved: {samplerNames.Count}");
-
-            return samplerNames.AsReadOnly();
+            return samplers.AsReadOnly();
         }
     }
 }

@@ -46,6 +46,7 @@ namespace StableDiffusionNet.Services
                 .Select(u => new Upscaler
                 {
                     Name = u["name"]?.ToString() ?? string.Empty,
+                    ModelName = u["model_name"]?.ToString(),
                     ModelPath = u["model_path"]?.ToString(),
                     ModelUrl = u["model_url"]?.ToString(),
                     Scale = u["scale"]?.ToObject<double?>(),
@@ -59,22 +60,16 @@ namespace StableDiffusionNet.Services
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<string>> GetLatentUpscaleModesAsync(
+        public async Task<IReadOnlyList<LatentUpscaleMode>> GetLatentUpscaleModesAsync(
             CancellationToken cancellationToken = default
         )
         {
             _logger.LogDebug("Getting list of latent upscale modes");
 
-            var modesArray = await _httpClient.GetAsync<JArray>(
+            var modes = await _httpClient.GetAsync<List<LatentUpscaleMode>>(
                 ApiEndpoints.LatentUpscaleModes,
                 cancellationToken
             );
-
-            var modes = modesArray
-                .Select(m => m["name"]?.ToString())
-                .Where(name => !string.IsNullOrEmpty(name))
-                .Select(name => name!)
-                .ToList();
 
             _logger.LogInformation($"Latent upscale modes retrieved: {modes.Count}");
 

@@ -2,6 +2,7 @@ using FluentAssertions;
 using Moq;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
+using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Tests
 {
@@ -350,7 +351,7 @@ namespace StableDiffusionNet.Tests
             // Arrange
             _samplerServiceMock
                 .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<string> { "Euler" }.AsReadOnly());
+                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
 
             var client = CreateClient();
 
@@ -384,7 +385,7 @@ namespace StableDiffusionNet.Tests
             // Arrange
             _samplerServiceMock
                 .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<string> { "Euler" }.AsReadOnly());
+                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
 
             var client = CreateClient();
 
@@ -405,7 +406,7 @@ namespace StableDiffusionNet.Tests
             using var cts = new CancellationTokenSource();
             _samplerServiceMock
                 .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<string> { "Euler" }.AsReadOnly());
+                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
 
             var client = CreateClient();
 
@@ -422,7 +423,7 @@ namespace StableDiffusionNet.Tests
             // Arrange
             _samplerServiceMock
                 .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<string> { "Euler" }.AsReadOnly());
+                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
 
             var client = CreateClient();
 
@@ -462,7 +463,7 @@ namespace StableDiffusionNet.Tests
             // Arrange
             _samplerServiceMock
                 .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<string> { "Euler" }.AsReadOnly());
+                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
 
             var client = CreateClient();
 

@@ -792,7 +792,15 @@ var samplers = await client.Samplers.GetSamplersAsync();
 Console.WriteLine("Доступные сэмплеры:");
 foreach (var sampler in samplers)
 {
-    Console.WriteLine($"  - {sampler}");
+    Console.WriteLine($"  - {sampler.Name}");
+    if (sampler.Aliases.Count > 0)
+    {
+        Console.WriteLine($"    Алиасы: {string.Join(", ", sampler.Aliases)}");
+    }
+    if (sampler.Options.Count > 0)
+    {
+        Console.WriteLine($"    Опции: {sampler.Options.Count}");
+    }
 }
 ```
 
@@ -838,7 +846,7 @@ var modes = await client.Upscalers.GetLatentUpscaleModesAsync();
 Console.WriteLine("Latent upscale режимы:");
 foreach (var mode in modes)
 {
-    Console.WriteLine($"  - {mode}");
+    Console.WriteLine($"  - {mode.Name}");
 }
 ```
 

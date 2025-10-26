@@ -243,21 +243,21 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetLatentUpscaleModesAsync_ReturnsListOfModes()
         {
             // Arrange
-            var modesJson = new JArray
+            var modes = new List<LatentUpscaleMode>
             {
-                new JObject { ["name"] = "Latent" },
-                new JObject { ["name"] = "Latent (antialiased)" },
-                new JObject { ["name"] = "Latent (bicubic)" },
+                new LatentUpscaleMode { Name = "Latent" },
+                new LatentUpscaleMode { Name = "Latent (antialiased)" },
+                new LatentUpscaleMode { Name = "Latent (bicubic)" },
             };
 
             _httpClientMock
                 .Setup(x =>
-                    x.GetAsync<JArray>(
+                    x.GetAsync<List<LatentUpscaleMode>>(
                         "/sdapi/v1/latent-upscale-modes",
                         It.IsAny<CancellationToken>()
                     )
                 )
-                .ReturnsAsync(modesJson);
+                .ReturnsAsync(modes);
 
             // Act
             var result = await _service.GetLatentUpscaleModesAsync();
@@ -265,81 +265,99 @@ namespace StableDiffusionNet.Tests.Services
             // Assert
             result.Should().NotBeNull();
             result.Should().HaveCount(3);
-            result[0].Should().Be("Latent");
-            result[1].Should().Be("Latent (antialiased)");
-            result[2].Should().Be("Latent (bicubic)");
+            result[0].Name.Should().Be("Latent");
+            result[1].Name.Should().Be("Latent (antialiased)");
+            result[2].Name.Should().Be("Latent (bicubic)");
         }
 
         [Fact]
-        public async Task GetLatentUpscaleModesAsync_WithEmptyName_FiltersOut()
+        public async Task GetLatentUpscaleModesAsync_WithDifferentModes_ReturnsAll()
         {
             // Arrange
-            var modesJson = new JArray
+            var modes = new List<LatentUpscaleMode>
             {
-                new JObject { ["name"] = "Latent" },
-                new JObject { ["name"] = "" },
-                new JObject { ["name"] = "Bicubic" },
+                new LatentUpscaleMode { Name = "Latent" },
+                new LatentUpscaleMode { Name = "Latent (nearest)" },
+                new LatentUpscaleMode { Name = "Latent (bicubic antialiased)" },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(modesJson);
+                .Setup(x =>
+                    x.GetAsync<List<LatentUpscaleMode>>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(modes);
 
             // Act
             var result = await _service.GetLatentUpscaleModesAsync();
 
             // Assert
-            result.Should().HaveCount(2);
+            result.Should().HaveCount(3);
+            result[0].Name.Should().Be("Latent");
+            result[1].Name.Should().Be("Latent (nearest)");
+            result[2].Name.Should().Be("Latent (bicubic antialiased)");
         }
 
         [Fact]
-        public async Task GetLatentUpscaleModesAsync_WithNullName_FiltersOut()
+        public async Task GetLatentUpscaleModesAsync_WithEmptyList_ReturnsEmptyList()
         {
             // Arrange
-            var modesJson = new JArray
-            {
-                new JObject { ["name"] = "Latent" },
-                new JObject { ["name"] = null },
-                new JObject { ["name"] = "Bicubic" },
-            };
+            var modes = new List<LatentUpscaleMode>();
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(modesJson);
+                .Setup(x =>
+                    x.GetAsync<List<LatentUpscaleMode>>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(modes);
 
             // Act
             var result = await _service.GetLatentUpscaleModesAsync();
 
             // Assert
-            result.Should().HaveCount(2);
+            result.Should().BeEmpty();
         }
 
         [Fact]
         public async Task GetLatentUpscaleModesAsync_ReturnsReadOnlyList()
         {
             // Arrange
-            var modesJson = new JArray { new JObject { ["name"] = "test" } };
+            var modes = new List<LatentUpscaleMode> { new LatentUpscaleMode { Name = "test" } };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(modesJson);
+                .Setup(x =>
+                    x.GetAsync<List<LatentUpscaleMode>>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(modes);
 
             // Act
             var result = await _service.GetLatentUpscaleModesAsync();
 
             // Assert
-            result.Should().BeAssignableTo<IReadOnlyList<string>>();
+            result.Should().BeAssignableTo<IReadOnlyList<LatentUpscaleMode>>();
         }
 
         [Fact]
         public async Task GetLatentUpscaleModesAsync_CallsCorrectEndpoint()
         {
             // Arrange
-            var modesJson = new JArray { new JObject { ["name"] = "test" } };
+            var modes = new List<LatentUpscaleMode> { new LatentUpscaleMode { Name = "test" } };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(modesJson);
+                .Setup(x =>
+                    x.GetAsync<List<LatentUpscaleMode>>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(modes);
 
             // Act
             await _service.GetLatentUpscaleModesAsync();
@@ -347,7 +365,7 @@ namespace StableDiffusionNet.Tests.Services
             // Assert
             _httpClientMock.Verify(
                 x =>
-                    x.GetAsync<JArray>(
+                    x.GetAsync<List<LatentUpscaleMode>>(
                         "/sdapi/v1/latent-upscale-modes",
                         It.IsAny<CancellationToken>()
                     ),
@@ -360,18 +378,27 @@ namespace StableDiffusionNet.Tests.Services
         {
             // Arrange
             using var cts = new CancellationTokenSource();
-            var modesJson = new JArray { new JObject { ["name"] = "test" } };
+            var modes = new List<LatentUpscaleMode> { new LatentUpscaleMode { Name = "test" } };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(modesJson);
+                .Setup(x =>
+                    x.GetAsync<List<LatentUpscaleMode>>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(modes);
 
             // Act
             await _service.GetLatentUpscaleModesAsync(cts.Token);
 
             // Assert
             _httpClientMock.Verify(
-                x => x.GetAsync<JArray>("/sdapi/v1/latent-upscale-modes", cts.Token),
+                x =>
+                    x.GetAsync<List<LatentUpscaleMode>>(
+                        "/sdapi/v1/latent-upscale-modes",
+                        cts.Token
+                    ),
                 Times.Once
             );
         }
@@ -380,15 +407,20 @@ namespace StableDiffusionNet.Tests.Services
         public async Task GetLatentUpscaleModesAsync_LogsInformation()
         {
             // Arrange
-            var modesJson = new JArray
+            var modes = new List<LatentUpscaleMode>
             {
-                new JObject { ["name"] = "mode1" },
-                new JObject { ["name"] = "mode2" },
+                new LatentUpscaleMode { Name = "mode1" },
+                new LatentUpscaleMode { Name = "mode2" },
             };
 
             _httpClientMock
-                .Setup(x => x.GetAsync<JArray>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(modesJson);
+                .Setup(x =>
+                    x.GetAsync<List<LatentUpscaleMode>>(
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(modes);
 
             // Act
             await _service.GetLatentUpscaleModesAsync();

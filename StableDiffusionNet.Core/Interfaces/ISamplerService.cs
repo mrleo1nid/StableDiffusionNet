@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Interfaces
 {
@@ -11,8 +12,10 @@ namespace StableDiffusionNet.Interfaces
     public interface ISamplerService
     {
         /// <summary>
-        /// Получает список доступных sampler'ов
+        /// Получает список доступных sampler'ов с полной информацией
         /// </summary>
-        Task<IReadOnlyList<string>> GetSamplersAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<Sampler>> GetSamplersAsync(
+            CancellationToken cancellationToken = default
+        );
     }
 }
