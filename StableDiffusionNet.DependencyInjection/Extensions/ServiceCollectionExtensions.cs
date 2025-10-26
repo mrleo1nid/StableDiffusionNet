@@ -96,6 +96,7 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
             RegisterService<IProgressService, ProgressService>(services);
             RegisterService<IOptionsService, OptionsService>(services);
             RegisterService<ISamplerService, SamplerService>(services);
+            RegisterService<ISchedulerService, SchedulerService>(services);
 
             // Регистрация главного клиента
             services.AddTransient<IStableDiffusionClient>(sp =>
@@ -106,6 +107,7 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                 var progress = sp.GetRequiredService<IProgressService>();
                 var options = sp.GetRequiredService<IOptionsService>();
                 var samplers = sp.GetRequiredService<ISamplerService>();
+                var schedulers = sp.GetRequiredService<ISchedulerService>();
                 var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
 
                 return new StableDiffusionClient(
@@ -115,6 +117,7 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                     progress,
                     options,
                     samplers,
+                    schedulers,
                     loggerFactory.CreateLogger<StableDiffusionClient>()
                 );
             });

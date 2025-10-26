@@ -16,6 +16,7 @@ namespace StableDiffusionNet.Tests
         private readonly Mock<IProgressService> _progressServiceMock;
         private readonly Mock<IOptionsService> _optionsServiceMock;
         private readonly Mock<ISamplerService> _samplerServiceMock;
+        private readonly Mock<ISchedulerService> _schedulerServiceMock;
         private readonly Mock<IStableDiffusionLogger> _loggerMock;
 
         public StableDiffusionClientTests()
@@ -26,6 +27,7 @@ namespace StableDiffusionNet.Tests
             _progressServiceMock = new Mock<IProgressService>();
             _optionsServiceMock = new Mock<IOptionsService>();
             _samplerServiceMock = new Mock<ISamplerService>();
+            _schedulerServiceMock = new Mock<ISchedulerService>();
             _loggerMock = new Mock<IStableDiffusionLogger>();
         }
 
@@ -38,6 +40,7 @@ namespace StableDiffusionNet.Tests
                 _progressServiceMock.Object,
                 _optionsServiceMock.Object,
                 _samplerServiceMock.Object,
+                _schedulerServiceMock.Object,
                 _loggerMock.Object
             );
         }
@@ -56,6 +59,7 @@ namespace StableDiffusionNet.Tests
             client.Progress.Should().NotBeNull();
             client.Options.Should().NotBeNull();
             client.Samplers.Should().NotBeNull();
+            client.Schedulers.Should().NotBeNull();
         }
 
         [Fact]
@@ -70,6 +74,7 @@ namespace StableDiffusionNet.Tests
                     _progressServiceMock.Object,
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
+                    _schedulerServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -88,6 +93,7 @@ namespace StableDiffusionNet.Tests
                     _progressServiceMock.Object,
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
+                    _schedulerServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -106,6 +112,7 @@ namespace StableDiffusionNet.Tests
                     _progressServiceMock.Object,
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
+                    _schedulerServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -124,6 +131,7 @@ namespace StableDiffusionNet.Tests
                     null!,
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
+                    _schedulerServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -142,6 +150,7 @@ namespace StableDiffusionNet.Tests
                     _progressServiceMock.Object,
                     null!,
                     _samplerServiceMock.Object,
+                    _schedulerServiceMock.Object,
                     _loggerMock.Object
                 );
 
@@ -160,10 +169,30 @@ namespace StableDiffusionNet.Tests
                     _progressServiceMock.Object,
                     _optionsServiceMock.Object,
                     null!,
+                    _schedulerServiceMock.Object,
                     _loggerMock.Object
                 );
 
             act.Should().Throw<ArgumentNullException>().WithParameterName("samplerService");
+        }
+
+        [Fact]
+        public void Constructor_WithNullSchedulerService_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            var act = () =>
+                new StableDiffusionClient(
+                    _textToImageMock.Object,
+                    _imageToImageMock.Object,
+                    _modelServiceMock.Object,
+                    _progressServiceMock.Object,
+                    _optionsServiceMock.Object,
+                    _samplerServiceMock.Object,
+                    null!,
+                    _loggerMock.Object
+                );
+
+            act.Should().Throw<ArgumentNullException>().WithParameterName("schedulerService");
         }
 
         [Fact]
@@ -178,6 +207,7 @@ namespace StableDiffusionNet.Tests
                     _progressServiceMock.Object,
                     _optionsServiceMock.Object,
                     _samplerServiceMock.Object,
+                    _schedulerServiceMock.Object,
                     null!
                 );
 
@@ -242,6 +272,16 @@ namespace StableDiffusionNet.Tests
 
             // Act & Assert
             client.Samplers.Should().BeSameAs(_samplerServiceMock.Object);
+        }
+
+        [Fact]
+        public void Schedulers_Property_ReturnsInjectedService()
+        {
+            // Arrange
+            var client = CreateClient();
+
+            // Act & Assert
+            client.Schedulers.Should().BeSameAs(_schedulerServiceMock.Object);
         }
 
         [Fact]

@@ -66,6 +66,7 @@ namespace StableDiffusionNet.Tests.Extensions
             serviceProvider.GetService<IProgressService>().Should().NotBeNull();
             serviceProvider.GetService<IOptionsService>().Should().NotBeNull();
             serviceProvider.GetService<ISamplerService>().Should().NotBeNull();
+            serviceProvider.GetService<ISchedulerService>().Should().NotBeNull();
             serviceProvider.GetService<IHttpClientWrapper>().Should().NotBeNull();
         }
 

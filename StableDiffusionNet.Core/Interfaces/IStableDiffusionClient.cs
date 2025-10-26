@@ -39,6 +39,11 @@ namespace StableDiffusionNet.Interfaces
         ISamplerService Samplers { get; }
 
         /// <summary>
+        /// Сервис для работы с scheduler'ами (планировщиками)
+        /// </summary>
+        ISchedulerService Schedulers { get; }
+
+        /// <summary>
         /// Проверка доступности API
         /// </summary>
         Task<bool> PingAsync(CancellationToken cancellationToken = default);

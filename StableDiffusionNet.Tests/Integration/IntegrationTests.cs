@@ -69,6 +69,25 @@ namespace StableDiffusionNet.Tests.Integration
 
         [Fact]
         [Trait("Category", TestCategories.Smoke)]
+        public async Task GetSchedulersAsync_ReturnsListOfSchedulers()
+        {
+            // Act
+            var schedulers = await _client.Schedulers.GetSchedulersAsync();
+
+            // Assert
+            schedulers.Should().NotBeNull();
+            schedulers.Should().NotBeEmpty();
+            schedulers
+                .Should()
+                .Contain(s =>
+                    s.Contains("automatic", StringComparison.OrdinalIgnoreCase)
+                    || s.Contains("karras", StringComparison.OrdinalIgnoreCase)
+                    || s.Contains("uniform", StringComparison.OrdinalIgnoreCase)
+                );
+        }
+
+        [Fact]
+        [Trait("Category", TestCategories.Smoke)]
         public async Task GetModelsAsync_ReturnsListOfModels()
         {
             // Act

@@ -33,16 +33,22 @@ namespace StableDiffusionNet
         /// <inheritdoc/>
         public ISamplerService Samplers { get; }
 
+        /// <inheritdoc/>
+        public ISchedulerService Schedulers { get; }
+
         /// <summary>
         /// Создает экземпляр клиента с внедренными зависимостями
         /// </summary>
+#pragma warning disable CA1508, S107 // Избегайте неиспользуемого условного кода
         public StableDiffusionClient(
+#pragma warning restore CA1508, S107
             ITextToImageService textToImageService,
             IImageToImageService imageToImageService,
             IModelService modelService,
             IProgressService progressService,
             IOptionsService optionsService,
             ISamplerService samplerService,
+            ISchedulerService schedulerService,
             IStableDiffusionLogger logger
         )
         {
@@ -54,6 +60,8 @@ namespace StableDiffusionNet
             Progress = progressService ?? throw new ArgumentNullException(nameof(progressService));
             Options = optionsService ?? throw new ArgumentNullException(nameof(optionsService));
             Samplers = samplerService ?? throw new ArgumentNullException(nameof(samplerService));
+            Schedulers =
+                schedulerService ?? throw new ArgumentNullException(nameof(schedulerService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 

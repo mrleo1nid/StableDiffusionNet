@@ -54,5 +54,10 @@ namespace StableDiffusionNet.Constants
         /// Эндпоинт для получения списка доступных семплеров
         /// </summary>
         public const string Samplers = $"{ApiPrefix}/samplers";
+
+        /// <summary>
+        /// Эндпоинт для получения списка доступных планировщиков (schedulers)
+        /// </summary>
+        public const string Schedulers = $"{ApiPrefix}/schedulers";
     }
 }

@@ -178,6 +178,11 @@ namespace StableDiffusionNet
                 loggerFactory.CreateLogger<SamplerService>()
             );
 
+            var schedulerService = new SchedulerService(
+                httpClientWrapper,
+                loggerFactory.CreateLogger<SchedulerService>()
+            );
+
             // Создаем главный клиент
             return new StableDiffusionClient(
                 textToImageService,
@@ -186,6 +191,7 @@ namespace StableDiffusionNet
                 progressService,
                 optionsService,
                 samplerService,
+                schedulerService,
                 loggerFactory.CreateLogger<StableDiffusionClient>()
             );
         }
