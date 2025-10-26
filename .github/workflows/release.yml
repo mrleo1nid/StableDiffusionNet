@@ -14,6 +14,8 @@ jobs:
   build-test-release:
     name: Build, Test, and Release
     runs-on: ubuntu-latest
+    env:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
     
     steps:
     - name: Checkout code
@@ -118,7 +120,7 @@ jobs:
     - name: Publish to NuGet
       run: |
         dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg \
-          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --api-key ${{ env.NUGET_API_KEY }} \
           --source https://api.nuget.org/v3/index.json \
           --skip-duplicate
     
