@@ -12,11 +12,11 @@
     <Authors>StableDiffusionNet Contributors</Authors>
     <Company>StableDiffusionNet</Company>
     <Product>StableDiffusionNet</Product>
-    <Description>Progressive .NET client for Stable Diffusion WebUI (AUTOMATIC1111) API with SOLID principles, comprehensive testing, and modern .NET features. Supports Text-to-Image, Image-to-Image generation, model management, and more.</Description>
+    <Description>.NET client for Stable Diffusion WebUI (AUTOMATIC1111) API. Supports Text-to-Image, Image-to-Image generation, model management, progress tracking, and more. Compatible with .NET Standard 2.0+, .NET Framework 4.7.2+, .NET Core 2.0+, .NET 5.0+.</Description>
     <Copyright>Copyright © 2025 StableDiffusionNet Contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/yourusername/StableDiffusionNet</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/yourusername/StableDiffusionNet</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/mrleo1nid/StableDiffusionNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mrleo1nid/StableDiffusionNet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>stable-diffusion;ai;image-generation;webui;api-client;automatic1111;text-to-image;image-to-image;dotnet;csharp</PackageTags>

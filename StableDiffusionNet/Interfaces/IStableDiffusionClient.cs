@@ -5,7 +5,6 @@ namespace StableDiffusionNet.Interfaces
 {
     /// <summary>
     /// Главный интерфейс клиента Stable Diffusion WebUI API
-    /// Следует принципу Interface Segregation (SOLID)
     /// </summary>
     public interface IStableDiffusionClient
     {
