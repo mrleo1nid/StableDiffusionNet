@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
@@ -8,6 +9,16 @@ namespace StableDiffusionNet.Models.Requests
     /// </summary>
     public class ImageToImageRequest
     {
+        /// <summary>
+        /// Максимальный размер изображения
+        /// </summary>
+        private const int MaxImageSize = 4096;
+
+        /// <summary>
+        /// Минимальный размер изображения
+        /// </summary>
+        private const int MinImageSize = 64;
+
         /// <summary>
         /// Массив изображений в base64
         /// </summary>
@@ -145,5 +156,51 @@ namespace StableDiffusionNet.Models.Requests
         /// </summary>
         [JsonProperty("override_settings_restore_afterwards")]
         public bool OverrideSettingsRestoreAfterwards { get; set; } = true;
+
+        /// <summary>
+        /// Валидация параметров запроса
+        /// </summary>
+        /// <param name="paramName">Имя параметра для передачи в исключение</param>
+        /// /// <exception cref="ArgumentException">Выбрасывается при невалидных параметрах</exception>
+        public void Validate(string? paramName = null)
+        {
+            if (string.IsNullOrWhiteSpace(Prompt))
+                throw new ArgumentException("Prompt cannot be empty", paramName ?? nameof(Prompt));
+
+            if (InitImages == null || InitImages.Count == 0)
+                throw new ArgumentException(
+                    "At least one initial image must be provided",
+                    paramName ?? nameof(InitImages)
+                );
+
+            ValidateImageDimension(Width, nameof(Width));
+            ValidateImageDimension(Height, nameof(Height));
+
+            if (Steps <= 0)
+                throw new ArgumentException("Steps must be greater than 0", paramName);
+
+            if (CfgScale < 1 || CfgScale > 30)
+                throw new ArgumentException("CfgScale must be between 1 and 30", paramName);
+
+            if (DenoisingStrength < 0 || DenoisingStrength > 1)
+                throw new ArgumentException("DenoisingStrength must be between 0 and 1", paramName);
+
+            if (BatchSize <= 0)
+                throw new ArgumentException("BatchSize must be greater than 0", paramName);
+
+            if (NIter <= 0)
+                throw new ArgumentException("NIter must be greater than 0", paramName);
+        }
+
+        private static void ValidateImageDimension(int value, string dimensionName)
+        {
+            if (value < MinImageSize || value > MaxImageSize)
+                throw new ArgumentException(
+                    $"{dimensionName} must be between {MinImageSize} and {MaxImageSize}"
+                );
+
+            if (value % 8 != 0)
+                throw new ArgumentException($"{dimensionName} must be divisible by 8");
+        }
     }
 }

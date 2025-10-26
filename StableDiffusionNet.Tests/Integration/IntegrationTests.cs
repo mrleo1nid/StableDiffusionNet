@@ -219,7 +219,7 @@ namespace StableDiffusionNet.Tests.Integration
         {
             // Arrange
             var originalOptions = await _client.Options.GetOptionsAsync();
-            var newClipValue = (originalOptions.ClipStopAtLastLayers ?? 1) == 1 ? 2 : 1;
+            var newClipValue = (originalOptions.ClipStopAtLastLayers ?? 1.0) == 1.0 ? 2.0 : 1.0;
 
             var updatedOptions = new StableDiffusionNet.Models.WebUIOptions
             {

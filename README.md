@@ -10,12 +10,13 @@
 
 ## Особенности
 
-- Поддержка Dependency Injection
-- Встроенная retry-логика с использованием Polly
-- Асинхронные операции с поддержкой async/await и CancellationToken
-- XML документация для всех публичных API
-- Интеграция с Microsoft.Extensions.Logging
-- Поддержка .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
+- 🎯 **Два варианта использования**: с Dependency Injection или без него
+- 🏗️ **Builder Pattern**: удобное создание клиента без DI
+- 🔄 Встроенная retry-логика с использованием Polly
+- ⚡ Асинхронные операции с поддержкой async/await и CancellationToken
+- 📝 XML документация для всех публичных API
+- 📊 Интеграция с Microsoft.Extensions.Logging
+- 🎨 Поддержка .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
 
 ## 📦 Установка
 
@@ -31,7 +32,27 @@ Install-Package StableDiffusionNet
 
 ## 🚀 Быстрый старт
 
-### Настройка с Dependency Injection
+### Вариант 1: Использование без Dependency Injection (самый простой)
+
+```csharp
+using StableDiffusionNet;
+
+// Создание клиента с настройками по умолчанию
+var client = StableDiffusionClientBuilder.CreateDefault("http://localhost:7860");
+
+// Или с дополнительными настройками через билдер
+var client = new StableDiffusionClientBuilder()
+    .WithBaseUrl("http://localhost:7860")
+    .WithTimeout(600)
+    .WithRetry(retryCount: 3, retryDelayMilliseconds: 1000)
+    .WithDetailedLogging()
+    .Build();
+
+// Готово! Можно использовать
+var response = await client.TextToImage.GenerateAsync(request);
+```
+
+### Вариант 2: Настройка с Dependency Injection
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -57,7 +78,7 @@ var serviceProvider = services.BuildServiceProvider();
 var client = serviceProvider.GetRequiredService<IStableDiffusionClient>();
 ```
 
-### Простая настройка
+### Простая настройка с DI
 
 ```csharp
 // Для быстрого старта с настройками по умолчанию

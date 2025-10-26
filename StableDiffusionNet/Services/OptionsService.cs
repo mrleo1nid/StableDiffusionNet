@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Models;
 
@@ -16,7 +17,6 @@ namespace StableDiffusionNet.Services
     {
         private readonly IHttpClientWrapper _httpClient;
         private readonly ILogger<OptionsService> _logger;
-        private const string Endpoint = "/sdapi/v1/options";
 
         /// <summary>
         /// Создает новый экземпляр сервиса управления опциями
@@ -34,7 +34,10 @@ namespace StableDiffusionNet.Services
         {
             _logger.LogDebug("Getting current WebUI options");
 
-            var options = await _httpClient.GetAsync<WebUIOptions>(Endpoint, cancellationToken);
+            var options = await _httpClient.GetAsync<WebUIOptions>(
+                ApiEndpoints.Options,
+                cancellationToken
+            );
 
             _logger.LogDebug("Options successfully retrieved");
 
@@ -52,7 +55,7 @@ namespace StableDiffusionNet.Services
 
             _logger.LogInformation("Setting WebUI options");
 
-            await _httpClient.PostAsync(Endpoint, options, cancellationToken);
+            await _httpClient.PostAsync(ApiEndpoints.Options, options, cancellationToken);
 
             _logger.LogInformation("Options successfully set");
         }

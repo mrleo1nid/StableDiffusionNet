@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Models;
 
@@ -16,9 +17,6 @@ namespace StableDiffusionNet.Services
     {
         private readonly IHttpClientWrapper _httpClient;
         private readonly ILogger<ProgressService> _logger;
-        private const string ProgressEndpoint = "/sdapi/v1/progress";
-        private const string InterruptEndpoint = "/sdapi/v1/interrupt";
-        private const string SkipEndpoint = "/sdapi/v1/skip";
 
         /// <summary>
         /// Создает новый экземпляр сервиса отслеживания прогресса
@@ -35,7 +33,7 @@ namespace StableDiffusionNet.Services
         )
         {
             var progress = await _httpClient.GetAsync<GenerationProgress>(
-                ProgressEndpoint,
+                ApiEndpoints.Progress,
                 cancellationToken
             );
 
@@ -57,7 +55,7 @@ namespace StableDiffusionNet.Services
         {
             _logger.LogInformation("Interrupting current generation");
 
-            await _httpClient.PostAsync(InterruptEndpoint, cancellationToken);
+            await _httpClient.PostAsync(ApiEndpoints.Interrupt, cancellationToken);
 
             _logger.LogInformation("Generation successfully interrupted");
         }
@@ -67,7 +65,7 @@ namespace StableDiffusionNet.Services
         {
             _logger.LogInformation("Skipping current image");
 
-            await _httpClient.PostAsync(SkipEndpoint, cancellationToken);
+            await _httpClient.PostAsync(ApiEndpoints.Skip, cancellationToken);
 
             _logger.LogInformation("Image successfully skipped");
         }

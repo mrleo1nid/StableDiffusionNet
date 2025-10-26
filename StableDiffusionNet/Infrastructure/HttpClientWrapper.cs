@@ -16,12 +16,19 @@ namespace StableDiffusionNet.Infrastructure
     /// Обертка над HttpClient с обработкой ошибок и логированием
     /// Dependency Inversion Principle - реализует интерфейс IHttpClientWrapper
     /// Single Responsibility - отвечает только за HTTP коммуникацию
+    ///
+    /// Примечание: Класс не реализует IDisposable, так как HttpClient управляется
+    /// через IHttpClientFactory в DI контейнере и не должен диспозиться вручную.
     /// </summary>
     public class HttpClientWrapper : IHttpClientWrapper
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<HttpClientWrapper> _logger;
         private readonly StableDiffusionOptions _options;
+        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+        };
 
         /// <summary>
         /// Создает новый экземпляр HTTP клиента
@@ -75,10 +82,7 @@ namespace StableDiffusionNet.Infrastructure
         {
             try
             {
-                var json = JsonConvert.SerializeObject(
-                    request,
-                    new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
-                );
+                var json = JsonConvert.SerializeObject(request, JsonSettings);
 
                 if (_options.EnableDetailedLogging)
                 {
@@ -130,10 +134,7 @@ namespace StableDiffusionNet.Infrastructure
         {
             try
             {
-                var json = JsonConvert.SerializeObject(
-                    request,
-                    new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
-                );
+                var json = JsonConvert.SerializeObject(request, JsonSettings);
 
                 if (_options.EnableDetailedLogging)
                 {

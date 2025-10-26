@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
 
 namespace StableDiffusionNet.Services
@@ -18,7 +19,6 @@ namespace StableDiffusionNet.Services
     {
         private readonly IHttpClientWrapper _httpClient;
         private readonly ILogger<SamplerService> _logger;
-        private const string Endpoint = "/sdapi/v1/samplers";
 
         /// <summary>
         /// Создает новый экземпляр сервиса получения информации о sampler'ах
@@ -36,7 +36,10 @@ namespace StableDiffusionNet.Services
         {
             _logger.LogDebug("Getting list of available samplers");
 
-            var samplers = await _httpClient.GetAsync<JArray>(Endpoint, cancellationToken);
+            var samplers = await _httpClient.GetAsync<JArray>(
+                ApiEndpoints.Samplers,
+                cancellationToken
+            );
 
             var samplerNames = samplers
                 .Select(s => s["name"]?.ToString())

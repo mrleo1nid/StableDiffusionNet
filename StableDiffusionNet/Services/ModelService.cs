@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Models;
 
@@ -17,9 +18,6 @@ namespace StableDiffusionNet.Services
     {
         private readonly IHttpClientWrapper _httpClient;
         private readonly ILogger<ModelService> _logger;
-        private const string ModelsEndpoint = "/sdapi/v1/sd-models";
-        private const string OptionsEndpoint = "/sdapi/v1/options";
-        private const string RefreshEndpoint = "/sdapi/v1/refresh-checkpoints";
 
         /// <summary>
         /// Создает новый экземпляр сервиса управления моделями
@@ -38,7 +36,7 @@ namespace StableDiffusionNet.Services
             _logger.LogDebug("Getting list of available models");
 
             var models = await _httpClient.GetAsync<List<SdModel>>(
-                ModelsEndpoint,
+                ApiEndpoints.Models,
                 cancellationToken
             );
 
@@ -55,7 +53,7 @@ namespace StableDiffusionNet.Services
             _logger.LogDebug("Getting current active model");
 
             var options = await _httpClient.GetAsync<WebUIOptions>(
-                OptionsEndpoint,
+                ApiEndpoints.Options,
                 cancellationToken
             );
 
@@ -78,7 +76,7 @@ namespace StableDiffusionNet.Services
 
             var options = new WebUIOptions { SdModelCheckpoint = modelName };
 
-            await _httpClient.PostAsync(OptionsEndpoint, options, cancellationToken);
+            await _httpClient.PostAsync(ApiEndpoints.Options, options, cancellationToken);
 
             _logger.LogInformation("Model successfully set: {Model}", modelName);
         }
@@ -88,7 +86,7 @@ namespace StableDiffusionNet.Services
         {
             _logger.LogInformation("Refreshing models list");
 
-            await _httpClient.PostAsync(RefreshEndpoint, cancellationToken);
+            await _httpClient.PostAsync(ApiEndpoints.RefreshCheckpoints, cancellationToken);
 
             _logger.LogInformation("Models list successfully refreshed");
         }

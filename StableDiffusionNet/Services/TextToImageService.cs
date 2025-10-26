@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using StableDiffusionNet.Constants;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Models.Requests;
 using StableDiffusionNet.Models.Responses;
@@ -17,7 +18,6 @@ namespace StableDiffusionNet.Services
     {
         private readonly IHttpClientWrapper _httpClient;
         private readonly ILogger<TextToImageService> _logger;
-        private const string Endpoint = "/sdapi/v1/txt2img";
 
         /// <summary>
         /// Создает новый экземпляр сервиса генерации изображений из текста
@@ -37,8 +37,7 @@ namespace StableDiffusionNet.Services
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            if (string.IsNullOrWhiteSpace(request.Prompt))
-                throw new ArgumentException("Prompt cannot be empty", nameof(request));
+            request.Validate(nameof(request));
 
             _logger.LogInformation(
                 "Starting text-to-image generation. Prompt: {Prompt}, Size: {Width}x{Height}",
@@ -48,7 +47,7 @@ namespace StableDiffusionNet.Services
             );
 
             var response = await _httpClient.PostAsync<TextToImageRequest, TextToImageResponse>(
-                Endpoint,
+                ApiEndpoints.TextToImage,
                 request,
                 cancellationToken
             );

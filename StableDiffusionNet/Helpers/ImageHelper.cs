@@ -9,10 +9,23 @@ namespace StableDiffusionNet.Helpers
     public static class ImageHelper
     {
         /// <summary>
+        /// Максимальный размер файла изображения в байтах (50 МБ)
+        /// </summary>
+        private const long MaxFileSize = 50 * 1024 * 1024;
+
+        // MIME типы для изображений
+        private const string MimeTypePng = "image/png";
+        private const string MimeTypeJpeg = "image/jpeg";
+        private const string MimeTypeGif = "image/gif";
+        private const string MimeTypeWebp = "image/webp";
+        private const string MimeTypeBmp = "image/bmp";
+
+        /// <summary>
         /// Преобразует изображение из файла в base64 строку
         /// </summary>
         /// <param name="filePath">Путь к файлу изображения</param>
         /// <returns>Base64 строка с префиксом data:image</returns>
+        /// <exception cref="ArgumentException">Выбрасывается если файл слишком большой</exception>
         public static string ImageToBase64(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath))
@@ -21,18 +34,25 @@ namespace StableDiffusionNet.Helpers
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("File not found", filePath);
 
+            var fileInfo = new FileInfo(filePath);
+            if (fileInfo.Length > MaxFileSize)
+                throw new ArgumentException(
+                    $"File size ({fileInfo.Length} bytes) exceeds maximum allowed size ({MaxFileSize} bytes)",
+                    nameof(filePath)
+                );
+
             var bytes = File.ReadAllBytes(filePath);
             var base64 = Convert.ToBase64String(bytes);
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
 
             var mimeType = extension switch
             {
-                ".png" => "image/png",
-                ".jpg" or ".jpeg" => "image/jpeg",
-                ".gif" => "image/gif",
-                ".webp" => "image/webp",
-                ".bmp" => "image/bmp",
-                _ => "image/png",
+                ".png" => MimeTypePng,
+                ".jpg" or ".jpeg" => MimeTypeJpeg,
+                ".gif" => MimeTypeGif,
+                ".webp" => MimeTypeWebp,
+                ".bmp" => MimeTypeBmp,
+                _ => MimeTypePng,
             };
 
             return $"data:{mimeType};base64,{base64}";
@@ -51,18 +71,7 @@ namespace StableDiffusionNet.Helpers
             if (string.IsNullOrWhiteSpace(outputPath))
                 throw new ArgumentException("Output path cannot be empty", nameof(outputPath));
 
-            // Убираем префикс data:image/xxx;base64, если он есть
-            var base64Data = base64String;
-            if (base64String.Contains(","))
-            {
-                var commaIndex = base64String.IndexOf(',');
-#if NETSTANDARD2_0
-                base64Data = base64String.Substring(commaIndex + 1);
-#else
-                base64Data = base64String[(commaIndex + 1)..];
-#endif
-            }
-
+            var base64Data = ExtractBase64Data(base64String);
             var bytes = Convert.FromBase64String(base64Data);
 
             // Создаем директорию если не существует
@@ -100,9 +109,9 @@ namespace StableDiffusionNet.Helpers
             if (string.IsNullOrWhiteSpace(base64String))
                 throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));
 
-            if (base64String.Contains(","))
+            var commaIndex = base64String.IndexOf(',');
+            if (commaIndex >= 0)
             {
-                var commaIndex = base64String.IndexOf(',');
 #if NETSTANDARD2_0
                 return base64String.Substring(commaIndex + 1);
 #else
