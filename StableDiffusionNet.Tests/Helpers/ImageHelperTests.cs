@@ -6,11 +6,12 @@ namespace StableDiffusionNet.Tests.Helpers
     /// <summary>
     /// Тесты для ImageHelper
     /// </summary>
-    public class ImageHelperTests : IDisposable
+    public sealed class ImageHelperTests : IDisposable
     {
         private readonly string _testDirectory;
         private readonly string _testImagePath;
         private readonly ImageHelper _imageHelper;
+        private bool _disposed;
 
         public ImageHelperTests()
         {
@@ -334,10 +335,16 @@ namespace StableDiffusionNet.Tests.Helpers
 
         public void Dispose()
         {
+            if (_disposed)
+                return;
+
             if (Directory.Exists(_testDirectory))
             {
                 Directory.Delete(_testDirectory, true);
             }
+
+            _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }

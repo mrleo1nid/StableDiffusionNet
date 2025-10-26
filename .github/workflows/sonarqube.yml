@@ -73,7 +73,7 @@ jobs:
         .\.sonar\scanner\dotnet-sonarscanner begin `
           /k:"mrleo1nid_StableDiffusionNet" `
           /o:"mrleo1nid" `
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+          /d:sonar.token="$env:SONAR_TOKEN" `
           /d:sonar.host.url="https://sonarcloud.io" `
           /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
         
@@ -83,7 +83,7 @@ jobs:
         # Запуск тестов с покрытием кода (исключая интеграционные тесты)
         dotnet-coverage collect "dotnet test --configuration Release --no-build --verbosity minimal --filter `"FullyQualifiedName!~Integration`"" -f xml -o "coverage.xml"
         
-        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
     
     - name: Upload coverage report
       if: always()

@@ -16,10 +16,11 @@ namespace StableDiffusionNet.Tests.Integration
     /// - Category!=LongRunning - исключить долгие тесты
     /// </summary>
     [Trait("Category", TestCategories.Integration)]
-    public class IntegrationTests : IDisposable
+    public sealed class IntegrationTests : IDisposable
     {
         private readonly ServiceProvider _serviceProvider;
         private readonly IStableDiffusionClient _client;
+        private bool _disposed;
 
         public IntegrationTests()
         {
@@ -520,7 +521,13 @@ namespace StableDiffusionNet.Tests.Integration
 
         public void Dispose()
         {
+            if (_disposed)
+                return;
+
             _serviceProvider?.Dispose();
+
+            _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 }
