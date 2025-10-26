@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ master, main, develop ]
   schedule:
-    - cron: '0 0 * * 1'  # Каждый понедельник в полночь
+    - cron: '0 0 * * *'  # Каждый день в полночь (00:00 UTC)
   workflow_dispatch:  # Ручной запуск
 
 jobs:
