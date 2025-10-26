@@ -31,6 +31,10 @@
     <None Include="../LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Expose internal classes to test assembly -->
+    <InternalsVisibleTo Include="StableDiffusionNet.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Ссылка на Core проект -->
     <ProjectReference Include="../StableDiffusionNet.Core/StableDiffusionNet.Core.csproj" />
   </ItemGroup>

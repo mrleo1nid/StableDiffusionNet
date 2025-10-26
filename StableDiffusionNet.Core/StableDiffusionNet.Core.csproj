@@ -31,6 +31,10 @@
     <None Include="../LICENSE" Pack="true" PackagePath="/" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Expose internal classes to test assembly -->
+    <InternalsVisibleTo Include="StableDiffusionNet.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
