@@ -44,6 +44,12 @@ namespace StableDiffusionNet.Models.Requests
         public string? SamplerName { get; set; }
 
         /// <summary>
+        /// Scheduler (планировщик шагов семплера)
+        /// </summary>
+        [JsonProperty("scheduler")]
+        public string Scheduler { get; set; } = "Automatic";
+
+        /// <summary>
         /// Ширина изображения (должна быть кратна 8)
         /// </summary>
         [JsonProperty("width")]

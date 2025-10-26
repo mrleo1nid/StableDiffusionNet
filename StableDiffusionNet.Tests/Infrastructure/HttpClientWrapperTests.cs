@@ -481,7 +481,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                l => l.Log(LogLevel.Error, It.IsAny<string>()),
+                l => l.Log(LogLevel.Error, It.IsAny<Exception>(), It.IsAny<string>()),
                 Times.AtLeastOnce,
                 "Should log error when exception occurs"
             );
@@ -805,7 +805,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
 
             // Assert
             _loggerMock.Verify(
-                l => l.Log(LogLevel.Error, It.IsAny<string>()),
+                l => l.Log(LogLevel.Error, It.IsAny<Exception>(), It.IsAny<string>()),
                 Times.AtLeastOnce,
                 "Should log error when exception occurs"
             );

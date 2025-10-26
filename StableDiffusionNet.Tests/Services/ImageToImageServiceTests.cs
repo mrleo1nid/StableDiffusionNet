@@ -249,7 +249,10 @@ namespace StableDiffusionNet.Tests.Services
             await _service.GenerateAsync(request);
 
             // Assert
-            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
+            _loggerMock.Verify(
+                x => x.Log(LogLevel.Information, It.IsAny<string>()),
+                Times.AtLeastOnce
+            );
         }
 
         [Fact]

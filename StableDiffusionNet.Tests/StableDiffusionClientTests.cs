@@ -350,7 +350,10 @@ namespace StableDiffusionNet.Tests
 
             // Assert
             result.Should().BeFalse();
-            _loggerMock.Verify(x => x.Log(LogLevel.Error, It.IsAny<string>()), Times.AtLeastOnce);
+            _loggerMock.Verify(
+                x => x.Log(LogLevel.Error, It.IsAny<Exception>(), It.IsAny<string>()),
+                Times.AtLeastOnce
+            );
         }
 
         [Fact]

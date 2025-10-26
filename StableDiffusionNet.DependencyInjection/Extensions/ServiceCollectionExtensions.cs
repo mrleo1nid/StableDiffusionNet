@@ -50,9 +50,12 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                 return new MicrosoftLoggerFactory(loggerFactory);
             });
 
+            // Константа для имени HttpClient
+            const string httpClientName = "StableDiffusionHttpClient";
+
             // Регистрация HttpClient с настройкой
             services
-                .AddHttpClient<IHttpClientWrapper, HttpClientWrapper>()
+                .AddHttpClient(httpClientName)
                 .ConfigureHttpClient(
                     (serviceProvider, client) =>
                     {
@@ -76,9 +79,7 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
             services.AddTransient<IHttpClientWrapper>(sp =>
             {
                 var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-                var httpClient = httpClientFactory.CreateClient(
-                    typeof(IHttpClientWrapper).FullName ?? "IHttpClientWrapper"
-                );
+                var httpClient = httpClientFactory.CreateClient(httpClientName);
 
                 var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
                 var logger = loggerFactory.CreateLogger<HttpClientWrapper>();
