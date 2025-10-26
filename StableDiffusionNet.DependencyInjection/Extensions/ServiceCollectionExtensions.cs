@@ -146,16 +146,19 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
         /// Добавляет StableDiffusionClient в коллекцию сервисов с опциями по умолчанию
         /// </summary>
         /// <param name="services">Коллекция сервисов</param>
-        /// <param name="baseUrl">Базовый URL API (например: http://localhost:7860)</param>
+        /// <param name="baseUrl">Базовый URL API (если null, используется значение по умолчанию из StableDiffusionOptions)</param>
         /// <returns>Коллекция сервисов для цепочки вызовов</returns>
         public static IServiceCollection AddStableDiffusion(
             this IServiceCollection services,
-            string baseUrl = StableDiffusionNet.Configuration.StableDiffusionOptions.DefaultBaseUrl
+            string? baseUrl = null
         )
         {
             return services.AddStableDiffusion(options =>
             {
-                options.BaseUrl = baseUrl;
+                if (baseUrl != null)
+                {
+                    options.BaseUrl = baseUrl;
+                }
             });
         }
 

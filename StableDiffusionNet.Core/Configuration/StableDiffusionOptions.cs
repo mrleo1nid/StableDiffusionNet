@@ -9,14 +9,9 @@ namespace StableDiffusionNet.Configuration
     public class StableDiffusionOptions
     {
         /// <summary>
-        /// Базовый URL API по умолчанию для локального Stable Diffusion WebUI
-        /// </summary>
-        public const string DefaultBaseUrl = "http://localhost:7860";
-
-        /// <summary>
         /// Базовый URL API (например: http://localhost:7860)
         /// </summary>
-        public string BaseUrl { get; set; } = DefaultBaseUrl;
+        public string BaseUrl { get; set; } = "http://localhost:7860";
 
         /// <summary>
         /// Таймаут для запросов в секундах

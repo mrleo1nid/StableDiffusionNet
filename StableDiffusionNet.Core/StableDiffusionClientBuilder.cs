@@ -232,13 +232,16 @@ namespace StableDiffusionNet
         /// <summary>
         /// Создает клиент с настройками по умолчанию
         /// </summary>
-        /// <param name="baseUrl">Базовый URL API (по умолчанию: http://localhost:7860)</param>
+        /// <param name="baseUrl">Базовый URL API (если null, используется значение по умолчанию из StableDiffusionOptions)</param>
         /// <returns>Клиент с настройками по умолчанию</returns>
-        public static IStableDiffusionClient CreateDefault(
-            string baseUrl = StableDiffusionOptions.DefaultBaseUrl
-        )
+        public static IStableDiffusionClient CreateDefault(string? baseUrl = null)
         {
-            return new StableDiffusionClientBuilder().WithBaseUrl(baseUrl).Build();
+            var builder = new StableDiffusionClientBuilder();
+            if (baseUrl != null)
+            {
+                builder.WithBaseUrl(baseUrl);
+            }
+            return builder.Build();
         }
     }
 }
