@@ -91,7 +91,9 @@ jobs:
         dotnet pack ${{ env.PROJECT_PATH }} \
           --configuration Release \
           --no-build \
-          --output ${{ env.PACKAGE_OUTPUT_DIR }}
+          --output ${{ env.PACKAGE_OUTPUT_DIR }} \
+          /p:Version=${{ steps.get_version.outputs.VERSION }} \
+          /p:PackageVersion=${{ steps.get_version.outputs.VERSION }}
     
     - name: List output files
       run: ls -la ${{ env.PACKAGE_OUTPUT_DIR }}
