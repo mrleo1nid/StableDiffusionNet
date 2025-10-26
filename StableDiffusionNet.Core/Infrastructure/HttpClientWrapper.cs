@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Exceptions;
+using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
 
@@ -22,7 +23,7 @@ namespace StableDiffusionNet.Infrastructure
         private readonly IStableDiffusionLogger _logger;
         private readonly StableDiffusionOptions _options;
         private readonly RetryHandler _retryHandler;
-        private readonly IJsonSanitizer _jsonSanitizer;
+        private readonly JsonSanitizer _jsonSanitizer;
         private readonly bool _ownsHttpClient;
         private bool _disposed;
 
@@ -45,9 +46,13 @@ namespace StableDiffusionNet.Infrastructure
             bool ownsHttpClient = false
         )
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            Guard.ThrowIfNull(httpClient);
+            Guard.ThrowIfNull(logger);
+            Guard.ThrowIfNull(options);
+
+            _httpClient = httpClient;
+            _logger = logger;
+            _options = options;
             _ownsHttpClient = ownsHttpClient;
             _jsonSanitizer = new JsonSanitizer();
 

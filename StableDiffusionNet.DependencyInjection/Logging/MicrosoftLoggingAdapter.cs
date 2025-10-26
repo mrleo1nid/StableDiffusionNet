@@ -15,21 +15,27 @@ namespace StableDiffusionNet.DependencyInjection.Logging
 
         public MicrosoftLoggingAdapter(ILogger logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+#if NET6_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(logger);
+#else
+            if (logger == null)
+                throw new ArgumentNullException(nameof(logger));
+#endif
+            _logger = logger;
         }
 
         /// <inheritdoc/>
         public void Log(SdLogLevel logLevel, string message)
         {
             var msftLogLevel = ConvertLogLevel(logLevel);
-            _logger.Log(msftLogLevel, message);
+            _logger.Log(msftLogLevel, "{Message}", message);
         }
 
         /// <inheritdoc/>
         public void Log(SdLogLevel logLevel, Exception exception, string message)
         {
             var msftLogLevel = ConvertLogLevel(logLevel);
-            _logger.Log(msftLogLevel, exception, message);
+            _logger.Log(msftLogLevel, exception, "{Message}", message);
         }
 
         /// <inheritdoc/>

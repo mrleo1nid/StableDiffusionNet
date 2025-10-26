@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
 
@@ -75,25 +76,35 @@ namespace StableDiffusionNet
             IStableDiffusionLogger logger
         )
         {
-            TextToImage =
-                textToImageService ?? throw new ArgumentNullException(nameof(textToImageService));
-            ImageToImage =
-                imageToImageService ?? throw new ArgumentNullException(nameof(imageToImageService));
-            Models = modelService ?? throw new ArgumentNullException(nameof(modelService));
-            Progress = progressService ?? throw new ArgumentNullException(nameof(progressService));
-            Options = optionsService ?? throw new ArgumentNullException(nameof(optionsService));
-            Samplers = samplerService ?? throw new ArgumentNullException(nameof(samplerService));
-            Schedulers =
-                schedulerService ?? throw new ArgumentNullException(nameof(schedulerService));
-            Upscalers = upscalerService ?? throw new ArgumentNullException(nameof(upscalerService));
-            PngInfo = pngInfoService ?? throw new ArgumentNullException(nameof(pngInfoService));
-            Extra = extraService ?? throw new ArgumentNullException(nameof(extraService));
-            Embeddings =
-                embeddingService ?? throw new ArgumentNullException(nameof(embeddingService));
-            Loras = loraService ?? throw new ArgumentNullException(nameof(loraService));
-            _httpClientWrapper =
-                httpClientWrapper ?? throw new ArgumentNullException(nameof(httpClientWrapper));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Guard.ThrowIfNull(textToImageService);
+            Guard.ThrowIfNull(imageToImageService);
+            Guard.ThrowIfNull(modelService);
+            Guard.ThrowIfNull(progressService);
+            Guard.ThrowIfNull(optionsService);
+            Guard.ThrowIfNull(samplerService);
+            Guard.ThrowIfNull(schedulerService);
+            Guard.ThrowIfNull(upscalerService);
+            Guard.ThrowIfNull(pngInfoService);
+            Guard.ThrowIfNull(extraService);
+            Guard.ThrowIfNull(embeddingService);
+            Guard.ThrowIfNull(loraService);
+            Guard.ThrowIfNull(httpClientWrapper);
+            Guard.ThrowIfNull(logger);
+
+            TextToImage = textToImageService;
+            ImageToImage = imageToImageService;
+            Models = modelService;
+            Progress = progressService;
+            Options = optionsService;
+            Samplers = samplerService;
+            Schedulers = schedulerService;
+            Upscalers = upscalerService;
+            PngInfo = pngInfoService;
+            Extra = extraService;
+            Embeddings = embeddingService;
+            Loras = loraService;
+            _httpClientWrapper = httpClientWrapper;
+            _logger = logger;
         }
 
         /// <inheritdoc/>

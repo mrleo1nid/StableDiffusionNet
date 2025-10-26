@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using StableDiffusionNet.Constants;
+using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
@@ -23,8 +24,11 @@ namespace StableDiffusionNet.Services
         /// </summary>
         public OptionsService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Guard.ThrowIfNull(httpClient);
+            Guard.ThrowIfNull(logger);
+
+            _httpClient = httpClient;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -50,8 +54,7 @@ namespace StableDiffusionNet.Services
             CancellationToken cancellationToken = default
         )
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
+            Guard.ThrowIfNull(options);
 
             _logger.LogInformation("Setting WebUI options");
 

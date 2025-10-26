@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using StableDiffusionNet.Configuration;
+using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Logging;
 
 namespace StableDiffusionNet.Infrastructure
@@ -32,8 +33,11 @@ namespace StableDiffusionNet.Infrastructure
 
         public RetryHandler(StableDiffusionOptions options, IStableDiffusionLogger logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Guard.ThrowIfNull(options);
+            Guard.ThrowIfNull(logger);
+
+            _options = options;
+            _logger = logger;
         }
 
         /// <summary>

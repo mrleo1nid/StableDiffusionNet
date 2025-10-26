@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using StableDiffusionNet.Configuration;
+using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Infrastructure;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
@@ -99,7 +100,8 @@ namespace StableDiffusionNet
         /// <param name="options">Опции</param>
         public StableDiffusionClientBuilder WithOptions(StableDiffusionOptions options)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            Guard.ThrowIfNull(options);
+            _options = options;
             return this;
         }
 

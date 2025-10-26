@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using StableDiffusionNet.Constants;
+using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models.Requests;
@@ -24,8 +25,11 @@ namespace StableDiffusionNet.Services
         /// </summary>
         public TextToImageService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Guard.ThrowIfNull(httpClient);
+            Guard.ThrowIfNull(logger);
+
+            _httpClient = httpClient;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -34,9 +38,7 @@ namespace StableDiffusionNet.Services
             CancellationToken cancellationToken = default
         )
         {
-            if (request == null)
-                throw new ArgumentNullException(nameof(request));
-
+            Guard.ThrowIfNull(request);
             request.Validate(nameof(request));
 
             _logger.LogInformation(
