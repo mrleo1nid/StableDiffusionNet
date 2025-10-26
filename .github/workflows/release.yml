@@ -52,7 +52,28 @@ jobs:
         fi
         
         # Сохраняем в файл
-        cat << EOF > release_notes.md
+        if [ -z "$PREV_TAG" ]; then
+          # Первый релиз
+          cat << EOF > release_notes.md
+        ## 🎉 StableDiffusionNet ${{ steps.get_version.outputs.TAG_NAME }}
+        
+        ### 📦 Установка
+        \`\`\`bash
+        dotnet add package StableDiffusionNet --version ${{ steps.get_version.outputs.VERSION }}
+        \`\`\`
+        
+        ### ✨ Изменения в этом релизе
+        
+        ${COMMITS}
+        
+        ### 🔗 Полезные ссылки
+        - [NuGet Package](https://www.nuget.org/packages/StableDiffusionNet/${{ steps.get_version.outputs.VERSION }})
+        - [Документация](https://github.com/${{ github.repository }}/blob/master/README.md)
+        - [Все релизы](https://github.com/${{ github.repository }}/releases)
+        EOF
+        else
+          # Последующие релизы
+          cat << EOF > release_notes.md
         ## 🎉 StableDiffusionNet ${{ steps.get_version.outputs.TAG_NAME }}
         
         ### 📦 Установка
@@ -70,8 +91,9 @@ jobs:
         - [Все релизы](https://github.com/${{ github.repository }}/releases)
         
         ---
-        **Полный список изменений**: ${PREV_TAG:+$PREV_TAG...}${{ steps.get_version.outputs.TAG_NAME }}
+        **Полный список изменений**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.get_version.outputs.TAG_NAME }}
         EOF
+        fi
         
         echo "PREV_TAG=${PREV_TAG}" >> $GITHUB_OUTPUT
     
