@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using StableDiffusionNet.Configuration;
 using StableDiffusionNet.DependencyInjection.Extensions;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Models.Requests;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Integration
 {

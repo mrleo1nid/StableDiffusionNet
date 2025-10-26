@@ -1,12 +1,9 @@
-using System;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.DependencyInjection.Extensions;
 using StableDiffusionNet.Interfaces;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Extensions
 {
@@ -430,8 +427,6 @@ namespace StableDiffusionNet.Tests.Extensions
                 options.TimeoutSeconds = 300;
             });
 
-            var serviceProvider = services.BuildServiceProvider();
-
             // Act
             var validator = services
                 .Where(s => s.ServiceType == typeof(IValidateOptions<StableDiffusionOptions>))
@@ -465,7 +460,7 @@ namespace StableDiffusionNet.Tests.Extensions
                 var optionsSnapshot = serviceProvider.GetRequiredService<
                     IOptionsSnapshot<StableDiffusionOptions>
                 >();
-                var value = optionsSnapshot.Value;
+                _ = optionsSnapshot.Value; // Триггерим валидацию
             };
 
             // Валидация происходит при первом обращении к Value

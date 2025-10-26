@@ -1,10 +1,8 @@
-using System;
 using FluentAssertions;
 using Moq;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
-using Xunit;
 
 namespace StableDiffusionNet.Tests
 {

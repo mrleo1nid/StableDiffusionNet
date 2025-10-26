@@ -1,13 +1,9 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
 using StableDiffusionNet.Models;
 using StableDiffusionNet.Services;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Services
 {

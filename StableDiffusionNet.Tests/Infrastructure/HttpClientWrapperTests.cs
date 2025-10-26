@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Moq.Protected;
@@ -12,7 +7,6 @@ using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Exceptions;
 using StableDiffusionNet.Infrastructure;
 using StableDiffusionNet.Logging;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Infrastructure
 {

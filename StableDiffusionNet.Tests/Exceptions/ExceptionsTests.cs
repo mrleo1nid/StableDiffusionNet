@@ -1,8 +1,6 @@
-using System;
 using System.Net;
 using FluentAssertions;
 using StableDiffusionNet.Exceptions;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Exceptions
 {

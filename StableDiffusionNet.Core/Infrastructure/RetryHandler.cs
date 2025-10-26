@@ -31,7 +31,6 @@ namespace StableDiffusionNet.Infrastructure
         )
         {
             int attempt = 0;
-            Exception? lastException = null;
 
             while (attempt <= _options.RetryCount)
             {
@@ -40,83 +39,92 @@ namespace StableDiffusionNet.Infrastructure
                 try
                 {
                     var response = await operation().ConfigureAwait(false);
+                    var result = await HandleResponseAsync(response, attempt, cancellationToken);
 
-                    // Если ответ успешен или это не транзитная ошибка - возвращаем
-                    if (response.IsSuccessStatusCode || !IsTransientError(response.StatusCode))
-                    {
-                        if (attempt > 0)
-                        {
-                            _logger.LogInformation(
-                                $"Request succeeded after {attempt} retry attempt(s)"
-                            );
-                        }
+                    if (result.shouldReturn)
                         return response;
-                    }
 
-                    // Если это транзитная ошибка и есть еще попытки
-                    if (attempt < _options.RetryCount)
-                    {
-                        var delay = CalculateDelay(attempt, response.StatusCode);
-                        _logger.LogWarning(
-                            $"Request failed with {response.StatusCode}. Retrying in {delay}ms (attempt {attempt + 1}/{_options.RetryCount})"
-                        );
-
-                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                    if (result.shouldRetry)
                         attempt++;
-                        continue;
-                    }
-
-                    // Исчерпаны все попытки
-                    return response;
                 }
                 catch (HttpRequestException ex)
                 {
-                    lastException = ex;
-
-                    if (attempt < _options.RetryCount)
+                    if (
+                        await TryRetryAsync(
+                            attempt,
+                            null,
+                            $"Request failed with HttpRequestException: {ex.Message}",
+                            cancellationToken
+                        )
+                    )
                     {
-                        var delay = CalculateDelay(attempt, null);
-                        _logger.LogWarning(
-                            $"Request failed with HttpRequestException: {ex.Message}. Retrying in {delay}ms (attempt {attempt + 1}/{_options.RetryCount})"
-                        );
-
-                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                         attempt++;
                         continue;
                     }
-
-                    // Исчерпаны все попытки
                     throw;
                 }
-                catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+                catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
-                    // Таймаут
-                    lastException = ex;
-
-                    if (attempt < _options.RetryCount)
+                    if (await TryRetryAsync(attempt, null, "Request timed out", cancellationToken))
                     {
-                        var delay = CalculateDelay(attempt, null);
-                        _logger.LogWarning(
-                            $"Request timed out. Retrying in {delay}ms (attempt {attempt + 1}/{_options.RetryCount})"
-                        );
-
-                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                         attempt++;
                         continue;
                     }
-
-                    // Исчерпаны все попытки
                     throw;
                 }
-            }
-
-            // Это не должно произойти, но на всякий случай
-            if (lastException != null)
-            {
-                throw lastException;
             }
 
             throw new InvalidOperationException("Retry logic failed unexpectedly");
+        }
+
+        private async Task<(bool shouldReturn, bool shouldRetry)> HandleResponseAsync(
+            HttpResponseMessage response,
+            int attempt,
+            CancellationToken cancellationToken
+        )
+        {
+            if (response.IsSuccessStatusCode || !IsTransientError(response.StatusCode))
+            {
+                LogSuccessIfRetried(attempt);
+                return (true, false);
+            }
+
+            var shouldRetry = await TryRetryAsync(
+                attempt,
+                response.StatusCode,
+                $"Request failed with {response.StatusCode}",
+                cancellationToken
+            );
+
+            return (!shouldRetry, shouldRetry);
+        }
+
+        private void LogSuccessIfRetried(int attempt)
+        {
+            if (attempt > 0)
+            {
+                _logger.LogInformation($"Request succeeded after {attempt} retry attempt(s)");
+            }
+        }
+
+        private async Task<bool> TryRetryAsync(
+            int attempt,
+            HttpStatusCode? statusCode,
+            string message,
+            CancellationToken cancellationToken
+        )
+        {
+            if (attempt >= _options.RetryCount)
+            {
+                return false;
+            }
+
+            var delay = CalculateDelay(attempt, statusCode);
+            _logger.LogWarning(
+                $"{message}. Retrying in {delay}ms (attempt {attempt + 1}/{_options.RetryCount})"
+            );
+            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+            return true;
         }
 
         /// <summary>

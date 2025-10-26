@@ -1,7 +1,6 @@
 using FluentAssertions;
 using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Exceptions;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Configuration
 {

@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Newtonsoft.Json.Linq;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
 using StableDiffusionNet.Services;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Services
 {

@@ -1,8 +1,5 @@
-using System;
-using System.IO;
 using FluentAssertions;
 using StableDiffusionNet.Helpers;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Helpers
 {
