@@ -1,5 +1,11 @@
 # StableDiffusionNet
 
+[![CI Build and Test](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml)
+[![NuGet Version](https://img.shields.io/nuget/v/StableDiffusionNet.svg)](https://www.nuget.org/packages/StableDiffusionNet/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/StableDiffusionNet.svg)](https://www.nuget.org/packages/StableDiffusionNet/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Прогрессивный .NET клиент для Stable Diffusion WebUI API
 
 ## 🌟 Особенности
