@@ -55,9 +55,12 @@ namespace StableDiffusionNet.Helpers
             var base64Data = base64String;
             if (base64String.Contains(","))
             {
-                base64Data = base64String.Substring(
-                    base64String.IndexOf(",", StringComparison.Ordinal) + 1
-                );
+                var commaIndex = base64String.IndexOf(',');
+#if NETSTANDARD2_0
+                base64Data = base64String.Substring(commaIndex + 1);
+#else
+                base64Data = base64String[(commaIndex + 1)..];
+#endif
             }
 
             var bytes = Convert.FromBase64String(base64Data);
@@ -99,9 +102,12 @@ namespace StableDiffusionNet.Helpers
 
             if (base64String.Contains(","))
             {
-                return base64String.Substring(
-                    base64String.IndexOf(",", StringComparison.Ordinal) + 1
-                );
+                var commaIndex = base64String.IndexOf(',');
+#if NETSTANDARD2_0
+                return base64String.Substring(commaIndex + 1);
+#else
+                return base64String[(commaIndex + 1)..];
+#endif
             }
 
             return base64String;

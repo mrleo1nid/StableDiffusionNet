@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,13 +67,41 @@ namespace StableDiffusionNet.Extensions
                         }
                     }
                 )
-                .AddTransientHttpErrorPolicy(policyBuilder =>
-                {
-                    return policyBuilder.WaitAndRetryAsync(
-                        3,
-                        retryAttempt => TimeSpan.FromMilliseconds(1000 * retryAttempt)
-                    );
-                });
+                .AddPolicyHandler(
+                    (serviceProvider, request) =>
+                    {
+                        var options = serviceProvider
+                            .GetRequiredService<IOptions<StableDiffusionOptions>>()
+                            .Value;
+
+                        // Retry policy для транзитных HTTP ошибок
+                        var retryPolicy = HttpPolicyExtensions
+                            .HandleTransientHttpError()
+                            .WaitAndRetryAsync(
+                                options.RetryCount,
+                                retryAttempt =>
+                                    TimeSpan.FromMilliseconds(
+                                        options.RetryDelayMilliseconds * retryAttempt
+                                    )
+                            );
+
+                        // Специальная обработка HTTP 429 (Too Many Requests)
+                        var rateLimitPolicy = Policy
+                            .HandleResult<HttpResponseMessage>(r => (int)r.StatusCode == 429)
+                            .WaitAndRetryAsync(
+                                options.RetryCount,
+                                retryAttempt =>
+                                {
+                                    // Увеличенная задержка для rate limiting
+                                    var baseDelay = options.RetryDelayMilliseconds * 2;
+                                    return TimeSpan.FromMilliseconds(baseDelay * retryAttempt);
+                                }
+                            );
+
+                        // Комбинируем политики
+                        return Policy.WrapAsync(rateLimitPolicy, retryPolicy);
+                    }
+                );
 
             // Регистрация сервисов
             services.AddTransient<ITextToImageService, TextToImageService>();

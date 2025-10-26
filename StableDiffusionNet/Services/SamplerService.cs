@@ -41,7 +41,7 @@ namespace StableDiffusionNet.Services
             var samplerNames = samplers
                 .Select(s => s["name"]?.ToString())
                 .Where(name => !string.IsNullOrEmpty(name))
-                .Cast<string>()
+                .Select(name => name!)
                 .ToList();
 
             _logger.LogInformation("Samplers retrieved: {Count}", samplerNames.Count);

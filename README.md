@@ -270,6 +270,31 @@ ImageHelper.Base64ToImage(response.Images[0], "inpainted.png");
 
 ## 🔧 Конфигурация
 
+### 🔒 Безопасность API ключей
+
+**Важно**: Никогда не храните API ключи в коде или публичных репозиториях!
+
+Рекомендуемые способы хранения ключей:
+
+```csharp
+// ✅ Использование User Secrets (для разработки)
+// dotnet user-secrets set "StableDiffusion:ApiKey" "your-secret-key"
+services.AddStableDiffusion(options =>
+{
+    options.ApiKey = builder.Configuration["StableDiffusion:ApiKey"];
+});
+
+// ✅ Использование переменных окружения
+services.AddStableDiffusion(options =>
+{
+    options.ApiKey = Environment.GetEnvironmentVariable("SD_API_KEY");
+});
+
+// ✅ Использование Azure Key Vault (для продакшена)
+// var keyVaultUri = new Uri(builder.Configuration["KeyVaultUri"]);
+// builder.Configuration.AddAzureKeyVault(keyVaultUri, new DefaultAzureCredential());
+```
+
 ### Доступные опции
 
 ```csharp
@@ -291,6 +316,8 @@ services.AddStableDiffusion(options =>
     options.ApiKey = "your-api-key";
     
     // Детальное логирование (по умолчанию: false)
+    // ⚠️ ВНИМАНИЕ: Включайте только для отладки в безопасном окружении!
+    // Логи могут содержать промпты, base64 изображения и другие данные.
     options.EnableDetailedLogging = true;
 });
 ```

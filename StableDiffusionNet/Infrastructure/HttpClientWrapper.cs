@@ -56,7 +56,7 @@ namespace StableDiffusionNet.Infrastructure
                 }
 
                 var response = await _httpClient.GetAsync(endpoint, cancellationToken);
-                return await HandleResponseAsync<TResponse>(response, endpoint);
+                return await HandleResponseAsync<TResponse>(response, endpoint, cancellationToken);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
@@ -85,14 +85,14 @@ namespace StableDiffusionNet.Infrastructure
                     _logger.LogDebug(
                         "POST request to {Endpoint} with body: {Body}",
                         endpoint,
-                        json
+                        SanitizeJsonForLogging(json)
                     );
                 }
 
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(endpoint, content, cancellationToken);
 
-                return await HandleResponseAsync<TResponse>(response, endpoint);
+                return await HandleResponseAsync<TResponse>(response, endpoint, cancellationToken);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
@@ -112,7 +112,7 @@ namespace StableDiffusionNet.Infrastructure
                 }
 
                 var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
-                await EnsureSuccessAsync(response, endpoint);
+                await EnsureSuccessAsync(response, endpoint, cancellationToken);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
@@ -140,14 +140,14 @@ namespace StableDiffusionNet.Infrastructure
                     _logger.LogDebug(
                         "POST request to {Endpoint} with body: {Body}",
                         endpoint,
-                        json
+                        SanitizeJsonForLogging(json)
                     );
                 }
 
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(endpoint, content, cancellationToken);
 
-                await EnsureSuccessAsync(response, endpoint);
+                await EnsureSuccessAsync(response, endpoint, cancellationToken);
             }
             catch (Exception ex) when (ex is not ApiException)
             {
@@ -158,11 +158,18 @@ namespace StableDiffusionNet.Infrastructure
 
         private async Task<TResponse> HandleResponseAsync<TResponse>(
             HttpResponseMessage response,
-            string endpoint
+            string endpoint,
+            CancellationToken cancellationToken
         )
             where TResponse : class
         {
+            // В .NET Standard 2.0 и 2.1 ReadAsStringAsync не поддерживает CancellationToken
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+            _ = cancellationToken; // Подавляем предупреждение о неиспользуемом параметре
             var content = await response.Content.ReadAsStringAsync();
+#else
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+#endif
 
             if (!response.IsSuccessStatusCode)
             {
@@ -182,7 +189,11 @@ namespace StableDiffusionNet.Infrastructure
 
             if (_options.EnableDetailedLogging)
             {
-                _logger.LogDebug("Successful response from {Endpoint}: {Body}", endpoint, content);
+                _logger.LogDebug(
+                    "Successful response from {Endpoint}: {Body}",
+                    endpoint,
+                    SanitizeJsonForLogging(content)
+                );
             }
 
             try
@@ -201,11 +212,46 @@ namespace StableDiffusionNet.Infrastructure
             }
         }
 
-        private async Task EnsureSuccessAsync(HttpResponseMessage response, string endpoint)
+        /// <summary>
+        /// Очищает JSON для безопасного логирования, обрезая base64 данные и большие строки
+        /// </summary>
+        private string SanitizeJsonForLogging(string json)
+        {
+            const int maxLength = 500;
+
+            if (json.Length <= maxLength)
+                return json;
+
+            // Проверяем, содержит ли JSON base64 данные (длинные строки без пробелов)
+            if (
+                json.Contains("\"data:image")
+                || json.Contains("\"init_images\"")
+                || json.Contains("\"mask\"")
+            )
+            {
+                return $"[Request with image data, length: {json.Length} chars]";
+            }
+
+            // Обрезаем длинные JSON
+            return json.Substring(0, maxLength)
+                + $"... [truncated, total length: {json.Length} chars]";
+        }
+
+        private async Task EnsureSuccessAsync(
+            HttpResponseMessage response,
+            string endpoint,
+            CancellationToken cancellationToken
+        )
         {
             if (!response.IsSuccessStatusCode)
             {
+                // В .NET Standard 2.0 и 2.1 ReadAsStringAsync не поддерживает CancellationToken
+#if NETSTANDARD2_0 || NETSTANDARD2_1
+                _ = cancellationToken; // Подавляем предупреждение о неиспользуемом параметре
                 var content = await response.Content.ReadAsStringAsync();
+#else
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+#endif
                 _logger.LogError(
                     "Unsuccessful response from {Endpoint}. Status: {StatusCode}, Body: {Body}",
                     endpoint,
