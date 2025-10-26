@@ -4,16 +4,47 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Package Information -->
+    <PackageId>StableDiffusionNet</PackageId>
+    <!-- Version устанавливается автоматически из Git тега при релизе -->
+    <!-- Для локальной разработки используется 0.0.0-dev -->
+    <Version Condition="'$(Version)' == ''">0.0.0-dev</Version>
     <Authors>StableDiffusionNet Contributors</Authors>
-    <Description>Progressive .NET client for Stable Diffusion WebUI API with SOLID principles</Description>
-    <PackageTags>stable-diffusion;ai;image-generation;webui;api-client</PackageTags>
+    <Company>StableDiffusionNet</Company>
+    <Product>StableDiffusionNet</Product>
+    <Description>Progressive .NET client for Stable Diffusion WebUI (AUTOMATIC1111) API with SOLID principles, comprehensive testing, and modern .NET features. Supports Text-to-Image, Image-to-Image generation, model management, and more.</Description>
+    <Copyright>Copyright © 2025 StableDiffusionNet Contributors</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/yourusername/StableDiffusionNet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yourusername/StableDiffusionNet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>stable-diffusion;ai;image-generation;webui;api-client;automatic1111;text-to-image;image-to-image;dotnet;csharp</PackageTags>
+    <PackageReleaseNotes>See CHANGELOG.md for details</PackageReleaseNotes>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <!-- SourceLink -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- Strong naming (optional) -->
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.10" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.10" />
+    <PackageReference
+      Include="Microsoft.Extensions.DependencyInjection.Abstractions"
+      Version="9.0.10"
+    />
     <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.10" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.10" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

@@ -97,8 +97,12 @@ _ReSharper*/
 
 # NuGet Packages
 *.nupkg
+*.snupkg
 **/packages/*
 !**/packages/build/
+nupkg/
+output/
+test-pack/
 
 # Windows image file caches
 Thumbs.db

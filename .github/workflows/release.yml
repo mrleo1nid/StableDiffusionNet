@@ -1,0 +1,133 @@
+name: Release and Publish to NuGet
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Триггер на теги вида v1.0.0, v2.1.3, и т.д.
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'StableDiffusionNet/StableDiffusionNet.csproj'
+  PACKAGE_OUTPUT_DIR: ${{ github.workspace }}/output
+
+jobs:
+  build-test-release:
+    name: Build, Test, and Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Полная история для правильной работы GitVersion
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Get version from tag
+      id: get_version
+      run: |
+        TAG=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$TAG" >> $GITHUB_OUTPUT
+        echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        echo "Version: $TAG"
+    
+    - name: Generate Release Notes
+      id: release_notes
+      run: |
+        # Получить предыдущий тег
+        PREV_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+        
+        if [ -z "$PREV_TAG" ]; then
+          # Первый релиз - все коммиты
+          COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+        else
+          # Коммиты с последнего тега
+          COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+        fi
+        
+        # Сохраняем в файл
+        cat << EOF > release_notes.md
+        ## 🎉 StableDiffusionNet ${{ steps.get_version.outputs.TAG_NAME }}
+        
+        ### 📦 Установка
+        \`\`\`bash
+        dotnet add package StableDiffusionNet --version ${{ steps.get_version.outputs.VERSION }}
+        \`\`\`
+        
+        ### ✨ Изменения в этом релизе
+        
+        ${COMMITS}
+        
+        ### 🔗 Полезные ссылки
+        - [NuGet Package](https://www.nuget.org/packages/StableDiffusionNet/${{ steps.get_version.outputs.VERSION }})
+        - [Документация](https://github.com/${{ github.repository }}/blob/master/README.md)
+        - [Все релизы](https://github.com/${{ github.repository }}/releases)
+        
+        ---
+        **Полный список изменений**: ${PREV_TAG:+$PREV_TAG...}${{ steps.get_version.outputs.TAG_NAME }}
+        EOF
+        
+        echo "PREV_TAG=${PREV_TAG}" >> $GITHUB_OUTPUT
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build solution
+      run: |
+        dotnet build --configuration Release --no-restore \
+          /p:Version=${{ steps.get_version.outputs.VERSION }}
+    
+    - name: Run unit tests
+      run: dotnet test --configuration Release --no-build --verbosity minimal --filter "Category!=Integration"
+    
+    - name: Pack NuGet package
+      run: |
+        dotnet pack ${{ env.PROJECT_PATH }} \
+          --configuration Release \
+          --no-build \
+          --output ${{ env.PACKAGE_OUTPUT_DIR }}
+    
+    - name: List output files
+      run: ls -la ${{ env.PACKAGE_OUTPUT_DIR }}
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.TAG_NAME }}
+        release_name: Release ${{ steps.get_version.outputs.TAG_NAME }}
+        draft: false
+        prerelease: false
+        body_path: release_notes.md
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.PACKAGE_OUTPUT_DIR }}/StableDiffusionNet.${{ steps.get_version.outputs.VERSION }}.nupkg
+        asset_name: StableDiffusionNet.${{ steps.get_version.outputs.VERSION }}.nupkg
+        asset_content_type: application/zip
+    
+    - name: Publish to NuGet
+      run: |
+        dotnet nuget push ${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+    
+    - name: Summary
+      run: |
+        echo "## ✅ Release Published Successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version:** ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tag:** ${{ steps.get_version.outputs.TAG_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **NuGet:** https://www.nuget.org/packages/StableDiffusionNet/${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Release:** ${{ steps.create_release.outputs.html_url }}" >> $GITHUB_STEP_SUMMARY
+
