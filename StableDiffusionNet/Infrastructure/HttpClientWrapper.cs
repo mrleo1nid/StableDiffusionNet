@@ -37,18 +37,8 @@ namespace StableDiffusionNet.Infrastructure
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
 
             _options.Validate();
-            ConfigureHttpClient();
-        }
-
-        private void ConfigureHttpClient()
-        {
-            _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-            _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
-
-            if (!string.IsNullOrWhiteSpace(_options.ApiKey))
-            {
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_options.ApiKey}");
-            }
+            // HttpClient уже настроен в ServiceCollectionExtensions
+            // (BaseAddress, Timeout, Authorization header)
         }
 
         /// <inheritdoc/>

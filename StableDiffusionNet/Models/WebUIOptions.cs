@@ -25,7 +25,7 @@ namespace StableDiffusionNet.Models
         /// CLIP skip
         /// </summary>
         [JsonProperty("CLIP_stop_at_last_layers")]
-        public int? ClipStopAtLastLayers { get; set; }
+        public double? ClipStopAtLastLayers { get; set; }
 
         /// <summary>
         /// Включить HR upscaler по умолчанию
