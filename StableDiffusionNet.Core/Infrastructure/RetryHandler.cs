@@ -43,10 +43,13 @@ namespace StableDiffusionNet.Infrastructure
 
 #if !NET6_0_OR_GREATER
             // Создаем ThreadLocal в конструкторе для контроля жизненного цикла
+            // Random безопасен здесь: используется только для jitter в retry логике, не для криптографии
+#pragma warning disable S2245 // Pseudorandom number generators should not be used for security-sensitive applications
             _threadLocalRandom = new ThreadLocal<Random>(
                 () => new Random(Guid.NewGuid().GetHashCode()),
                 trackAllValues: false // Не отслеживаем значения для производительности
             );
+#pragma warning restore S2245
 #endif
         }
 
@@ -194,8 +197,11 @@ namespace StableDiffusionNet.Infrastructure
             var delay = baseDelay * (1 << attempt);
 
             // Добавляем небольшую случайную задержку (jitter) для избежания thundering herd
+            // Random безопасен здесь: используется только для jitter, не для криптографии
 #if NET6_0_OR_GREATER
+#pragma warning disable S2245 // Pseudorandom number generators should not be used for security-sensitive applications
             var jitter = Random.Shared.Next(0, baseDelay / 4);
+#pragma warning restore S2245
 #else
             var jitter = _threadLocalRandom.Value!.Next(0, baseDelay / 4);
 #endif

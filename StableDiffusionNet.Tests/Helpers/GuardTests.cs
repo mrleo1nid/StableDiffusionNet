@@ -52,7 +52,7 @@ namespace StableDiffusionNet.Tests.Helpers
             // Assert
             act.Should()
                 .Throw<ArgumentException>()
-                .WithParameterName("value")
+                .WithParameterName(nameof(value))
                 .WithMessage("*cannot be null or empty*");
         }
 
@@ -102,7 +102,7 @@ namespace StableDiffusionNet.Tests.Helpers
             // Assert
             act.Should()
                 .Throw<ArgumentException>()
-                .WithParameterName("value")
+                .WithParameterName(nameof(value))
                 .WithMessage("*cannot be null, empty, or whitespace*");
         }
 
@@ -137,7 +137,7 @@ namespace StableDiffusionNet.Tests.Helpers
             // Assert
             act.Should()
                 .Throw<ArgumentOutOfRangeException>()
-                .WithParameterName("value")
+                .WithParameterName(nameof(value))
                 .WithMessage("*must be between 10 and 20*");
         }
 
@@ -155,7 +155,7 @@ namespace StableDiffusionNet.Tests.Helpers
             // Assert
             act.Should()
                 .Throw<ArgumentOutOfRangeException>()
-                .WithParameterName("value")
+                .WithParameterName(nameof(value))
                 .WithMessage("*must be between 10 and 20*");
         }
 
@@ -209,7 +209,7 @@ namespace StableDiffusionNet.Tests.Helpers
             // Assert
             act.Should()
                 .Throw<ArgumentOutOfRangeException>()
-                .WithParameterName("value")
+                .WithParameterName(nameof(value))
                 .WithMessage("*must be greater than zero*");
         }
 
@@ -244,7 +244,7 @@ namespace StableDiffusionNet.Tests.Helpers
             // Assert
             act.Should()
                 .Throw<ArgumentOutOfRangeException>()
-                .WithParameterName("value")
+                .WithParameterName(nameof(value))
                 .WithMessage("*must be greater than zero*");
         }
 

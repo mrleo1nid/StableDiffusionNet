@@ -308,9 +308,7 @@ namespace StableDiffusionNet.Infrastructure
                 // В DI сценарии (IHttpClientFactory): ownsHttpClient = false → не трогаем
                 // В Builder сценарии (передан извне): ownsHttpClient = false → не трогаем
                 if (_ownsHttpClient)
-                {
                     _httpClient?.Dispose();
-                }
 
 #if !NET6_0_OR_GREATER
                 // Освобождаем RetryHandler для предотвращения утечки памяти ThreadLocal<Random>
