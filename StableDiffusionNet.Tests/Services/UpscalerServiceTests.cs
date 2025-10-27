@@ -439,5 +439,45 @@ namespace StableDiffusionNet.Tests.Services
                 Times.Once
             );
         }
+
+        [Fact]
+        public async Task GetUpscalersAsync_WithNullFieldsInResponse_HandlesGracefully()
+        {
+            // Arrange
+            var upscalersJson = new JArray
+            {
+                new JObject
+                {
+                    ["name"] = null, // null name - будет отфильтрован
+                    ["model_name"] = "model1",
+                },
+                new JObject
+                {
+                    ["name"] = "valid_upscaler",
+                    ["model_name"] = null, // null model_name - допустимо
+                    ["model_path"] = null, // null model_path - допустимо
+                    ["model_url"] = null, // null model_url - допустимо
+                    ["scale"] = null, // null scale - допустимо
+                },
+            };
+
+            _httpClientMock
+                .Setup(x =>
+                    x.GetAsync<JArray>("/sdapi/v1/upscalers", It.IsAny<CancellationToken>())
+                )
+                .ReturnsAsync(upscalersJson);
+
+            // Act
+            var result = await _service.GetUpscalersAsync();
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().HaveCount(1); // Только valid_upscaler, первый отфильтрован
+            result[0].Name.Should().Be("valid_upscaler");
+            result[0].ModelName.Should().BeEmpty(); // ToString() на null JToken возвращает пустую строку
+            result[0].ModelPath.Should().BeEmpty();
+            result[0].ModelUrl.Should().BeEmpty();
+            result[0].Scale.Should().BeNull(); // ToObject<double?>() на null возвращает null
+        }
     }
 }

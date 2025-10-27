@@ -161,5 +161,42 @@ namespace StableDiffusionNet.Tests
             // Assert
             act.Should().Throw<ArgumentNullException>().WithParameterName("options");
         }
+
+        [Fact]
+        public void Build_WithCustomHttpClient_CreatesClient_Successfully()
+        {
+            // Arrange
+            var customHttpClient = new HttpClient
+            {
+                BaseAddress = new Uri("http://localhost:7860"),
+                Timeout = TimeSpan.FromSeconds(600),
+            };
+
+            var builder = new StableDiffusionClientBuilder()
+                .WithBaseUrl("http://localhost:7860")
+                .WithHttpClient(customHttpClient);
+
+            // Act
+            var client = builder.Build();
+
+            // Assert
+            client.Should().NotBeNull();
+            client.Should().BeAssignableTo<IStableDiffusionClient>();
+        }
+
+        [Fact]
+        public void WithHttpClient_SetsHttpClient_ReturnsBuilder()
+        {
+            // Arrange
+            var customHttpClient = new HttpClient();
+            var builder = new StableDiffusionClientBuilder().WithBaseUrl("http://localhost:7860");
+
+            // Act
+            var result = builder.WithHttpClient(customHttpClient);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeSameAs(builder); // Fluent API должен возвращать тот же экземпляр
+        }
     }
 }

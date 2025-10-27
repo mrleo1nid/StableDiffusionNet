@@ -263,5 +263,43 @@ namespace StableDiffusionNet.Tests.Services
             capturedRequest.Steps.Should().Be(30);
             capturedRequest.Width.Should().Be(768);
         }
+
+        [Fact]
+        public async Task GenerateAsync_WithNullImagesInResponse_LogsZeroImages()
+        {
+            // Arrange
+            var request = new TextToImageRequest { Prompt = "test prompt" };
+
+            var responseWithNullImages = new TextToImageResponse
+            {
+                Images = null, // Тестируем случай когда Images == null
+                Info = "Generation info",
+            };
+
+            _httpClientMock
+                .Setup(x =>
+                    x.PostAsync<TextToImageRequest, TextToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<TextToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(responseWithNullImages);
+
+            // Act
+            var result = await _service.GenerateAsync(request);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Images.Should().BeNull();
+            _loggerMock.Verify(
+                x =>
+                    x.Log(
+                        It.IsAny<LogLevel>(),
+                        It.Is<string>(s => s.Contains("Images generated: 0"))
+                    ),
+                Times.AtLeastOnce
+            );
+        }
     }
 }

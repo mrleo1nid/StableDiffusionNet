@@ -297,5 +297,42 @@ namespace StableDiffusionNet.Tests.Services
                 Times.Once
             );
         }
+
+        [Fact]
+        public async Task GetLorasAsync_WithNullFieldsInResponse_HandlesGracefully()
+        {
+            // Arrange
+            var lorasJson = new JArray
+            {
+                new JObject
+                {
+                    ["name"] = null, // null name - будет отфильтрован
+                    ["alias"] = "test-alias",
+                },
+                new JObject
+                {
+                    ["name"] = "valid_lora",
+                    ["alias"] = null, // null alias - допустимо
+                    ["path"] = null, // null path - допустимо
+                    ["metadata"] = null, // null metadata - допустимо
+                },
+            };
+
+            _httpClientMock
+                .Setup(x => x.GetAsync<JArray>("/sdapi/v1/loras", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(lorasJson);
+
+            // Act
+            var result = await _service.GetLorasAsync();
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().HaveCount(1); // Только valid_lora, первый отфильтрован
+            result[0].Name.Should().Be("valid_lora");
+            result[0].Alias.Should().BeEmpty(); // ToString() на null JToken возвращает пустую строку
+            result[0].Path.Should().BeEmpty();
+            // metadata это JToken, но в случае null получается пустой JToken
+            result[0].Metadata.Should().NotBeNull();
+        }
     }
 }

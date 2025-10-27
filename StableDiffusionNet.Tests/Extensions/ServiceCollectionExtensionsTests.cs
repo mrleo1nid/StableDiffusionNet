@@ -464,6 +464,63 @@ namespace StableDiffusionNet.Tests.Extensions
             act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
+        [Fact]
+        public void OptionsValidator_Validate_WithInvalidOptions_ReturnsFailure()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddStableDiffusion(options =>
+            {
+                options.BaseUrl = "http://localhost:7860";
+            });
+
+            var serviceProvider = services.BuildServiceProvider();
+            var validator = serviceProvider.GetRequiredService<
+                IValidateOptions<StableDiffusionOptions>
+            >();
+
+            // Создаем невалидный объект через рефлексию (минуя property setters)
+            var invalidOptions = new StableDiffusionOptions();
+            var baseUrlField = typeof(StableDiffusionOptions).GetField(
+                "_baseUrl",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
+            baseUrlField!.SetValue(invalidOptions, "invalid-url");
+
+            // Act
+            var result = validator.Validate(null, invalidOptions);
+
+            // Assert
+            result.Failed.Should().BeTrue();
+            result.FailureMessage.Should().Be("BaseUrl must be a valid URL");
+        }
+
+        [Fact]
+        public void OptionsValidator_Validate_WithValidOptions_ReturnsSuccess()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddStableDiffusion(options =>
+            {
+                options.BaseUrl = "http://localhost:7860";
+            });
+
+            var serviceProvider = services.BuildServiceProvider();
+            var validator = serviceProvider.GetRequiredService<
+                IValidateOptions<StableDiffusionOptions>
+            >();
+
+            var validOptions = new StableDiffusionOptions { BaseUrl = "https://api.example.com" };
+
+            // Act
+            var result = validator.Validate(null, validOptions);
+
+            // Assert
+            result.Succeeded.Should().BeTrue();
+        }
+
         #endregion
     }
 }

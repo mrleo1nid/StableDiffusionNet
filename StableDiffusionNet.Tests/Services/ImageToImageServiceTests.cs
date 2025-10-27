@@ -319,5 +319,47 @@ namespace StableDiffusionNet.Tests.Services
             capturedRequest!.Mask.Should().Be("mask_base64");
             capturedRequest.MaskBlur.Should().Be(10);
         }
+
+        [Fact]
+        public async Task GenerateAsync_WithNullImagesInResponse_LogsZeroImages()
+        {
+            // Arrange
+            var request = new ImageToImageRequest
+            {
+                InitImages = new List<string> { "base64image" },
+                Prompt = "test prompt",
+            };
+
+            var responseWithNullImages = new ImageToImageResponse
+            {
+                Images = null, // Тестируем случай когда Images == null
+                Info = "Generation info",
+            };
+
+            _httpClientMock
+                .Setup(x =>
+                    x.PostAsync<ImageToImageRequest, ImageToImageResponse>(
+                        It.IsAny<string>(),
+                        It.IsAny<ImageToImageRequest>(),
+                        It.IsAny<CancellationToken>()
+                    )
+                )
+                .ReturnsAsync(responseWithNullImages);
+
+            // Act
+            var result = await _service.GenerateAsync(request);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Images.Should().BeNull();
+            _loggerMock.Verify(
+                x =>
+                    x.Log(
+                        It.IsAny<LogLevel>(),
+                        It.Is<string>(s => s.Contains("Images generated: 0"))
+                    ),
+                Times.AtLeastOnce
+            );
+        }
     }
 }

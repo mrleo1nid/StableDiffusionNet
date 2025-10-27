@@ -250,5 +250,69 @@ namespace StableDiffusionNet.Tests.Logging
             // Assert
             _mockLogger.Verify(x => x.IsEnabled(MsftLogLevel.Debug), Times.Exactly(3));
         }
+
+        [Fact]
+        public void Log_WithInvalidLogLevel_UsesInformationAsDefault()
+        {
+            // Arrange
+            var invalidLogLevel = (SdLogLevel)999; // Невалидное значение вне диапазона enum
+            var message = "test message";
+
+            // Act
+            _adapter.Log(invalidLogLevel, message);
+
+            // Assert
+            _mockLogger.Verify(
+                x =>
+                    x.Log(
+                        MsftLogLevel.Information, // Default level
+                        It.IsAny<EventId>(),
+                        It.Is<It.IsAnyType>((v, t) => v.ToString() == message),
+                        null,
+                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                    ),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public void Log_WithInvalidLogLevelAndException_UsesInformationAsDefault()
+        {
+            // Arrange
+            var invalidLogLevel = (SdLogLevel)999;
+            var message = "test message";
+            var exception = new InvalidOperationException("test exception");
+
+            // Act
+            _adapter.Log(invalidLogLevel, exception, message);
+
+            // Assert
+            _mockLogger.Verify(
+                x =>
+                    x.Log(
+                        MsftLogLevel.Information, // Default level
+                        It.IsAny<EventId>(),
+                        It.Is<It.IsAnyType>((v, t) => v.ToString() == message),
+                        exception,
+                        It.IsAny<Func<It.IsAnyType, Exception?, string>>()
+                    ),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public void IsEnabled_WithInvalidLogLevel_UsesInformationAsDefault()
+        {
+            // Arrange
+            var invalidLogLevel = (SdLogLevel)999;
+            _mockLogger.Setup(x => x.IsEnabled(MsftLogLevel.Information)).Returns(true);
+
+            // Act
+            var result = _adapter.IsEnabled(invalidLogLevel);
+
+            // Assert
+            result.Should().BeTrue();
+            _mockLogger.Verify(x => x.IsEnabled(MsftLogLevel.Information), Times.Once);
+        }
     }
 }
