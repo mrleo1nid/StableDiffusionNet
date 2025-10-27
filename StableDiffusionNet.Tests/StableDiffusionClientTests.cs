@@ -91,8 +91,11 @@ namespace StableDiffusionNet.Tests
         public void Constructor_WithNullServices_ThrowsArgumentNullException()
         {
             // Act
+            // Создание объекта здесь нужно для проверки исключения в конструкторе
+#pragma warning disable IDE0058,CA1806 // Expression value is never used
             Action act = () =>
                 new StableDiffusionClient(null!, _httpClientWrapperMock.Object, _loggerMock.Object);
+#pragma warning restore IDE0058,CA1806
 
             // Assert
             act.Should().Throw<ArgumentNullException>().WithParameterName("services");
@@ -119,12 +122,15 @@ namespace StableDiffusionNet.Tests
             };
 
             // Act
+            // Создание объекта здесь нужно для проверки исключения в конструкторе
+#pragma warning disable IDE0058,CA1806 // Expression value is never used
             Action act = () =>
                 new StableDiffusionClient(
                     services,
                     _httpClientWrapperMock.Object,
                     _loggerMock.Object
                 );
+#pragma warning restore IDE0058,CA1806
 
             // Assert
             act.Should().Throw<ArgumentNullException>().WithParameterName("TextToImage");
