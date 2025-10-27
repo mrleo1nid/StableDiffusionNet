@@ -15,6 +15,7 @@
 - [RESTful API сервис](#restful-api-сервис)
 - [Обработка очередей](#обработка-очередей)
 - [Кеширование и оптимизация](#кеширование-и-оптимизация)
+- [Тестирование и Кастомные Сервисы](#тестирование-и-кастомные-сервисы)
 - [Мониторинг и метрики](#мониторинг-и-метрики)
 
 ---
@@ -1235,6 +1236,208 @@ public record GenerateRequest(
     int? Steps = null,
     int? Seed = null
 );
+```
+
+---
+
+## Тестирование и Кастомные Сервисы
+
+### Использование Кастомной Фабрики Сервисов для Тестирования
+
+Библиотека поддерживает кастомные фабрики сервисов, что упрощает тестирование вашего кода с mock-сервисами:
+
+```csharp
+using Moq;
+using StableDiffusionNet;
+using StableDiffusionNet.Interfaces;
+
+public class CustomServiceFactory : IStableDiffusionServiceFactory
+{
+    private readonly ITextToImageService _mockTextToImage;
+    
+    public CustomServiceFactory(ITextToImageService mockTextToImage)
+    {
+        _mockTextToImage = mockTextToImage;
+    }
+    
+    public ITextToImageService CreateTextToImageService(
+        IHttpClientWrapper httpClient,
+        IStableDiffusionLogger logger)
+    {
+        return _mockTextToImage;
+    }
+    
+    // Реализуйте остальные методы с реализациями по умолчанию или mock-объектами
+    // ...
+}
+
+// В вашем тесте
+[Fact]
+public async Task TestImageGeneration()
+{
+    // Arrange
+    var mockTextToImage = new Mock<ITextToImageService>();
+    mockTextToImage
+        .Setup(s => s.GenerateAsync(It.IsAny<TextToImageRequest>(), default))
+        .ReturnsAsync(new TextToImageResponse 
+        { 
+            Images = new List<string> { "base64image" } 
+        });
+    
+    var factory = new CustomServiceFactory(mockTextToImage.Object);
+    
+    var client = new StableDiffusionClientBuilder()
+        .WithBaseUrl("http://localhost:7860")
+        .WithServiceFactory(factory)
+        .Build();
+    
+    // Act
+    var request = new TextToImageRequest { Prompt = "test" };
+    var response = await client.TextToImage.GenerateAsync(request);
+    
+    // Assert
+    Assert.NotNull(response);
+    Assert.Single(response.Images);
+    mockTextToImage.Verify(
+        s => s.GenerateAsync(It.IsAny<TextToImageRequest>(), default),
+        Times.Once
+    );
+}
+```
+
+### Интеграционное Тестирование с Реальным API
+
+```csharp
+public class StableDiffusionIntegrationTests : IAsyncLifetime
+{
+    private IStableDiffusionClient _client;
+    
+    public async Task InitializeAsync()
+    {
+        _client = new StableDiffusionClientBuilder()
+            .WithBaseUrl("http://localhost:7860")
+            .WithTimeout(600)
+            .Build();
+            
+        // Проверяем доступность API
+        var isAvailable = await _client.PingAsync();
+        if (!isAvailable)
+        {
+            throw new Exception("Stable Diffusion API недоступен");
+        }
+    }
+    
+    public Task DisposeAsync()
+    {
+        _client?.Dispose();
+        return Task.CompletedTask;
+    }
+    
+    [Fact]
+    public async Task Generate_SimplePrompt_ReturnsImage()
+    {
+        // Arrange
+        var request = new TextToImageRequest
+        {
+            Prompt = "красное яблоко",
+            Steps = 10, // Быстрый тест
+            Width = 256,
+            Height = 256
+        };
+        
+        // Act
+        var response = await client.TextToImage.GenerateAsync(request);
+        
+        // Assert
+        Assert.NotNull(response);
+        Assert.NotEmpty(response.Images);
+        Assert.NotNull(response.Info);
+    }
+}
+```
+
+### Кастомная Реализация Сервиса
+
+Вы можете реализовать кастомные сервисы для добавления дополнительной функциональности:
+
+```csharp
+public class CachedTextToImageService : ITextToImageService
+{
+    private readonly ITextToImageService _innerService;
+    private readonly IMemoryCache _cache;
+    
+    public CachedTextToImageService(
+        ITextToImageService innerService,
+        IMemoryCache cache)
+    {
+        _innerService = innerService;
+        _cache = cache;
+    }
+    
+    public async Task<TextToImageResponse> GenerateAsync(
+        TextToImageRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var cacheKey = GenerateCacheKey(request);
+        
+        // Пытаемся получить из кэша
+        if (_cache.TryGetValue<TextToImageResponse>(cacheKey, out var cached))
+        {
+            Console.WriteLine("Попадание в кэш!");
+            return cached;
+        }
+        
+        // Генерируем новое изображение
+        var response = await _innerService.GenerateAsync(request, cancellationToken);
+        
+        // Кэшируем на 1 час
+        _cache.Set(cacheKey, response, TimeSpan.FromHours(1));
+        
+        return response;
+    }
+    
+    private string GenerateCacheKey(TextToImageRequest request)
+    {
+        return $"{request.Prompt}_{request.Width}_{request.Height}_{request.Steps}_{request.Seed}";
+    }
+}
+
+// Использование с кастомной фабрикой
+public class CachedServiceFactory : IStableDiffusionServiceFactory
+{
+    private readonly IMemoryCache _cache;
+    private readonly DefaultServiceFactory _defaultFactory = new();
+    
+    public CachedServiceFactory(IMemoryCache cache)
+    {
+        _cache = cache;
+    }
+    
+    public ITextToImageService CreateTextToImageService(
+        IHttpClientWrapper httpClient,
+        IStableDiffusionLogger logger)
+    {
+        var defaultService = _defaultFactory.CreateTextToImageService(httpClient, logger);
+        return new CachedTextToImageService(defaultService, _cache);
+    }
+    
+    // Остальные сервисы используют реализацию по умолчанию
+    public IImageToImageService CreateImageToImageService(
+        IHttpClientWrapper httpClient,
+        IStableDiffusionLogger logger) 
+        => _defaultFactory.CreateImageToImageService(httpClient, logger);
+    
+    // ... реализуйте остальные методы
+}
+
+// Создаем клиент с кэшированием
+var cache = new MemoryCache(new MemoryCacheOptions());
+var factory = new CachedServiceFactory(cache);
+
+var client = new StableDiffusionClientBuilder()
+    .WithBaseUrl("http://localhost:7860")
+    .WithServiceFactory(factory)
+    .Build();
 ```
 
 ---

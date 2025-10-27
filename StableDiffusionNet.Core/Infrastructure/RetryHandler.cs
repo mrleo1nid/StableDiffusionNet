@@ -10,9 +10,13 @@ using StableDiffusionNet.Logging;
 namespace StableDiffusionNet.Infrastructure
 {
     /// <summary>
-    /// Handler для реализации retry логики с экспоненциальной задержкой
+    /// Handler для реализации retry логики с экспоненциальной задержкой.
+    /// Реализует IDisposable для корректного освобождения ThreadLocal ресурсов в .NET Standard 2.0/2.1
     /// </summary>
     internal class RetryHandler
+#if !NET6_0_OR_GREATER
+        : IDisposable
+#endif
     {
         private readonly StableDiffusionOptions _options;
         private readonly IStableDiffusionLogger _logger;
@@ -25,10 +29,8 @@ namespace StableDiffusionNet.Infrastructure
             "S2245:Make sure that using this pseudorandom number generator is safe here.",
             Justification = "Random используется только для добавления jitter к retry задержкам, не требует криптографической стойкости"
         )]
-        private static readonly ThreadLocal<Random> _threadLocalRandom = new ThreadLocal<Random>(
-            () =>
-                new Random(Guid.NewGuid().GetHashCode())
-        );
+        private readonly ThreadLocal<Random> _threadLocalRandom;
+        private bool _disposed;
 #endif
 
         public RetryHandler(StableDiffusionOptions options, IStableDiffusionLogger logger)
@@ -38,6 +40,14 @@ namespace StableDiffusionNet.Infrastructure
 
             _options = options;
             _logger = logger;
+
+#if !NET6_0_OR_GREATER
+            // Создаем ThreadLocal в конструкторе для контроля жизненного цикла
+            _threadLocalRandom = new ThreadLocal<Random>(
+                () => new Random(Guid.NewGuid().GetHashCode()),
+                trackAllValues: false // Не отслеживаем значения для производительности
+            );
+#endif
         }
 
         /// <summary>
@@ -191,5 +201,34 @@ namespace StableDiffusionNet.Infrastructure
 #endif
             return delay + jitter;
         }
+
+#if !NET6_0_OR_GREATER
+        /// <summary>
+        /// Освобождает ресурсы, используемые RetryHandler
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Освобождает управляемые ресурсы
+        /// </summary>
+        /// <param name="disposing">True если вызван из Dispose, false из финализатора</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                // Освобождаем ThreadLocal<Random> для предотвращения утечки памяти
+                _threadLocalRandom?.Dispose();
+            }
+
+            _disposed = true;
+        }
+#endif
     }
 }

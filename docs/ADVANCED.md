@@ -15,6 +15,7 @@
 - [RESTful API Service](#restful-api-service)
 - [Queue Processing](#queue-processing)
 - [Caching and Optimization](#caching-and-optimization)
+- [Testing and Custom Services](#testing-and-custom-services)
 - [Monitoring and Metrics](#monitoring-and-metrics)
 
 ---
@@ -1235,6 +1236,208 @@ public record GenerateRequest(
     int? Steps = null,
     int? Seed = null
 );
+```
+
+---
+
+## Testing and Custom Services
+
+### Using Custom Service Factory for Testing
+
+The library supports custom service factories, making it easy to test your code with mock services:
+
+```csharp
+using Moq;
+using StableDiffusionNet;
+using StableDiffusionNet.Interfaces;
+
+public class CustomServiceFactory : IStableDiffusionServiceFactory
+{
+    private readonly ITextToImageService _mockTextToImage;
+    
+    public CustomServiceFactory(ITextToImageService mockTextToImage)
+    {
+        _mockTextToImage = mockTextToImage;
+    }
+    
+    public ITextToImageService CreateTextToImageService(
+        IHttpClientWrapper httpClient,
+        IStableDiffusionLogger logger)
+    {
+        return _mockTextToImage;
+    }
+    
+    // Implement other methods with default implementations or mocks
+    // ...
+}
+
+// In your test
+[Fact]
+public async Task TestImageGeneration()
+{
+    // Arrange
+    var mockTextToImage = new Mock<ITextToImageService>();
+    mockTextToImage
+        .Setup(s => s.GenerateAsync(It.IsAny<TextToImageRequest>(), default))
+        .ReturnsAsync(new TextToImageResponse 
+        { 
+            Images = new List<string> { "base64image" } 
+        });
+    
+    var factory = new CustomServiceFactory(mockTextToImage.Object);
+    
+    var client = new StableDiffusionClientBuilder()
+        .WithBaseUrl("http://localhost:7860")
+        .WithServiceFactory(factory)
+        .Build();
+    
+    // Act
+    var request = new TextToImageRequest { Prompt = "test" };
+    var response = await client.TextToImage.GenerateAsync(request);
+    
+    // Assert
+    Assert.NotNull(response);
+    Assert.Single(response.Images);
+    mockTextToImage.Verify(
+        s => s.GenerateAsync(It.IsAny<TextToImageRequest>(), default),
+        Times.Once
+    );
+}
+```
+
+### Integration Testing with Real API
+
+```csharp
+public class StableDiffusionIntegrationTests : IAsyncLifetime
+{
+    private IStableDiffusionClient _client;
+    
+    public async Task InitializeAsync()
+    {
+        _client = new StableDiffusionClientBuilder()
+            .WithBaseUrl("http://localhost:7860")
+            .WithTimeout(600)
+            .Build();
+            
+        // Check if API is available
+        var isAvailable = await _client.PingAsync();
+        if (!isAvailable)
+        {
+            throw new Exception("Stable Diffusion API is not available");
+        }
+    }
+    
+    public Task DisposeAsync()
+    {
+        _client?.Dispose();
+        return Task.CompletedTask;
+    }
+    
+    [Fact]
+    public async Task Generate_SimplePrompt_ReturnsImage()
+    {
+        // Arrange
+        var request = new TextToImageRequest
+        {
+            Prompt = "a red apple",
+            Steps = 10, // Fast test
+            Width = 256,
+            Height = 256
+        };
+        
+        // Act
+        var response = await _client.TextToImage.GenerateAsync(request);
+        
+        // Assert
+        Assert.NotNull(response);
+        Assert.NotEmpty(response.Images);
+        Assert.NotNull(response.Info);
+    }
+}
+```
+
+### Custom Service Implementation
+
+You can implement custom services to add additional functionality:
+
+```csharp
+public class CachedTextToImageService : ITextToImageService
+{
+    private readonly ITextToImageService _innerService;
+    private readonly IMemoryCache _cache;
+    
+    public CachedTextToImageService(
+        ITextToImageService innerService,
+        IMemoryCache cache)
+    {
+        _innerService = innerService;
+        _cache = cache;
+    }
+    
+    public async Task<TextToImageResponse> GenerateAsync(
+        TextToImageRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var cacheKey = GenerateCacheKey(request);
+        
+        // Try get from cache
+        if (_cache.TryGetValue<TextToImageResponse>(cacheKey, out var cached))
+        {
+            Console.WriteLine("Cache hit!");
+            return cached;
+        }
+        
+        // Generate new image
+        var response = await _innerService.GenerateAsync(request, cancellationToken);
+        
+        // Cache for 1 hour
+        _cache.Set(cacheKey, response, TimeSpan.FromHours(1));
+        
+        return response;
+    }
+    
+    private string GenerateCacheKey(TextToImageRequest request)
+    {
+        return $"{request.Prompt}_{request.Width}_{request.Height}_{request.Steps}_{request.Seed}";
+    }
+}
+
+// Usage with custom factory
+public class CachedServiceFactory : IStableDiffusionServiceFactory
+{
+    private readonly IMemoryCache _cache;
+    private readonly DefaultServiceFactory _defaultFactory = new();
+    
+    public CachedServiceFactory(IMemoryCache cache)
+    {
+        _cache = cache;
+    }
+    
+    public ITextToImageService CreateTextToImageService(
+        IHttpClientWrapper httpClient,
+        IStableDiffusionLogger logger)
+    {
+        var defaultService = _defaultFactory.CreateTextToImageService(httpClient, logger);
+        return new CachedTextToImageService(defaultService, _cache);
+    }
+    
+    // Other services use default implementation
+    public IImageToImageService CreateImageToImageService(
+        IHttpClientWrapper httpClient,
+        IStableDiffusionLogger logger) 
+        => _defaultFactory.CreateImageToImageService(httpClient, logger);
+    
+    // ... implement other methods
+}
+
+// Create client with caching
+var cache = new MemoryCache(new MemoryCacheOptions());
+var factory = new CachedServiceFactory(cache);
+
+var client = new StableDiffusionClientBuilder()
+    .WithBaseUrl("http://localhost:7860")
+    .WithServiceFactory(factory)
+    .Build();
 ```
 
 ---

@@ -193,7 +193,23 @@ namespace StableDiffusionNet.Tests.Helpers
         {
             // Arrange
             var jpegPath = Path.Combine(_testDirectory, "test_async.jpg");
-            await File.WriteAllBytesAsync(jpegPath, new byte[] { 0xFF, 0xD8, 0xFF });
+            // JPEG должен иметь минимум 12 байт для проверки magic bytes
+            var jpegBytes = new byte[]
+            {
+                0xFF,
+                0xD8,
+                0xFF,
+                0xE0,
+                0x00,
+                0x10,
+                0x4A,
+                0x46,
+                0x49,
+                0x46,
+                0x00,
+                0x01,
+            };
+            await File.WriteAllBytesAsync(jpegPath, jpegBytes);
 
             // Act
             var result = await _imageHelper.ImageToBase64Async(jpegPath);
@@ -211,8 +227,8 @@ namespace StableDiffusionNet.Tests.Helpers
             // Assert
             await act.Should()
                 .ThrowAsync<ArgumentException>()
-                .WithParameterName("filePath")
-                .WithMessage("*cannot be empty*");
+                .WithMessage("*cannot be null, empty, or whitespace*")
+                .WithParameterName("filePath");
         }
 
         [Fact]
@@ -257,28 +273,155 @@ namespace StableDiffusionNet.Tests.Helpers
                 .WithMessage("*exceeds maximum allowed size*");
         }
 
-        [Theory]
-        [InlineData("test_async.png", "image/png")]
-        [InlineData("test_async.jpg", "image/jpeg")]
-        [InlineData("test_async.jpeg", "image/jpeg")]
-        [InlineData("test_async.gif", "image/gif")]
-        [InlineData("test_async.webp", "image/webp")]
-        [InlineData("test_async.bmp", "image/bmp")]
-        [InlineData("test_async.unknown", "image/png")] // default
-        public async Task ImageToBase64Async_DifferentExtensions_ReturnsCorrectMimeType(
-            string filename,
-            string expectedMime
-        )
+        [Fact]
+        public async Task ImageToBase64Async_InvalidImageFormat_ThrowsArgumentException()
         {
             // Arrange
-            var filePath = Path.Combine(_testDirectory, filename);
-            await File.WriteAllBytesAsync(filePath, new byte[] { 0x01, 0x02, 0x03 });
+            var invalidPath = Path.Combine(_testDirectory, "invalid.png");
+            // Создаем файл с невалидными magic bytes
+            await File.WriteAllBytesAsync(
+                invalidPath,
+                new byte[]
+                {
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                    0x00,
+                }
+            );
 
             // Act
-            var result = await _imageHelper.ImageToBase64Async(filePath);
+            var act = async () => await _imageHelper.ImageToBase64Async(invalidPath);
 
             // Assert
-            result.Should().StartWith($"data:{expectedMime};base64,");
+            await act.Should()
+                .ThrowAsync<ArgumentException>()
+                .WithParameterName("filePath")
+                .WithMessage("*not a valid image format*");
+        }
+
+        [Fact]
+        public async Task ImageToBase64Async_RealJpegBytes_ReturnsJpegMimeType()
+        {
+            // Arrange
+            var jpegPath = Path.Combine(_testDirectory, "real.jpg");
+            var jpegBytes = new byte[]
+            {
+                0xFF,
+                0xD8,
+                0xFF,
+                0xE0,
+                0x00,
+                0x10,
+                0x4A,
+                0x46,
+                0x49,
+                0x46,
+                0x00,
+                0x01,
+            };
+            await File.WriteAllBytesAsync(jpegPath, jpegBytes);
+
+            // Act
+            var result = await _imageHelper.ImageToBase64Async(jpegPath);
+
+            // Assert
+            result.Should().StartWith("data:image/jpeg;base64,");
+        }
+
+        [Fact]
+        public async Task ImageToBase64Async_RealGifBytes_ReturnsGifMimeType()
+        {
+            // Arrange
+            var gifPath = Path.Combine(_testDirectory, "real.gif");
+            var gifBytes = new byte[]
+            {
+                0x47,
+                0x49,
+                0x46,
+                0x38,
+                0x39,
+                0x61,
+                0x01,
+                0x00,
+                0x01,
+                0x00,
+                0x00,
+                0x00,
+            };
+            await File.WriteAllBytesAsync(gifPath, gifBytes);
+
+            // Act
+            var result = await _imageHelper.ImageToBase64Async(gifPath);
+
+            // Assert
+            result.Should().StartWith("data:image/gif;base64,");
+        }
+
+        [Fact]
+        public async Task ImageToBase64Async_RealWebpBytes_ReturnsWebpMimeType()
+        {
+            // Arrange
+            var webpPath = Path.Combine(_testDirectory, "real.webp");
+            var webpBytes = new byte[]
+            {
+                0x52,
+                0x49,
+                0x46,
+                0x46,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x57,
+                0x45,
+                0x42,
+                0x50,
+            };
+            await File.WriteAllBytesAsync(webpPath, webpBytes);
+
+            // Act
+            var result = await _imageHelper.ImageToBase64Async(webpPath);
+
+            // Assert
+            result.Should().StartWith("data:image/webp;base64,");
+        }
+
+        [Fact]
+        public async Task ImageToBase64Async_RealBmpBytes_ReturnsBmpMimeType()
+        {
+            // Arrange
+            var bmpPath = Path.Combine(_testDirectory, "real.bmp");
+            var bmpBytes = new byte[]
+            {
+                0x42,
+                0x4D,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+            };
+            await File.WriteAllBytesAsync(bmpPath, bmpBytes);
+
+            // Act
+            var result = await _imageHelper.ImageToBase64Async(bmpPath);
+
+            // Assert
+            result.Should().StartWith("data:image/bmp;base64,");
         }
 
         [Fact]
@@ -409,6 +552,262 @@ namespace StableDiffusionNet.Tests.Helpers
 
             // Assert
             resultBytes.Should().Equal(originalBytes);
+        }
+
+        #endregion
+
+        #region ValidateImageBase64 Tests
+
+        [Fact]
+        public void ValidateImageBase64_ValidPng_DoesNotThrow()
+        {
+            // Arrange
+            var pngBytes = new byte[]
+            {
+                0x89,
+                0x50,
+                0x4E,
+                0x47,
+                0x0D,
+                0x0A,
+                0x1A,
+                0x0A,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+            };
+            var base64 = Convert.ToBase64String(pngBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ValidateImageBase64_ValidPngWithPrefix_DoesNotThrow()
+        {
+            // Arrange
+            var pngBytes = new byte[]
+            {
+                0x89,
+                0x50,
+                0x4E,
+                0x47,
+                0x0D,
+                0x0A,
+                0x1A,
+                0x0A,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+            };
+            var base64 = $"data:image/png;base64,{Convert.ToBase64String(pngBytes)}";
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ValidateImageBase64_ValidJpeg_DoesNotThrow()
+        {
+            // Arrange
+            var jpegBytes = new byte[]
+            {
+                0xFF,
+                0xD8,
+                0xFF,
+                0xE0,
+                0x00,
+                0x10,
+                0x4A,
+                0x46,
+                0x49,
+                0x46,
+                0x00,
+                0x01,
+            };
+            var base64 = Convert.ToBase64String(jpegBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ValidateImageBase64_ValidGif_DoesNotThrow()
+        {
+            // Arrange
+            var gifBytes = new byte[]
+            {
+                0x47,
+                0x49,
+                0x46,
+                0x38,
+                0x39,
+                0x61,
+                0x01,
+                0x00,
+                0x01,
+                0x00,
+                0x00,
+                0x00,
+            };
+            var base64 = Convert.ToBase64String(gifBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ValidateImageBase64_ValidWebp_DoesNotThrow()
+        {
+            // Arrange
+            var webpBytes = new byte[]
+            {
+                0x52,
+                0x49,
+                0x46,
+                0x46,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x57,
+                0x45,
+                0x42,
+                0x50,
+            };
+            var base64 = Convert.ToBase64String(webpBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ValidateImageBase64_ValidBmp_DoesNotThrow()
+        {
+            // Arrange
+            var bmpBytes = new byte[]
+            {
+                0x42,
+                0x4D,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+            };
+            var base64 = Convert.ToBase64String(bmpBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void ValidateImageBase64_InvalidFormat_ThrowsArgumentException()
+        {
+            // Arrange
+            var invalidBytes = new byte[]
+            {
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+            };
+            var base64 = Convert.ToBase64String(invalidBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("base64String")
+                .WithMessage("*not contain a valid image*");
+        }
+
+        [Fact]
+        public void ValidateImageBase64_EmptyString_ThrowsArgumentException()
+        {
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(string.Empty);
+
+            // Assert
+            act.Should().Throw<ArgumentException>().WithParameterName("base64String");
+        }
+
+        [Fact]
+        public void ValidateImageBase64_NullString_ThrowsArgumentException()
+        {
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(null!);
+
+            // Assert
+            act.Should().Throw<ArgumentException>().WithParameterName("base64String");
+        }
+
+        [Fact]
+        public void ValidateImageBase64_InvalidBase64_ThrowsArgumentException()
+        {
+            // Arrange
+            var invalidBase64 = "this is not valid base64!@#$%";
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(invalidBase64);
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("base64String")
+                .WithMessage("*Invalid base64 string format*");
+        }
+
+        [Fact]
+        public void ValidateImageBase64_TooShortData_ThrowsArgumentException()
+        {
+            // Arrange - менее 12 байт, недостаточно для определения формата
+            var shortBytes = new byte[] { 0x89, 0x50, 0x4E };
+            var base64 = Convert.ToBase64String(shortBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("base64String")
+                .WithMessage("*not contain a valid image*");
         }
 
         #endregion

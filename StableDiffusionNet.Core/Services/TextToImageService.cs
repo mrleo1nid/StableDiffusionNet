@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Constants;
 using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Interfaces;
@@ -18,17 +19,24 @@ namespace StableDiffusionNet.Services
     {
         private readonly IHttpClientWrapper _httpClient;
         private readonly IStableDiffusionLogger _logger;
+        private readonly ValidationOptions _validationOptions;
 
         /// <summary>
         /// Создает новый экземпляр сервиса генерации изображений из текста
         /// </summary>
-        public TextToImageService(IHttpClientWrapper httpClient, IStableDiffusionLogger logger)
+        public TextToImageService(
+            IHttpClientWrapper httpClient,
+            IStableDiffusionLogger logger,
+            ValidationOptions validationOptions
+        )
         {
             Guard.ThrowIfNull(httpClient);
             Guard.ThrowIfNull(logger);
+            Guard.ThrowIfNull(validationOptions);
 
             _httpClient = httpClient;
             _logger = logger;
+            _validationOptions = validationOptions;
         }
 
         /// <inheritdoc/>
@@ -38,7 +46,7 @@ namespace StableDiffusionNet.Services
         )
         {
             Guard.ThrowIfNull(request);
-            request.Validate(nameof(request));
+            request.Validate(_validationOptions, nameof(request));
 
             _logger.LogInformation(
                 $"Starting text-to-image generation. Prompt: {request.Prompt}, Size: {request.Width}x{request.Height}"

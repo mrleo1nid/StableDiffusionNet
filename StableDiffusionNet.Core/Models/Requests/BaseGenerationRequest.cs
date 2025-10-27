@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Helpers;
 
 namespace StableDiffusionNet.Models.Requests
@@ -271,15 +272,22 @@ namespace StableDiffusionNet.Models.Requests
         /// <summary>
         /// Базовая валидация параметров запроса
         /// </summary>
+        /// <param name="validationOptions">Опции валидации (если null - используются значения по умолчанию)</param>
         /// <param name="paramName">Имя параметра для передачи в исключение</param>
         /// <exception cref="ArgumentException">Выбрасывается при невалидных параметрах</exception>
-        public virtual void Validate(string? paramName = null)
+        public virtual void Validate(
+            ValidationOptions? validationOptions = null,
+            string? paramName = null
+        )
         {
-            if (string.IsNullOrWhiteSpace(Prompt))
-                throw new ArgumentException("Prompt cannot be empty", paramName ?? nameof(Prompt));
+            Guard.ThrowIfNullOrWhiteSpace(Prompt, paramName ?? nameof(Prompt));
 
-            ImageRequestValidator.ValidateImageDimension(Width, nameof(Width));
-            ImageRequestValidator.ValidateImageDimension(Height, nameof(Height));
+            // Используем переданные опции или создаем новые по умолчанию для обратной совместимости
+            var options = validationOptions ?? new ValidationOptions();
+            var validator = new ImageRequestValidator(options);
+
+            validator.ValidateImageDimension(Width, nameof(Width));
+            validator.ValidateImageDimension(Height, nameof(Height));
 
             if (Steps <= 0)
                 throw new ArgumentException("Steps must be greater than 0", paramName);

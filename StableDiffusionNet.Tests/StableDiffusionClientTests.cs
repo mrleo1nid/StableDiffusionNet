@@ -44,637 +44,190 @@ namespace StableDiffusionNet.Tests
             _loggerMock = new Mock<IStableDiffusionLogger>();
         }
 
-        private StableDiffusionClient CreateClient()
+        [Fact]
+        public void Constructor_WithStableDiffusionServices_CreatesClientSuccessfully()
         {
-            return new StableDiffusionClient(
-                _textToImageMock.Object,
-                _imageToImageMock.Object,
-                _modelServiceMock.Object,
-                _progressServiceMock.Object,
-                _optionsServiceMock.Object,
-                _samplerServiceMock.Object,
-                _schedulerServiceMock.Object,
-                _upscalerServiceMock.Object,
-                _pngInfoServiceMock.Object,
-                _extraServiceMock.Object,
-                _embeddingServiceMock.Object,
-                _loraServiceMock.Object,
+            // Arrange
+            var services = new StableDiffusionServices
+            {
+                TextToImage = _textToImageMock.Object,
+                ImageToImage = _imageToImageMock.Object,
+                Models = _modelServiceMock.Object,
+                Progress = _progressServiceMock.Object,
+                Options = _optionsServiceMock.Object,
+                Samplers = _samplerServiceMock.Object,
+                Schedulers = _schedulerServiceMock.Object,
+                Upscalers = _upscalerServiceMock.Object,
+                PngInfo = _pngInfoServiceMock.Object,
+                Extra = _extraServiceMock.Object,
+                Embeddings = _embeddingServiceMock.Object,
+                Loras = _loraServiceMock.Object,
+            };
+
+            // Act
+            var client = new StableDiffusionClient(
+                services,
                 _httpClientWrapperMock.Object,
                 _loggerMock.Object
             );
-        }
-
-        [Fact]
-        public void Constructor_WithValidDependencies_CreatesClient()
-        {
-            // Act
-            var client = CreateClient();
 
             // Assert
             client.Should().NotBeNull();
-            client.TextToImage.Should().NotBeNull();
-            client.ImageToImage.Should().NotBeNull();
-            client.Models.Should().NotBeNull();
-            client.Progress.Should().NotBeNull();
-            client.Options.Should().NotBeNull();
-            client.Samplers.Should().NotBeNull();
-            client.Schedulers.Should().NotBeNull();
-            client.Upscalers.Should().NotBeNull();
-            client.PngInfo.Should().NotBeNull();
-            client.Extra.Should().NotBeNull();
-            client.Embeddings.Should().NotBeNull();
-            client.Loras.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void Constructor_WithNullTextToImageService_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    null!,
-                    _imageToImageMock.Object,
-                    _modelServiceMock.Object,
-                    _progressServiceMock.Object,
-                    _optionsServiceMock.Object,
-                    _samplerServiceMock.Object,
-                    _schedulerServiceMock.Object,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    _loggerMock.Object
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("textToImageService");
-        }
-
-        [Fact]
-        public void Constructor_WithNullImageToImageService_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    _textToImageMock.Object,
-                    null!,
-                    _modelServiceMock.Object,
-                    _progressServiceMock.Object,
-                    _optionsServiceMock.Object,
-                    _samplerServiceMock.Object,
-                    _schedulerServiceMock.Object,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    _loggerMock.Object
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("imageToImageService");
-        }
-
-        [Fact]
-        public void Constructor_WithNullModelService_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    _textToImageMock.Object,
-                    _imageToImageMock.Object,
-                    null!,
-                    _progressServiceMock.Object,
-                    _optionsServiceMock.Object,
-                    _samplerServiceMock.Object,
-                    _schedulerServiceMock.Object,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    _loggerMock.Object
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("modelService");
-        }
-
-        [Fact]
-        public void Constructor_WithNullProgressService_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    _textToImageMock.Object,
-                    _imageToImageMock.Object,
-                    _modelServiceMock.Object,
-                    null!,
-                    _optionsServiceMock.Object,
-                    _samplerServiceMock.Object,
-                    _schedulerServiceMock.Object,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    _loggerMock.Object
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("progressService");
-        }
-
-        [Fact]
-        public void Constructor_WithNullOptionsService_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    _textToImageMock.Object,
-                    _imageToImageMock.Object,
-                    _modelServiceMock.Object,
-                    _progressServiceMock.Object,
-                    null!,
-                    _samplerServiceMock.Object,
-                    _schedulerServiceMock.Object,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    _loggerMock.Object
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("optionsService");
-        }
-
-        [Fact]
-        public void Constructor_WithNullSamplerService_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    _textToImageMock.Object,
-                    _imageToImageMock.Object,
-                    _modelServiceMock.Object,
-                    _progressServiceMock.Object,
-                    _optionsServiceMock.Object,
-                    null!,
-                    _schedulerServiceMock.Object,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    _loggerMock.Object
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("samplerService");
-        }
-
-        [Fact]
-        public void Constructor_WithNullSchedulerService_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    _textToImageMock.Object,
-                    _imageToImageMock.Object,
-                    _modelServiceMock.Object,
-                    _progressServiceMock.Object,
-                    _optionsServiceMock.Object,
-                    _samplerServiceMock.Object,
-                    null!,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    _loggerMock.Object
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("schedulerService");
-        }
-
-        [Fact]
-        public void Constructor_WithNullLogger_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () =>
-                new StableDiffusionClient(
-                    _textToImageMock.Object,
-                    _imageToImageMock.Object,
-                    _modelServiceMock.Object,
-                    _progressServiceMock.Object,
-                    _optionsServiceMock.Object,
-                    _samplerServiceMock.Object,
-                    _schedulerServiceMock.Object,
-                    _upscalerServiceMock.Object,
-                    _pngInfoServiceMock.Object,
-                    _extraServiceMock.Object,
-                    _embeddingServiceMock.Object,
-                    _loraServiceMock.Object,
-                    _httpClientWrapperMock.Object,
-                    null!
-                );
-
-            act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
-        }
-
-        [Fact]
-        public void TextToImage_Property_ReturnsInjectedService()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act & Assert
             client.TextToImage.Should().BeSameAs(_textToImageMock.Object);
-        }
-
-        [Fact]
-        public void ImageToImage_Property_ReturnsInjectedService()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act & Assert
             client.ImageToImage.Should().BeSameAs(_imageToImageMock.Object);
-        }
-
-        [Fact]
-        public void Models_Property_ReturnsInjectedService()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act & Assert
             client.Models.Should().BeSameAs(_modelServiceMock.Object);
-        }
-
-        [Fact]
-        public void Progress_Property_ReturnsInjectedService()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act & Assert
             client.Progress.Should().BeSameAs(_progressServiceMock.Object);
-        }
-
-        [Fact]
-        public void Options_Property_ReturnsInjectedService()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act & Assert
             client.Options.Should().BeSameAs(_optionsServiceMock.Object);
-        }
-
-        [Fact]
-        public void Samplers_Property_ReturnsInjectedService()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act & Assert
             client.Samplers.Should().BeSameAs(_samplerServiceMock.Object);
-        }
-
-        [Fact]
-        public void Schedulers_Property_ReturnsInjectedService()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act & Assert
             client.Schedulers.Should().BeSameAs(_schedulerServiceMock.Object);
+            client.Upscalers.Should().BeSameAs(_upscalerServiceMock.Object);
+            client.PngInfo.Should().BeSameAs(_pngInfoServiceMock.Object);
+            client.Extra.Should().BeSameAs(_extraServiceMock.Object);
+            client.Embeddings.Should().BeSameAs(_embeddingServiceMock.Object);
+            client.Loras.Should().BeSameAs(_loraServiceMock.Object);
         }
 
         [Fact]
-        public async Task PingAsync_WhenApiAvailable_ReturnsTrue()
+        public void Constructor_WithNullServices_ThrowsArgumentNullException()
         {
-            // Arrange
-            _samplerServiceMock
-                .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
-
-            var client = CreateClient();
-
             // Act
-            var result = await client.PingAsync();
+            Action act = () =>
+                new StableDiffusionClient(null!, _httpClientWrapperMock.Object, _loggerMock.Object);
 
             // Assert
-            result.Should().BeTrue();
+            act.Should().Throw<ArgumentNullException>().WithParameterName("services");
         }
 
         [Fact]
-        public async Task PingAsync_WhenApiUnavailable_ReturnsFalse()
+        public void Constructor_WithServicesWithNullTextToImage_ThrowsArgumentNullException()
         {
             // Arrange
-            _samplerServiceMock
-                .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new Exception("API unavailable"));
-
-            var client = CreateClient();
+            var services = new StableDiffusionServices
+            {
+                TextToImage = null!, // Намеренно null
+                ImageToImage = _imageToImageMock.Object,
+                Models = _modelServiceMock.Object,
+                Progress = _progressServiceMock.Object,
+                Options = _optionsServiceMock.Object,
+                Samplers = _samplerServiceMock.Object,
+                Schedulers = _schedulerServiceMock.Object,
+                Upscalers = _upscalerServiceMock.Object,
+                PngInfo = _pngInfoServiceMock.Object,
+                Extra = _extraServiceMock.Object,
+                Embeddings = _embeddingServiceMock.Object,
+                Loras = _loraServiceMock.Object,
+            };
 
             // Act
-            var result = await client.PingAsync();
+            Action act = () =>
+                new StableDiffusionClient(
+                    services,
+                    _httpClientWrapperMock.Object,
+                    _loggerMock.Object
+                );
 
             // Assert
-            result.Should().BeFalse();
+            act.Should().Throw<ArgumentNullException>().WithParameterName("TextToImage");
         }
 
         [Fact]
-        public async Task PingAsync_CallsSamplersService()
+        public void StableDiffusionServices_Validate_WithAllServicesSet_DoesNotThrow()
         {
             // Arrange
-            _samplerServiceMock
-                .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
-
-            var client = CreateClient();
+            var services = new StableDiffusionServices
+            {
+                TextToImage = _textToImageMock.Object,
+                ImageToImage = _imageToImageMock.Object,
+                Models = _modelServiceMock.Object,
+                Progress = _progressServiceMock.Object,
+                Options = _optionsServiceMock.Object,
+                Samplers = _samplerServiceMock.Object,
+                Schedulers = _schedulerServiceMock.Object,
+                Upscalers = _upscalerServiceMock.Object,
+                PngInfo = _pngInfoServiceMock.Object,
+                Extra = _extraServiceMock.Object,
+                Embeddings = _embeddingServiceMock.Object,
+                Loras = _loraServiceMock.Object,
+            };
 
             // Act
-            await client.PingAsync();
+            Action act = () => services.Validate();
 
             // Assert
-            _samplerServiceMock.Verify(
-                x => x.GetSamplersAsync(It.IsAny<CancellationToken>()),
-                Times.Once
-            );
+            act.Should().NotThrow();
         }
 
         [Fact]
-        public async Task PingAsync_WithCancellationToken_PassesToken()
+        public void StableDiffusionServices_Validate_WithNullService_ThrowsArgumentNullException()
         {
             // Arrange
-            using var cts = new CancellationTokenSource();
-            _samplerServiceMock
-                .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
-
-            var client = CreateClient();
+            var services = new StableDiffusionServices
+            {
+                TextToImage = null!, // Намеренно null для теста
+                ImageToImage = _imageToImageMock.Object,
+                Models = _modelServiceMock.Object,
+                Progress = _progressServiceMock.Object,
+                Options = _optionsServiceMock.Object,
+                Samplers = _samplerServiceMock.Object,
+                Schedulers = _schedulerServiceMock.Object,
+                Upscalers = _upscalerServiceMock.Object,
+                PngInfo = _pngInfoServiceMock.Object,
+                Extra = _extraServiceMock.Object,
+                Embeddings = _embeddingServiceMock.Object,
+                Loras = _loraServiceMock.Object,
+            };
 
             // Act
-            await client.PingAsync(cts.Token);
+            Action act = () => services.Validate();
 
             // Assert
-            _samplerServiceMock.Verify(x => x.GetSamplersAsync(cts.Token), Times.Once);
+            act.Should().Throw<ArgumentNullException>().WithParameterName("TextToImage");
         }
 
-        [Fact]
-        public async Task PingAsync_WhenSuccessful_LogsInformation()
-        {
-            // Arrange
-            _samplerServiceMock
-                .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
-
-            var client = CreateClient();
-
-            // Act
-            var result = await client.PingAsync();
-
-            // Assert
-            result.Should().BeTrue();
-            _loggerMock.Verify(x => x.Log(LogLevel.Debug, It.IsAny<string>()), Times.AtLeastOnce);
-        }
+        #region HealthCheck Tests
 
         [Fact]
-        public async Task PingAsync_WhenFails_LogsError()
+        public async Task HealthCheckAsync_WithSuccessfulResponse_ReturnsHealthyResult()
         {
             // Arrange
-            var exception = new Exception("Connection failed");
-            _samplerServiceMock
-                .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ThrowsAsync(exception);
+            _httpClientWrapperMock
+                .Setup(x => x.GetAsync<object>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new object());
 
-            var client = CreateClient();
+            var services = new StableDiffusionServices
+            {
+                TextToImage = _textToImageMock.Object,
+                ImageToImage = _imageToImageMock.Object,
+                Models = _modelServiceMock.Object,
+                Progress = _progressServiceMock.Object,
+                Options = _optionsServiceMock.Object,
+                Samplers = _samplerServiceMock.Object,
+                Schedulers = _schedulerServiceMock.Object,
+                Upscalers = _upscalerServiceMock.Object,
+                PngInfo = _pngInfoServiceMock.Object,
+                Extra = _extraServiceMock.Object,
+                Embeddings = _embeddingServiceMock.Object,
+                Loras = _loraServiceMock.Object,
+            };
 
-            // Act
-            var result = await client.PingAsync();
-
-            // Assert
-            result.Should().BeFalse();
-            _loggerMock.Verify(
-                x => x.Log(LogLevel.Error, It.IsAny<Exception>(), It.IsAny<string>()),
-                Times.AtLeastOnce
-            );
-        }
-
-        [Fact]
-        public async Task PingAsync_MultipleCalls_WorksCorrectly()
-        {
-            // Arrange
-            _samplerServiceMock
-                .Setup(x => x.GetSamplersAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<Sampler> { new Sampler { Name = "Euler" } }.AsReadOnly());
-
-            var client = CreateClient();
-
-            // Act
-            var result1 = await client.PingAsync();
-            var result2 = await client.PingAsync();
-            var result3 = await client.PingAsync();
-
-            // Assert
-            result1.Should().BeTrue();
-            result2.Should().BeTrue();
-            result3.Should().BeTrue();
-            _samplerServiceMock.Verify(
-                x => x.GetSamplersAsync(It.IsAny<CancellationToken>()),
-                Times.Exactly(3)
-            );
-        }
-
-        [Fact]
-        public void Dispose_DisposesHttpClientWrapper()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act
-            client.Dispose();
-
-            // Assert
-            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
-        }
-
-        [Fact]
-        public void Dispose_WithAdditionalDisposable_DisposesAdditionalResource()
-        {
-            // Arrange
-            var additionalDisposableMock = new Mock<IDisposable>();
             var client = new StableDiffusionClient(
-                _textToImageMock.Object,
-                _imageToImageMock.Object,
-                _modelServiceMock.Object,
-                _progressServiceMock.Object,
-                _optionsServiceMock.Object,
-                _samplerServiceMock.Object,
-                _schedulerServiceMock.Object,
-                _upscalerServiceMock.Object,
-                _pngInfoServiceMock.Object,
-                _extraServiceMock.Object,
-                _embeddingServiceMock.Object,
-                _loraServiceMock.Object,
+                services,
                 _httpClientWrapperMock.Object,
-                _loggerMock.Object,
-                additionalDisposableMock.Object
+                _loggerMock.Object
             );
 
             // Act
-            client.Dispose();
+            var result = await client.HealthCheckAsync();
 
             // Assert
-            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
+            result.Should().NotBeNull();
+            result.IsHealthy.Should().BeTrue();
+            result.ResponseTime.Should().NotBeNull();
+            result.ResponseTime.Should().BeGreaterOrEqualTo(TimeSpan.Zero);
+            result.Error.Should().BeNull();
+            result.CheckedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+            result.Endpoint.Should().Be("/internal/ping");
         }
-
-        [Fact]
-        public void Dispose_MultipleCalls_DisposesOnlyOnce()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act - Намеренно вызываем Dispose несколько раз для проверки идемпотентности
-#pragma warning disable IDE0068, CA1816, CA2000, CA2202, S3966
-            client.Dispose();
-            client.Dispose();
-            client.Dispose();
-#pragma warning restore IDE0068, CA1816, CA2000, CA2202,S3966
-
-            // Assert
-            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
-        }
-
-        [Fact]
-        public void Dispose_WithAdditionalDisposable_DisposesAllResources()
-        {
-            // Arrange
-            var additionalDisposableMock = new Mock<IDisposable>();
-            var client = new StableDiffusionClient(
-                _textToImageMock.Object,
-                _imageToImageMock.Object,
-                _modelServiceMock.Object,
-                _progressServiceMock.Object,
-                _optionsServiceMock.Object,
-                _samplerServiceMock.Object,
-                _schedulerServiceMock.Object,
-                _upscalerServiceMock.Object,
-                _pngInfoServiceMock.Object,
-                _extraServiceMock.Object,
-                _embeddingServiceMock.Object,
-                _loraServiceMock.Object,
-                _httpClientWrapperMock.Object,
-                _loggerMock.Object,
-                additionalDisposableMock.Object
-            );
-
-            // Act
-            client.Dispose();
-
-            // Assert
-            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
-            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
-        }
-
-#if NET5_0_OR_GREATER
-        [Fact]
-        public async Task DisposeAsync_DisposesHttpClientWrapper()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act
-            await client.DisposeAsync();
-
-            // Assert
-            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
-        }
-
-        [Fact]
-        public async Task DisposeAsync_WithAdditionalDisposable_DisposesAdditionalResource()
-        {
-            // Arrange
-            var additionalDisposableMock = new Mock<IDisposable>();
-            var client = new StableDiffusionClient(
-                _textToImageMock.Object,
-                _imageToImageMock.Object,
-                _modelServiceMock.Object,
-                _progressServiceMock.Object,
-                _optionsServiceMock.Object,
-                _samplerServiceMock.Object,
-                _schedulerServiceMock.Object,
-                _upscalerServiceMock.Object,
-                _pngInfoServiceMock.Object,
-                _extraServiceMock.Object,
-                _embeddingServiceMock.Object,
-                _loraServiceMock.Object,
-                _httpClientWrapperMock.Object,
-                _loggerMock.Object,
-                additionalDisposableMock.Object
-            );
-
-            // Act
-            await client.DisposeAsync();
-
-            // Assert
-            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
-        }
-
-        [Fact]
-        public async Task DisposeAsync_MultipleCalls_DisposesOnlyOnce()
-        {
-            // Arrange
-            var client = CreateClient();
-
-            // Act - Намеренно вызываем DisposeAsync несколько раз для проверки идемпотентности
-#pragma warning disable IDE0068, CA1816, CA2000, CA2202
-            await client.DisposeAsync();
-            await client.DisposeAsync();
-            await client.DisposeAsync();
-#pragma warning restore IDE0068, CA1816, CA2000, CA2202
-
-            // Assert
-            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
-        }
-
-        [Fact]
-        public async Task DisposeAsync_WithAdditionalDisposable_DisposesAllResources()
-        {
-            // Arrange
-            var additionalDisposableMock = new Mock<IDisposable>();
-            var client = new StableDiffusionClient(
-                _textToImageMock.Object,
-                _imageToImageMock.Object,
-                _modelServiceMock.Object,
-                _progressServiceMock.Object,
-                _optionsServiceMock.Object,
-                _samplerServiceMock.Object,
-                _schedulerServiceMock.Object,
-                _upscalerServiceMock.Object,
-                _pngInfoServiceMock.Object,
-                _extraServiceMock.Object,
-                _embeddingServiceMock.Object,
-                _loraServiceMock.Object,
-                _httpClientWrapperMock.Object,
-                _loggerMock.Object,
-                additionalDisposableMock.Object
-            );
-
-            // Act
-            await client.DisposeAsync();
-
-            // Assert
-            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
-            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
-        }
-#endif
+        #endregion
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using StableDiffusionNet.Configuration;
 
 namespace StableDiffusionNet.Models.Requests
 {
@@ -108,11 +109,15 @@ namespace StableDiffusionNet.Models.Requests
         /// <summary>
         /// Валидация параметров запроса
         /// </summary>
+        /// <param name="validationOptions">Опции валидации (если null - используются значения по умолчанию)</param>
         /// <param name="paramName">Имя параметра для передачи в исключение</param>
         /// <exception cref="ArgumentException">Выбрасывается при невалидных параметрах</exception>
-        public override void Validate(string? paramName = null)
+        public override void Validate(
+            ValidationOptions? validationOptions = null,
+            string? paramName = null
+        )
         {
-            base.Validate(paramName);
+            base.Validate(validationOptions, paramName);
 
             if (InitImages == null || InitImages.Count == 0)
                 throw new ArgumentException(

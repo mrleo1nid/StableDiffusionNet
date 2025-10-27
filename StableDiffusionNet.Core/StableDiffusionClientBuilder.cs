@@ -5,6 +5,7 @@ using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Infrastructure;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
+using StableDiffusionNet.Models;
 using StableDiffusionNet.Services;
 
 namespace StableDiffusionNet
@@ -12,11 +13,42 @@ namespace StableDiffusionNet
     /// <summary>
     /// Билдер для создания StableDiffusionClient без использования DI контейнера
     /// </summary>
+    /// <example>
+    /// Базовое использование:
+    /// <code>
+    /// var client = new StableDiffusionClientBuilder()
+    ///     .WithBaseUrl("http://localhost:7860")
+    ///     .WithTimeout(300)
+    ///     .Build();
+    ///
+    /// // Генерация изображения
+    /// var request = new TextToImageRequest
+    /// {
+    ///     Prompt = "a beautiful sunset over mountains",
+    ///     Width = 512,
+    ///     Height = 512
+    /// };
+    ///
+    /// var response = await client.TextToImage.GenerateAsync(request);
+    /// </code>
+    ///
+    /// С настройкой повторных попыток и логированием:
+    /// <code>
+    /// var loggerFactory = new MyCustomLoggerFactory();
+    ///
+    /// var client = new StableDiffusionClientBuilder()
+    ///     .WithBaseUrl("http://localhost:7860")
+    ///     .WithRetry(retryCount: 3, retryDelayMilliseconds: 2000)
+    ///     .WithLoggerFactory(loggerFactory)
+    ///     .Build();
+    /// </code>
+    /// </example>
     public class StableDiffusionClientBuilder
     {
         private StableDiffusionOptions _options = new StableDiffusionOptions();
         private IStableDiffusionLoggerFactory? _loggerFactory;
         private HttpClient? _httpClient;
+        private IStableDiffusionServiceFactory _serviceFactory = new DefaultServiceFactory();
 
         /// <summary>
         /// Устанавливает базовый URL для API
@@ -106,6 +138,30 @@ namespace StableDiffusionNet
         }
 
         /// <summary>
+        /// Устанавливает фабрику для создания сервисов
+        /// Позволяет переопределить стандартные реализации сервисов (полезно для тестирования)
+        /// </summary>
+        /// <param name="serviceFactory">Фабрика сервисов</param>
+        /// <returns>Экземпляр Builder для цепочки вызовов</returns>
+        /// <example>
+        /// <code>
+        /// var mockFactory = new Mock&lt;IStableDiffusionServiceFactory&gt;();
+        /// var client = new StableDiffusionClientBuilder()
+        ///     .WithBaseUrl("http://localhost:7860")
+        ///     .WithServiceFactory(mockFactory.Object)
+        ///     .Build();
+        /// </code>
+        /// </example>
+        public StableDiffusionClientBuilder WithServiceFactory(
+            IStableDiffusionServiceFactory serviceFactory
+        )
+        {
+            Guard.ThrowIfNull(serviceFactory);
+            _serviceFactory = serviceFactory;
+            return this;
+        }
+
+        /// <summary>
         /// Создает экземпляр StableDiffusionClient
         /// </summary>
         /// <returns>Настроенный клиент</returns>
@@ -142,93 +198,88 @@ namespace StableDiffusionNet
                 }
             }
 
-            // Создаем wrapper для HttpClient
+            // Создаем wrapper для HttpClient с явным указанием владения
+            // Если создали HttpClient сами (_httpClient == null), то wrapper владеет им и должен освободить
+            // Если HttpClient был передан извне, то не владеем и не освобождаем
             var httpClientWrapper = new HttpClientWrapper(
                 httpClient,
                 loggerFactory.CreateLogger<HttpClientWrapper>(),
-                _options
+                _options,
+                ownsHttpClient: _httpClient == null
             );
 
-            // Создаем сервисы
-            var textToImageService = new TextToImageService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<TextToImageService>()
-            );
+            // Создаем сервисы через фабрику (следуя Dependency Inversion Principle)
+            var services = new StableDiffusionServices
+            {
+                TextToImage = _serviceFactory.CreateTextToImageService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<TextToImageService>(),
+                    _options.Validation
+                ),
+                ImageToImage = _serviceFactory.CreateImageToImageService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<ImageToImageService>(),
+                    _options.Validation
+                ),
+                Models = _serviceFactory.CreateModelService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<ModelService>(),
+                    _options.Validation
+                ),
+                Progress = _serviceFactory.CreateProgressService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<ProgressService>(),
+                    _options.Validation
+                ),
+                Options = _serviceFactory.CreateOptionsService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<OptionsService>(),
+                    _options.Validation
+                ),
+                Samplers = _serviceFactory.CreateSamplerService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<SamplerService>(),
+                    _options.Validation
+                ),
+                Schedulers = _serviceFactory.CreateSchedulerService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<SchedulerService>(),
+                    _options.Validation
+                ),
+                Upscalers = _serviceFactory.CreateUpscalerService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<UpscalerService>(),
+                    _options.Validation
+                ),
+                PngInfo = _serviceFactory.CreatePngInfoService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<PngInfoService>(),
+                    _options.Validation
+                ),
+                Extra = _serviceFactory.CreateExtraService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<ExtraService>(),
+                    _options.Validation
+                ),
+                Embeddings = _serviceFactory.CreateEmbeddingService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<EmbeddingService>(),
+                    _options.Validation
+                ),
+                Loras = _serviceFactory.CreateLoraService(
+                    httpClientWrapper,
+                    loggerFactory.CreateLogger<LoraService>(),
+                    _options.Validation
+                ),
+            };
 
-            var imageToImageService = new ImageToImageService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<ImageToImageService>()
-            );
-
-            var modelService = new ModelService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<ModelService>()
-            );
-
-            var progressService = new ProgressService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<ProgressService>()
-            );
-
-            var optionsService = new OptionsService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<OptionsService>()
-            );
-
-            var samplerService = new SamplerService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<SamplerService>()
-            );
-
-            var schedulerService = new SchedulerService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<SchedulerService>()
-            );
-
-            var upscalerService = new UpscalerService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<UpscalerService>()
-            );
-
-            var pngInfoService = new PngInfoService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<PngInfoService>()
-            );
-
-            var extraService = new ExtraService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<ExtraService>()
-            );
-
-            var embeddingService = new EmbeddingService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<EmbeddingService>()
-            );
-
-            var loraService = new LoraService(
-                httpClientWrapper,
-                loggerFactory.CreateLogger<LoraService>()
-            );
-
-            // Создаем главный клиент
-            // Если мы создали HttpClient сами (не был передан через WithHttpClient),
-            // передаем его как дополнительный disposable ресурс для управления временем жизни
+            // Создаем главный клиент с упрощенным конструктором (Parameter Object Pattern)
+            // HttpClient теперь управляется HttpClientWrapper (через ownsHttpClient флаг)
+            // additionalDisposable больше не нужен для HttpClient
             return new StableDiffusionClient(
-                textToImageService,
-                imageToImageService,
-                modelService,
-                progressService,
-                optionsService,
-                samplerService,
-                schedulerService,
-                upscalerService,
-                pngInfoService,
-                extraService,
-                embeddingService,
-                loraService,
+                services,
                 httpClientWrapper,
-                loggerFactory.CreateLogger<StableDiffusionClient>(),
-                additionalDisposable: _httpClient == null ? httpClient : null
+                loggerFactory.CreateLogger<StableDiffusionClient>()
             );
         }
 

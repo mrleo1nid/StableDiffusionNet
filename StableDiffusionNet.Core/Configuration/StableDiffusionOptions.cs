@@ -1,5 +1,6 @@
 using System;
 using StableDiffusionNet.Exceptions;
+using StableDiffusionNet.Helpers;
 
 namespace StableDiffusionNet.Configuration
 {
@@ -27,12 +28,7 @@ namespace StableDiffusionNet.Configuration
             get => _baseUrl;
             set
             {
-                if (string.IsNullOrWhiteSpace(value))
-                    throw new ArgumentException("BaseUrl cannot be empty", nameof(BaseUrl));
-
-                if (!Uri.TryCreate(value, UriKind.Absolute, out _))
-                    throw new ArgumentException("BaseUrl must be a valid URL", nameof(BaseUrl));
-
+                ValidateBaseUrl(value, nameof(BaseUrl));
                 _baseUrl = value;
             }
         }
@@ -46,12 +42,7 @@ namespace StableDiffusionNet.Configuration
             get => _timeoutSeconds;
             set
             {
-                if (value <= 0)
-                    throw new ArgumentException(
-                        "TimeoutSeconds must be a positive number",
-                        nameof(TimeoutSeconds)
-                    );
-
+                ValidateTimeoutSeconds(value, nameof(TimeoutSeconds));
                 _timeoutSeconds = value;
             }
         }
@@ -65,12 +56,7 @@ namespace StableDiffusionNet.Configuration
             get => _retryCount;
             set
             {
-                if (value < 0)
-                    throw new ArgumentException(
-                        "RetryCount cannot be negative",
-                        nameof(RetryCount)
-                    );
-
+                ValidateRetryCount(value, nameof(RetryCount));
                 _retryCount = value;
             }
         }
@@ -84,12 +70,7 @@ namespace StableDiffusionNet.Configuration
             get => _retryDelayMilliseconds;
             set
             {
-                if (value < 0)
-                    throw new ArgumentException(
-                        "RetryDelayMilliseconds cannot be negative",
-                        nameof(RetryDelayMilliseconds)
-                    );
-
+                ValidateRetryDelay(value, nameof(RetryDelayMilliseconds));
                 _retryDelayMilliseconds = value;
             }
         }
@@ -105,12 +86,17 @@ namespace StableDiffusionNet.Configuration
         public bool EnableDetailedLogging { get; set; } = false;
 
         /// <summary>
+        /// Опции валидации (лимиты размеров изображений, длины JSON и т.д.)
+        /// </summary>
+        public ValidationOptions Validation { get; set; } = new ValidationOptions();
+
+        /// <summary>
         /// Валидация настроек
         /// </summary>
         /// <remarks>
-        /// Начиная с версии, где валидация выполняется в property setters,
-        /// этот метод оставлен для обратной совместимости.
-        /// Все проверки теперь выполняются автоматически при установке свойств.
+        /// Валидация выполняется автоматически в property setters.
+        /// Этот метод полезен для явной проверки всех свойств после десериализации конфигурации,
+        /// где setters могут не вызываться.
         /// </remarks>
         /// <exception cref="ConfigurationException">
         /// Выбрасывается, если BaseUrl пустой, невалидный,
@@ -119,25 +105,64 @@ namespace StableDiffusionNet.Configuration
         /// </exception>
         public void Validate()
         {
-            // Валидация теперь выполняется в property setters
-            // Этот метод оставлен для обратной совместимости и для явной проверки
-            // всех свойств после десериализации конфигурации (где setters могут не вызываться)
+            // Используем те же методы валидации что и в property setters
+            // Преобразуем ArgumentException в ConfigurationException для обратной совместимости
+            try
+            {
+                ValidateBaseUrl(_baseUrl, nameof(BaseUrl));
+                ValidateTimeoutSeconds(_timeoutSeconds, nameof(TimeoutSeconds));
+                ValidateRetryCount(_retryCount, nameof(RetryCount));
+                ValidateRetryDelay(_retryDelayMilliseconds, nameof(RetryDelayMilliseconds));
 
-            // Проверяем значения напрямую, используя ConfigurationException для совместимости
-            if (string.IsNullOrWhiteSpace(_baseUrl))
-                throw new ConfigurationException("BaseUrl cannot be empty");
-
-            if (!Uri.TryCreate(_baseUrl, UriKind.Absolute, out _))
-                throw new ConfigurationException("BaseUrl must be a valid URL");
-
-            if (_timeoutSeconds <= 0)
-                throw new ConfigurationException("TimeoutSeconds must be a positive number");
-
-            if (_retryCount < 0)
-                throw new ConfigurationException("RetryCount cannot be negative");
-
-            if (_retryDelayMilliseconds < 0)
-                throw new ConfigurationException("RetryDelayMilliseconds cannot be negative");
+                // Валидация опций валидации
+                Validation?.Validate();
+            }
+            catch (ArgumentException ex)
+            {
+                throw new ConfigurationException(ex.Message, ex);
+            }
         }
+
+        #region Private Validation Methods
+
+        /// <summary>
+        /// Централизованная валидация BaseUrl
+        /// </summary>
+        private static void ValidateBaseUrl(string value, string paramName)
+        {
+            Guard.ThrowIfNullOrWhiteSpace(value, paramName);
+
+            if (!Uri.TryCreate(value, UriKind.Absolute, out _))
+                throw new ArgumentException("BaseUrl must be a valid URL", paramName);
+        }
+
+        /// <summary>
+        /// Централизованная валидация TimeoutSeconds
+        /// </summary>
+        private static void ValidateTimeoutSeconds(int value, string paramName)
+        {
+            if (value <= 0)
+                throw new ArgumentException("TimeoutSeconds must be a positive number", paramName);
+        }
+
+        /// <summary>
+        /// Централизованная валидация RetryCount
+        /// </summary>
+        private static void ValidateRetryCount(int value, string paramName)
+        {
+            if (value < 0)
+                throw new ArgumentException("RetryCount cannot be negative", paramName);
+        }
+
+        /// <summary>
+        /// Централизованная валидация RetryDelayMilliseconds
+        /// </summary>
+        private static void ValidateRetryDelay(int value, string paramName)
+        {
+            if (value < 0)
+                throw new ArgumentException("RetryDelayMilliseconds cannot be negative", paramName);
+        }
+
+        #endregion
     }
 }

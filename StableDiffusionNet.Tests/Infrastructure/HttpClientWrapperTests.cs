@@ -77,7 +77,10 @@ namespace StableDiffusionNet.Tests.Infrastructure
         {
             // Act & Assert - валидация теперь происходит в setter
             var act = () => new StableDiffusionOptions { BaseUrl = string.Empty };
-            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage("*cannot be null, empty, or whitespace*")
+                .WithParameterName("BaseUrl");
         }
 
         [Fact]
@@ -1055,6 +1058,87 @@ namespace StableDiffusionNet.Tests.Infrastructure
             // Act & Assert
             var act = () => wrapper.Dispose();
             act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void Dispose_WithOwnsHttpClientFalse_DoesNotDisposeHttpClient()
+        {
+            // Arrange
+            var httpClient = new HttpClient(_httpMessageHandlerMock.Object)
+            {
+                BaseAddress = new Uri(_options.BaseUrl),
+                Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds),
+            };
+
+            // Создаем wrapper с ownsHttpClient: false (по умолчанию)
+            var wrapper = new HttpClientWrapper(
+                httpClient,
+                _loggerMock.Object,
+                _options,
+                ownsHttpClient: false
+            );
+
+            // Act
+            wrapper.Dispose();
+
+            // Assert - HttpClient должен остаться работоспособным
+            Action act = () => httpClient.BaseAddress.Should().NotBeNull();
+            act.Should().NotThrow("HttpClient не должен быть освобожден wrapper'ом");
+
+            // Cleanup
+            httpClient.Dispose();
+        }
+
+        [Fact]
+        public void Dispose_WithOwnsHttpClientTrue_DisposesHttpClient()
+        {
+            // Arrange
+            var httpClient = new HttpClient(_httpMessageHandlerMock.Object)
+            {
+                BaseAddress = new Uri(_options.BaseUrl),
+                Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds),
+            };
+
+            // Создаем wrapper с ownsHttpClient: true
+            var wrapper = new HttpClientWrapper(
+                httpClient,
+                _loggerMock.Object,
+                _options,
+                ownsHttpClient: true
+            );
+
+            // Act
+            wrapper.Dispose();
+
+            // Assert - HttpClient должен быть освобожден
+#pragma warning disable IDISP013 // Await in using
+            Action act = () => httpClient.GetAsync("http://test");
+            act.Should()
+                .Throw<ObjectDisposedException>("HttpClient должен быть освобожден wrapper'ом");
+#pragma warning restore IDISP013
+        }
+
+        [Fact]
+        public void Constructor_WithDefaultOwnsHttpClient_IsFalse()
+        {
+            // Arrange & Act
+            var httpClient = new HttpClient(_httpMessageHandlerMock.Object)
+            {
+                BaseAddress = new Uri(_options.BaseUrl),
+                Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds),
+            };
+
+            // Создаем wrapper БЕЗ указания ownsHttpClient (должно быть false по умолчанию)
+            var wrapper = new HttpClientWrapper(httpClient, _loggerMock.Object, _options);
+
+            wrapper.Dispose();
+
+            // Assert - HttpClient НЕ должен быть освобожден (ownsHttpClient = false по умолчанию)
+            Action act = () => httpClient.BaseAddress.Should().NotBeNull();
+            act.Should().NotThrow("ownsHttpClient должен быть false по умолчанию для безопасности");
+
+            // Cleanup
+            httpClient.Dispose();
         }
 
         #endregion

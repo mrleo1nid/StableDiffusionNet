@@ -46,17 +46,6 @@ namespace StableDiffusionNet.Tests.Integration
 
         [Fact]
         [Trait("Category", TestCategories.Smoke)]
-        public async Task PingAsync_WithRunningApi_ReturnsTrue()
-        {
-            // Act
-            var result = await _client.PingAsync();
-
-            // Assert
-            result.Should().BeTrue();
-        }
-
-        [Fact]
-        [Trait("Category", TestCategories.Smoke)]
         public async Task GetSamplersAsync_ReturnsListOfSamplers()
         {
             // Act

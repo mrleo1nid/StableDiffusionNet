@@ -48,7 +48,10 @@ namespace StableDiffusionNet.Tests.Configuration
             var act = () => options.BaseUrl = string.Empty;
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage("*cannot be null, empty, or whitespace*")
+                .WithParameterName("BaseUrl");
         }
 
         [Fact]
@@ -59,7 +62,10 @@ namespace StableDiffusionNet.Tests.Configuration
             var act = () => options.BaseUrl = null!;
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage("*cannot be null, empty, or whitespace*")
+                .WithParameterName("BaseUrl");
         }
 
         [Fact]
@@ -70,7 +76,10 @@ namespace StableDiffusionNet.Tests.Configuration
             var act = () => options.BaseUrl = "   ";
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage("*cannot be null, empty, or whitespace*")
+                .WithParameterName("BaseUrl");
         }
 
         [Fact]
@@ -234,7 +243,7 @@ namespace StableDiffusionNet.Tests.Configuration
             act.Should()
                 .Throw<ArgumentException>()
                 .WithParameterName("BaseUrl")
-                .WithMessage("*BaseUrl cannot be empty*");
+                .WithMessage("*cannot be null, empty, or whitespace*");
         }
 
         [Fact]
@@ -510,7 +519,9 @@ namespace StableDiffusionNet.Tests.Configuration
             var act = () => options.Validate();
 
             // Assert
-            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
+            act.Should()
+                .Throw<ConfigurationException>()
+                .WithMessage("*cannot be null, empty, or whitespace*");
         }
 
         [Fact]

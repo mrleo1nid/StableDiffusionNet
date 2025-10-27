@@ -1,28 +1,39 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Interfaces;
 
 namespace StableDiffusionNet.Helpers
 {
     /// <summary>
-    /// Вспомогательные методы для работы с изображениями
+    /// Вспомогательные методы для работы с изображениями.
+    /// Использует конфигурируемые лимиты вместо хардкоженных констант.
+    /// Включает валидацию формата по magic bytes для безопасности.
     /// </summary>
     public class ImageHelper : IImageHelper
     {
-        /// <summary>
-        /// Публичный конструктор для использования с DI
-        /// </summary>
-        public ImageHelper() { }
+        private readonly ValidationOptions _validationOptions;
 
         /// <summary>
-        /// Максимальный размер файла изображения в байтах (50 МБ).
-        /// /// Stable Diffusion WebUI обычно генерирует изображения до 10-20 МБ.
-        /// 50 МБ - запас для изображений высокого разрешения с минимальным сжатием
-        /// или для работы с несколькими изображениями одновременно.
+        /// Конструктор по умолчанию для обратной совместимости.
+        /// Использует стандартные опции валидации.
         /// </summary>
-        private const long MaxFileSize = 50 * 1024 * 1024;
+        public ImageHelper()
+            : this(new ValidationOptions()) { }
+
+        /// <summary>
+        /// Конструктор с опциями валидации для использования с DI
+        /// </summary>
+        /// <param name="validationOptions">Опции валидации</param>
+        public ImageHelper(ValidationOptions validationOptions)
+        {
+            _validationOptions =
+                validationOptions ?? throw new ArgumentNullException(nameof(validationOptions));
+        }
 
         // MIME типы для изображений
         private const string MimeTypePng = "image/png";
@@ -30,6 +41,42 @@ namespace StableDiffusionNet.Helpers
         private const string MimeTypeGif = "image/gif";
         private const string MimeTypeWebp = "image/webp";
         private const string MimeTypeBmp = "image/bmp";
+
+        /// <summary>
+        /// Magic bytes (сигнатуры файлов) для различных форматов изображений.
+        /// Используется для определения реального формата файла, а не по расширению.
+        /// </summary>
+        private static readonly Dictionary<string, byte[][]> ImageSignatures = new Dictionary<
+            string,
+            byte[][]
+        >
+        {
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            [MimeTypePng] = new[] { new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A } },
+            // JPEG: FF D8 FF (различные маркеры)
+            [MimeTypeJpeg] = new[]
+            {
+                new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }, // JFIF
+                new byte[] { 0xFF, 0xD8, 0xFF, 0xE1 }, // EXIF
+                new byte[] { 0xFF, 0xD8, 0xFF, 0xE2 }, // Canon
+                new byte[] { 0xFF, 0xD8, 0xFF, 0xE3 }, // Samsung
+                new byte[] { 0xFF, 0xD8, 0xFF, 0xE8 }, // SPIFF
+                new byte[] { 0xFF, 0xD8, 0xFF, 0xDB }, // JPEG raw
+            },
+            // GIF: GIF87a или GIF89a
+            [MimeTypeGif] = new[]
+            {
+                new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 }, // GIF87a
+                new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 }, // GIF89a
+            },
+            // WebP: RIFF....WEBP
+            [MimeTypeWebp] = new[]
+            {
+                new byte[] { 0x52, 0x49, 0x46, 0x46 }, // RIFF (нужна дополнительная проверка WEBP)
+            },
+            // BMP: BM
+            [MimeTypeBmp] = new[] { new byte[] { 0x42, 0x4D } }, // BM
+        };
 
         /// <summary>
         /// Преобразует массив байт в base64 строку
@@ -53,8 +100,7 @@ namespace StableDiffusionNet.Helpers
         /// <returns>Чистая base64 строка</returns>
         public string ExtractBase64Data(string base64String)
         {
-            if (string.IsNullOrWhiteSpace(base64String))
-                throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));
+            Guard.ThrowIfNullOrWhiteSpace(base64String, nameof(base64String));
 
             var commaIndex = base64String.IndexOf(',');
             if (commaIndex >= 0)
@@ -70,27 +116,95 @@ namespace StableDiffusionNet.Helpers
         }
 
         /// <summary>
-        /// Асинхронно преобразует изображение из файла в base64 строку
+        /// Определяет формат изображения по magic bytes (сигнатуре файла).
+        /// Это более надежный способ определения формата, чем по расширению файла.
+        /// </summary>
+        /// <param name="bytes">Массив байт изображения</param>
+        /// <returns>MIME тип изображения или null, если формат не распознан</returns>
+        private static string? DetectImageFormat(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length < 12)
+                return null;
+
+            foreach (var kvp in ImageSignatures)
+            {
+                var detectedMimeType = TryMatchSignature(bytes, kvp.Key, kvp.Value);
+                if (detectedMimeType != null)
+                    return detectedMimeType;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Пытается найти совпадение с одной из сигнатур для указанного MIME типа
+        /// </summary>
+        private static string? TryMatchSignature(byte[] bytes, string mimeType, byte[][] signatures)
+        {
+            if (!signatures.Any(sig => SignatureMatches(bytes, sig)))
+                return null;
+
+            return mimeType == MimeTypeWebp ? ValidateWebP(bytes, mimeType) : mimeType;
+        }
+
+        /// <summary>
+        /// Проверяет соответствие байтов сигнатуре
+        /// </summary>
+        private static bool SignatureMatches(byte[] bytes, byte[] signature)
+        {
+            if (bytes.Length < signature.Length)
+                return false;
+
+            for (int i = 0; i < signature.Length; i++)
+            {
+                if (bytes[i] != signature[i])
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Дополнительная валидация для WebP формата (проверка RIFF + WEBP маркеров)
+        /// </summary>
+        private static string? ValidateWebP(byte[] bytes, string mimeType)
+        {
+            // RIFF формат: проверяем наличие "WEBP" на позиции 8-11
+            if (
+                bytes.Length >= 12
+                && bytes[8] == 0x57
+                && bytes[9] == 0x45
+                && bytes[10] == 0x42
+                && bytes[11] == 0x50
+            )
+            {
+                return mimeType;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Асинхронно преобразует изображение из файла в base64 строку.
+        /// Валидирует формат файла по magic bytes для безопасности.
         /// </summary>
         /// <param name="filePath">Путь к файлу изображения</param>
         /// <param name="cancellationToken">Токен отмены</param>
         /// <returns>Base64 строка с префиксом data:image</returns>
-        /// <exception cref="ArgumentException">Выбрасывается если файл слишком большой</exception>
+        /// <exception cref="ArgumentException">Выбрасывается если файл слишком большой или не является валидным изображением</exception>
+        /// <exception cref="FileNotFoundException">Выбрасывается если файл не найден</exception>
         public async Task<string> ImageToBase64Async(
             string filePath,
             CancellationToken cancellationToken = default
         )
         {
-            if (string.IsNullOrWhiteSpace(filePath))
-                throw new ArgumentException("File path cannot be empty", nameof(filePath));
+            Guard.ThrowIfNullOrWhiteSpace(filePath, nameof(filePath));
 
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("File not found", filePath);
 
             var fileInfo = new FileInfo(filePath);
-            if (fileInfo.Length > MaxFileSize)
+            if (fileInfo.Length > _validationOptions.MaxImageFileSize)
                 throw new ArgumentException(
-                    $"File size ({fileInfo.Length} bytes) exceeds maximum allowed size ({MaxFileSize} bytes)",
+                    $"File size ({fileInfo.Length} bytes) exceeds maximum allowed size ({_validationOptions.MaxImageFileSize} bytes)",
                     nameof(filePath)
                 );
 
@@ -103,20 +217,18 @@ namespace StableDiffusionNet.Helpers
             bytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
 #endif
 
-            var base64 = Convert.ToBase64String(bytes);
-            var extension = Path.GetExtension(filePath).ToLowerInvariant();
-
-            var mimeType = extension switch
+            // Определяем реальный формат файла по magic bytes (не по расширению!)
+            var detectedMimeType = DetectImageFormat(bytes);
+            if (detectedMimeType == null)
             {
-                ".png" => MimeTypePng,
-                ".jpg" or ".jpeg" => MimeTypeJpeg,
-                ".gif" => MimeTypeGif,
-                ".webp" => MimeTypeWebp,
-                ".bmp" => MimeTypeBmp,
-                _ => MimeTypePng,
-            };
+                throw new ArgumentException(
+                    "File is not a valid image format. Supported formats: PNG, JPEG, GIF, WebP, BMP",
+                    nameof(filePath)
+                );
+            }
 
-            return $"data:{mimeType};base64,{base64}";
+            var base64 = Convert.ToBase64String(bytes);
+            return $"data:{detectedMimeType};base64,{base64}";
         }
 
         /// <summary>
@@ -131,11 +243,8 @@ namespace StableDiffusionNet.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            if (string.IsNullOrWhiteSpace(base64String))
-                throw new ArgumentException("Base64 string cannot be empty", nameof(base64String));
-
-            if (string.IsNullOrWhiteSpace(outputPath))
-                throw new ArgumentException("Output path cannot be empty", nameof(outputPath));
+            Guard.ThrowIfNullOrWhiteSpace(base64String, nameof(base64String));
+            Guard.ThrowIfNullOrWhiteSpace(outputPath, nameof(outputPath));
 
             var base64Data = ExtractBase64Data(base64String);
 
@@ -168,6 +277,42 @@ namespace StableDiffusionNet.Helpers
             await File.WriteAllBytesAsync(outputPath, bytes, cancellationToken)
                 .ConfigureAwait(false);
 #endif
+        }
+
+        /// <summary>
+        /// Валидирует что base64 строка содержит валидное изображение.
+        /// Проверяет формат по magic bytes, а не только корректность base64.
+        /// </summary>
+        /// <param name="base64String">Base64 строка (с или без префикса data:image)</param>
+        /// <exception cref="ArgumentException">Выбрасывается если base64 некорректен или не содержит валидное изображение</exception>
+        public void ValidateImageBase64(string base64String)
+        {
+            Guard.ThrowIfNullOrWhiteSpace(base64String, nameof(base64String));
+
+            var base64Data = ExtractBase64Data(base64String);
+
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(base64Data);
+            }
+            catch (FormatException ex)
+            {
+                throw new ArgumentException(
+                    "Invalid base64 string format",
+                    nameof(base64String),
+                    ex
+                );
+            }
+
+            var detectedMimeType = DetectImageFormat(bytes);
+            if (detectedMimeType == null)
+            {
+                throw new ArgumentException(
+                    "Base64 data does not contain a valid image. Supported formats: PNG, JPEG, GIF, WebP, BMP",
+                    nameof(base64String)
+                );
+            }
         }
     }
 }

@@ -723,5 +723,57 @@ namespace StableDiffusionNet.Tests.Infrastructure
             result.StatusCode.Should().Be(HttpStatusCode.OK);
             callCount.Should().Be(4);
         }
+
+#if !NET6_0_OR_GREATER
+        [Fact]
+        public void Dispose_CanBeCalledSuccessfully()
+        {
+            // Arrange
+            var handler = CreateHandler();
+
+            // Act & Assert - должен вызваться без исключений
+            Action act = () => handler.Dispose();
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void Dispose_MultipleCalls_IsIdempotent()
+        {
+            // Arrange
+            var handler = CreateHandler();
+
+            // Act - вызываем Dispose несколько раз
+#pragma warning disable IDE0068, CA1816, CA2000, CA2202, S3966
+            Action act = () =>
+            {
+                handler.Dispose();
+                handler.Dispose();
+                handler.Dispose();
+            };
+#pragma warning restore IDE0068, CA1816, CA2000, CA2202, S3966
+
+            // Assert - не должно быть исключений при множественных вызовах
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public async Task Dispose_AfterUsage_WorksCorrectly()
+        {
+            // Arrange
+            var handler = CreateHandler();
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+
+            Func<Task<HttpResponseMessage>> operation = () => Task.FromResult(response);
+
+            // Act - используем handler, затем освобождаем
+            var result = await handler.ExecuteWithRetryAsync(operation, CancellationToken.None);
+
+            Action disposeAct = () => handler.Dispose();
+
+            // Assert
+            result.Should().Be(response);
+            disposeAct.Should().NotThrow();
+        }
+#endif
     }
 }

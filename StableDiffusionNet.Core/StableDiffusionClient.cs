@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using StableDiffusionNet.Helpers;
 using StableDiffusionNet.Interfaces;
 using StableDiffusionNet.Logging;
+using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet
 {
@@ -56,92 +57,90 @@ namespace StableDiffusionNet
         public ILoraService Loras { get; }
 
         /// <summary>
-        /// Создает экземпляр клиента с внедренными зависимостями
+        /// Создает экземпляр клиента с внедренными зависимостями (рекомендуемый конструктор)
+        /// Использует Parameter Object Pattern для упрощения управления зависимостями
         /// </summary>
-        /// <param name="textToImageService">Сервис генерации изображений из текста</param>
-        /// <param name="imageToImageService">Сервис генерации изображений из изображений</param>
-        /// <param name="modelService">Сервис управления моделями</param>
-        /// <param name="progressService">Сервис отслеживания прогресса</param>
-        /// <param name="optionsService">Сервис управления опциями</param>
-        /// <param name="samplerService">Сервис управления сэмплерами</param>
-        /// <param name="schedulerService">Сервис управления планировщиками</param>
-        /// <param name="upscalerService">Сервис управления апскейлерами</param>
-        /// <param name="pngInfoService">Сервис получения информации из PNG</param>
-        /// <param name="extraService">Дополнительный сервис</param>
-        /// <param name="embeddingService">Сервис управления эмбеддингами</param>
-        /// <param name="loraService">Сервис управления LoRA</param>
+        /// <param name="services">Контейнер со всеми сервисами Stable Diffusion</param>
         /// <param name="httpClientWrapper">HTTP клиент wrapper</param>
         /// <param name="logger">Логгер</param>
         /// <param name="additionalDisposable">Дополнительный ресурс для освобождения (например, HttpClient созданный в Builder)</param>
-#pragma warning disable CA1508, S107 // Избегайте неиспользуемого условного кода
+        /// <example>
+        /// <code>
+        /// var services = new StableDiffusionServices
+        /// {
+        ///     TextToImage = textToImageService,
+        ///     ImageToImage = imageToImageService,
+        ///     // ... остальные сервисы
+        /// };
+        /// var client = new StableDiffusionClient(services, httpClient, logger);
+        /// </code>
+        /// </example>
         public StableDiffusionClient(
-#pragma warning restore CA1508, S107
-            ITextToImageService textToImageService,
-            IImageToImageService imageToImageService,
-            IModelService modelService,
-            IProgressService progressService,
-            IOptionsService optionsService,
-            ISamplerService samplerService,
-            ISchedulerService schedulerService,
-            IUpscalerService upscalerService,
-            IPngInfoService pngInfoService,
-            IExtraService extraService,
-            IEmbeddingService embeddingService,
-            ILoraService loraService,
+            StableDiffusionServices services,
             IHttpClientWrapper httpClientWrapper,
             IStableDiffusionLogger logger,
             IDisposable? additionalDisposable = null
         )
         {
-            Guard.ThrowIfNull(textToImageService);
-            Guard.ThrowIfNull(imageToImageService);
-            Guard.ThrowIfNull(modelService);
-            Guard.ThrowIfNull(progressService);
-            Guard.ThrowIfNull(optionsService);
-            Guard.ThrowIfNull(samplerService);
-            Guard.ThrowIfNull(schedulerService);
-            Guard.ThrowIfNull(upscalerService);
-            Guard.ThrowIfNull(pngInfoService);
-            Guard.ThrowIfNull(extraService);
-            Guard.ThrowIfNull(embeddingService);
-            Guard.ThrowIfNull(loraService);
-            Guard.ThrowIfNull(httpClientWrapper);
-            Guard.ThrowIfNull(logger);
+            Guard.ThrowIfNull(services, nameof(services));
+            Guard.ThrowIfNull(httpClientWrapper, nameof(httpClientWrapper));
+            Guard.ThrowIfNull(logger, nameof(logger));
 
-            TextToImage = textToImageService;
-            ImageToImage = imageToImageService;
-            Models = modelService;
-            Progress = progressService;
-            Options = optionsService;
-            Samplers = samplerService;
-            Schedulers = schedulerService;
-            Upscalers = upscalerService;
-            PngInfo = pngInfoService;
-            Extra = extraService;
-            Embeddings = embeddingService;
-            Loras = loraService;
+            // Валидируем что все сервисы инициализированы
+            services.Validate();
+
+            TextToImage = services.TextToImage;
+            ImageToImage = services.ImageToImage;
+            Models = services.Models;
+            Progress = services.Progress;
+            Options = services.Options;
+            Samplers = services.Samplers;
+            Schedulers = services.Schedulers;
+            Upscalers = services.Upscalers;
+            PngInfo = services.PngInfo;
+            Extra = services.Extra;
+            Embeddings = services.Embeddings;
+            Loras = services.Loras;
             _httpClientWrapper = httpClientWrapper;
             _logger = logger;
             _additionalDisposable = additionalDisposable;
         }
 
-        /// <inheritdoc/>
-        public async Task<bool> PingAsync(CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Выполняет детальную проверку доступности API (health check).
+        /// Возвращает информацию о состоянии API, времени ответа и возможных ошибках.
+        /// </summary>
+        /// <param name="cancellationToken">Токен отмены операции</param>
+        /// <returns>Объект с детальной информацией о состоянии API</returns>
+        public async Task<HealthCheckResult> HealthCheckAsync(
+            CancellationToken cancellationToken = default
+        )
         {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var endpoint = "/internal/ping"; // Легкий endpoint для проверки
+
             try
             {
-                _logger.LogDebug("Checking API availability");
+                _logger.LogDebug("Performing API health check");
 
-                // Используем эндпоинт /sdapi/v1/samplers как простую проверку
-                await Samplers.GetSamplersAsync(cancellationToken);
+                // Используем легкий GET запрос вместо полноценного API вызова
+                await _httpClientWrapper.GetAsync<object>(endpoint, cancellationToken);
 
-                _logger.LogInformation("API is available");
-                return true;
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    $"API is healthy. Response time: {stopwatch.ElapsedMilliseconds}ms"
+                );
+
+                return HealthCheckResult.Success(stopwatch.Elapsed, endpoint);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "API is unavailable");
-                return false;
+                stopwatch.Stop();
+
+                _logger.LogError(ex, "API health check failed");
+
+                return HealthCheckResult.Failure(ex.Message, endpoint);
             }
         }
 

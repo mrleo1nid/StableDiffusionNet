@@ -1,4 +1,5 @@
 using FluentAssertions;
+using StableDiffusionNet.Configuration;
 using StableDiffusionNet.Infrastructure;
 
 namespace StableDiffusionNet.Tests.Infrastructure
@@ -8,6 +9,8 @@ namespace StableDiffusionNet.Tests.Infrastructure
     /// </summary>
     public class JsonSanitizerTests
     {
+        private readonly JsonSanitizer _sanitizer = new JsonSanitizer(new ValidationOptions());
+
         [Fact]
         public void SanitizeForLogging_ShortJson_ReturnsUnmodified()
         {
@@ -15,7 +18,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var shortJson = "{\"test\":\"value\"}";
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(shortJson);
+            var result = _sanitizer.SanitizeForLogging(shortJson);
 
             // Assert
             result.Should().Be(shortJson);
@@ -29,7 +32,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var jsonWithImage = $"{{\"data:image/png;base64\":\"{longBase64}\"}}";
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(jsonWithImage);
+            var result = _sanitizer.SanitizeForLogging(jsonWithImage);
 
             // Assert
             result.Should().Contain("[Request with image data, length:");
@@ -45,7 +48,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var jsonWithInitImages = $"{{\"init_images\":[\"{longBase64}\"]}}";
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(jsonWithInitImages);
+            var result = _sanitizer.SanitizeForLogging(jsonWithInitImages);
 
             // Assert
             result.Should().Contain("[Request with image data, length:");
@@ -61,7 +64,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var jsonWithMask = $"{{\"mask\":\"{longBase64}\"}}";
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(jsonWithMask);
+            var result = _sanitizer.SanitizeForLogging(jsonWithMask);
 
             // Assert
             result.Should().Contain("[Request with image data, length:");
@@ -76,7 +79,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var longJson = new string('a', 600);
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(longJson);
+            var result = _sanitizer.SanitizeForLogging(longJson);
 
             // Assert
             result.Should().Contain("... [truncated, total length: 600 chars]");
@@ -93,7 +96,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var json = new string('x', length);
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(json);
+            var result = _sanitizer.SanitizeForLogging(json);
 
             // Assert
             result.Should().Be(json);
@@ -106,7 +109,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var json = new string('x', 500);
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(json);
+            var result = _sanitizer.SanitizeForLogging(json);
 
             // Assert
             result.Should().Be(json);
@@ -119,7 +122,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var json = new string('x', 501);
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(json);
+            var result = _sanitizer.SanitizeForLogging(json);
 
             // Assert
             result.Should().Contain("... [truncated, total length: 501 chars]");
@@ -132,7 +135,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
             var json = string.Empty;
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(json);
+            var result = _sanitizer.SanitizeForLogging(json);
 
             // Assert
             result.Should().Be(string.Empty);
@@ -147,7 +150,7 @@ namespace StableDiffusionNet.Tests.Infrastructure
                 $"{{\"data:image/png;base64\":\"{longBase64}\",\"init_images\":[\"{longBase64}\"],\"mask\":\"{longBase64}\"}}";
 
             // Act
-            var result = JsonSanitizer.SanitizeForLogging(jsonWithMultipleImages);
+            var result = _sanitizer.SanitizeForLogging(jsonWithMultipleImages);
 
             // Assert
             result.Should().Contain("[Request with image data, length:");

@@ -45,5 +45,13 @@ namespace StableDiffusionNet.Interfaces
         /// <param name="base64String">Base64 строка с префиксом или без</param>
         /// <returns>Чистая base64 строка</returns>
         string ExtractBase64Data(string base64String);
+
+        /// <summary>
+        /// Валидирует что base64 строка содержит валидное изображение.
+        /// Проверяет формат по magic bytes, а не только корректность base64.
+        /// </summary>
+        /// <param name="base64String">Base64 строка (с или без префикса data:image)</param>
+        /// <exception cref="System.ArgumentException">Выбрасывается если base64 некорректен или не содержит валидное изображение</exception>
+        void ValidateImageBase64(string base64String);
     }
 }

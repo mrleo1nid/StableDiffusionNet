@@ -461,7 +461,10 @@ namespace StableDiffusionNet.Tests.Extensions
             };
 
             // Валидация происходит сразу при установке значения в setter
-            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithMessage("*cannot be null, empty, or whitespace*")
+                .WithParameterName("BaseUrl");
         }
 
         [Fact]
@@ -493,7 +496,7 @@ namespace StableDiffusionNet.Tests.Extensions
 
             // Assert
             result.Failed.Should().BeTrue();
-            result.FailureMessage.Should().Be("BaseUrl must be a valid URL");
+            result.FailureMessage.Should().Be("BaseUrl must be a valid URL (Parameter 'BaseUrl')");
         }
 
         [Fact]

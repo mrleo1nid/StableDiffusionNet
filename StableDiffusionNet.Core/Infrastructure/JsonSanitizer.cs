@@ -1,27 +1,35 @@
+using System;
+using StableDiffusionNet.Configuration;
+
 namespace StableDiffusionNet.Infrastructure
 {
     /// <summary>
-    /// Санитизатор JSON для безопасного логирования
-    /// Single Responsibility - отвечает только за санитизацию JSON
+    /// Санитизатор JSON для безопасного логирования.
+    /// Single Responsibility - отвечает только за санитизацию JSON.
+    /// Использует конфигурируемую максимальную длину вместо хардкоженной константы.
     /// </summary>
-    internal static class JsonSanitizer
+    internal class JsonSanitizer
     {
+        private readonly ValidationOptions _validationOptions;
+
         /// <summary>
-        /// Максимальная длина JSON для логирования без обрезки.
-        /// 500 символов достаточно для отладки без засорения логов.
-        /// Более длинные JSON обычно содержат base64 данные изображений,
-        /// которые не имеют смысла в логах и занимают много места.
+        /// Создает новый экземпляр санитизатора
         /// </summary>
-        private const int MaxLength = 500;
+        /// <param name="validationOptions">Опции валидации</param>
+        public JsonSanitizer(ValidationOptions validationOptions)
+        {
+            _validationOptions =
+                validationOptions ?? throw new ArgumentNullException(nameof(validationOptions));
+        }
 
         /// <summary>
         /// Очищает JSON для безопасного логирования
         /// </summary>
         /// <param name="json">JSON строка для санитизации</param>
         /// <returns>Санитизированная JSON строка</returns>
-        public static string SanitizeForLogging(string json)
+        public string SanitizeForLogging(string json)
         {
-            if (json.Length <= MaxLength)
+            if (json.Length <= _validationOptions.MaxJsonLogLength)
                 return json;
 
             // Проверяем, содержит ли JSON base64 данные (длинные строки без пробелов)
@@ -36,10 +44,11 @@ namespace StableDiffusionNet.Infrastructure
 
             // Обрезаем длинные JSON
 #if NETSTANDARD2_0
-            return json.Substring(0, MaxLength)
+            return json.Substring(0, _validationOptions.MaxJsonLogLength)
                 + $"... [truncated, total length: {json.Length} chars]";
 #else
-            return json[..MaxLength] + $"... [truncated, total length: {json.Length} chars]";
+            return json[.._validationOptions.MaxJsonLogLength]
+                + $"... [truncated, total length: {json.Length} chars]";
 #endif
         }
     }

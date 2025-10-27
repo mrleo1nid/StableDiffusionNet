@@ -21,14 +21,23 @@ namespace StableDiffusionNet.Tests.Services
         {
             _httpClientMock = new Mock<IHttpClientWrapper>();
             _loggerMock = new Mock<IStableDiffusionLogger>();
-            _service = new TextToImageService(_httpClientMock.Object, _loggerMock.Object);
+            _service = new TextToImageService(
+                _httpClientMock.Object,
+                _loggerMock.Object,
+                new StableDiffusionNet.Configuration.ValidationOptions()
+            );
         }
 
         [Fact]
         public void Constructor_WithNullHttpClient_ThrowsArgumentNullException()
         {
             // Act & Assert
-            var act = () => new TextToImageService(null!, _loggerMock.Object);
+            var act = () =>
+                new TextToImageService(
+                    null!,
+                    _loggerMock.Object,
+                    new StableDiffusionNet.Configuration.ValidationOptions()
+                );
             act.Should().Throw<ArgumentNullException>().WithParameterName("httpClient");
         }
 
@@ -36,7 +45,12 @@ namespace StableDiffusionNet.Tests.Services
         public void Constructor_WithNullLogger_ThrowsArgumentNullException()
         {
             // Act & Assert
-            var act = () => new TextToImageService(_httpClientMock.Object, null!);
+            var act = () =>
+                new TextToImageService(
+                    _httpClientMock.Object,
+                    null!,
+                    new StableDiffusionNet.Configuration.ValidationOptions()
+                );
             act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
         }
 
@@ -96,8 +110,7 @@ namespace StableDiffusionNet.Tests.Services
             var act = async () => await _service.GenerateAsync(request);
             await act.Should()
                 .ThrowAsync<ArgumentException>()
-                .WithMessage("*Prompt cannot be empty*")
-                .WithParameterName("request");
+                .WithMessage("*cannot be null, empty, or whitespace*");
         }
 
         [Fact]

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using StableDiffusionNet.Models;
 
 namespace StableDiffusionNet.Interfaces
 {
@@ -73,8 +74,30 @@ namespace StableDiffusionNet.Interfaces
         ILoraService Loras { get; }
 
         /// <summary>
-        /// Проверка доступности API
+        /// Выполняет детальную проверку доступности API (health check).
+        /// Возвращает информацию о состоянии API, времени ответа и возможных ошибках.
         /// </summary>
-        Task<bool> PingAsync(CancellationToken cancellationToken = default);
+        /// <param name="cancellationToken">Токен отмены операции</param>
+        /// <returns>Объект с детальной информацией о состоянии API</returns>
+        /// <example>
+        /// Проверка доступности API:
+        /// <code>
+        /// var client = new StableDiffusionClientBuilder()
+        ///     .WithBaseUrl("http://localhost:7860")
+        ///     .Build();
+        ///
+        /// var healthCheck = await client.HealthCheckAsync();
+        ///
+        /// if (healthCheck.IsHealthy)
+        /// {
+        ///     Console.WriteLine($"API доступен. Время ответа: {healthCheck.ResponseTime?.TotalMilliseconds}ms");
+        /// }
+        /// else
+        /// {
+        ///     Console.WriteLine($"API недоступен: {healthCheck.Error}");
+        /// }
+        /// </code>
+        /// </example>
+        Task<HealthCheckResult> HealthCheckAsync(CancellationToken cancellationToken = default);
     }
 }

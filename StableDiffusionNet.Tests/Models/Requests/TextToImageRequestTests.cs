@@ -63,7 +63,7 @@ namespace StableDiffusionNet.Tests.Models.Requests
             // Assert
             act.Should()
                 .Throw<ArgumentException>()
-                .WithMessage("*Prompt cannot be empty*")
+                .WithMessage("*cannot be null, empty, or whitespace*")
                 .WithParameterName("Prompt");
         }
 
@@ -353,7 +353,7 @@ namespace StableDiffusionNet.Tests.Models.Requests
             var request = new TextToImageRequest { Prompt = "", Steps = 0 };
 
             // Act
-            var act = () => request.Validate("customParam");
+            var act = () => request.Validate(null, "customParam");
 
             // Assert
             act.Should().Throw<ArgumentException>().WithParameterName("customParam");

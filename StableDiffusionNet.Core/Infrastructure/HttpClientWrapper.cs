@@ -23,6 +23,8 @@ namespace StableDiffusionNet.Infrastructure
         private readonly IStableDiffusionLogger _logger;
         private readonly StableDiffusionOptions _options;
         private readonly RetryHandler _retryHandler;
+        private readonly JsonSanitizer _jsonSanitizer;
+        private readonly bool _ownsHttpClient;
         private bool _disposed;
 
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
@@ -31,15 +33,21 @@ namespace StableDiffusionNet.Infrastructure
         };
 
         /// <summary>
-        /// Создает новый экземпляр HTTP клиента
+        /// Создает новый экземпляр HTTP клиента с явным контролем владения ресурсами
         /// </summary>
-        /// <param name="httpClient">HttpClient для использования. Управление временем жизни HttpClient - ответственность вызывающего кода.</param>
+        /// <param name="httpClient">HttpClient для использования</param>
         /// <param name="logger">Логгер</param>
         /// <param name="options">Опции конфигурации</param>
+        /// <param name="ownsHttpClient">
+        /// True если wrapper должен освободить HttpClient при Dispose.
+        /// False если HttpClient управляется извне (например, IHttpClientFactory).
+        /// По умолчанию false для безопасности - предотвращает случайное двойное освобождение.
+        /// </param>
         public HttpClientWrapper(
             HttpClient httpClient,
             IStableDiffusionLogger logger,
-            StableDiffusionOptions options
+            StableDiffusionOptions options,
+            bool ownsHttpClient = false
         )
         {
             Guard.ThrowIfNull(httpClient);
@@ -49,9 +57,11 @@ namespace StableDiffusionNet.Infrastructure
             _httpClient = httpClient;
             _logger = logger;
             _options = options;
+            _ownsHttpClient = ownsHttpClient;
 
             _options.Validate();
             _retryHandler = new RetryHandler(_options, _logger);
+            _jsonSanitizer = new JsonSanitizer(_options.Validation);
         }
 
         /// <inheritdoc/>
@@ -100,7 +110,7 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        $"POST request to {endpoint} with body: {JsonSanitizer.SanitizeForLogging(json)}"
+                        $"POST request to {endpoint} with body: {_jsonSanitizer.SanitizeForLogging(json)}"
                     );
                 }
 
@@ -164,7 +174,7 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        $"POST request to {endpoint} with body: {JsonSanitizer.SanitizeForLogging(json)}"
+                        $"POST request to {endpoint} with body: {_jsonSanitizer.SanitizeForLogging(json)}"
                     );
                 }
 
@@ -220,7 +230,7 @@ namespace StableDiffusionNet.Infrastructure
             if (_options.EnableDetailedLogging)
             {
                 _logger.LogDebug(
-                    $"Successful response from {endpoint}: {JsonSanitizer.SanitizeForLogging(content)}"
+                    $"Successful response from {endpoint}: {_jsonSanitizer.SanitizeForLogging(content)}"
                 );
             }
 
@@ -283,17 +293,30 @@ namespace StableDiffusionNet.Infrastructure
         /// </summary>
         /// <param name="disposing">True если вызван из Dispose, false из финализатора</param>
         /// <remarks>
-        /// HttpClient управляется вызывающим кодом (IHttpClientFactory в DI сценарии или владельцем в Builder сценарии)
-        /// и не диспозится здесь
+        /// HttpClient освобождается только если ownsHttpClient = true (указано в конструкторе).
+        /// RetryHandler освобождается для предотвращения утечки памяти ThreadLocal в .NET Standard 2.0/2.1.
         /// </remarks>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
                 return;
 
-            // HttpClient управляется извне и не диспозится здесь
-            // В DI сценарии: управляется IHttpClientFactory
-            // В Builder сценарии: управляется StableDiffusionClient
+            if (disposing)
+            {
+                // Освобождаем HttpClient только если мы его владельцы
+                // В Builder сценарии (создали сами): ownsHttpClient = true → освобождаем
+                // В DI сценарии (IHttpClientFactory): ownsHttpClient = false → не трогаем
+                // В Builder сценарии (передан извне): ownsHttpClient = false → не трогаем
+                if (_ownsHttpClient)
+                {
+                    _httpClient?.Dispose();
+                }
+
+#if !NET6_0_OR_GREATER
+                // Освобождаем RetryHandler для предотвращения утечки памяти ThreadLocal<Random>
+                (_retryHandler as IDisposable)?.Dispose();
+#endif
+            }
 
             _disposed = true;
         }
