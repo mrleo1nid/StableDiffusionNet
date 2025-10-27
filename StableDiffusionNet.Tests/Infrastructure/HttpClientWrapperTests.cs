@@ -1027,6 +1027,36 @@ namespace StableDiffusionNet.Tests.Infrastructure
             );
         }
 
+        [Fact]
+        public void Dispose_CalledMultipleTimes_DoesNotThrow()
+        {
+            // Arrange
+            var wrapper = CreateWrapper();
+
+            // Act & Assert
+            var act = () =>
+            {
+                wrapper.Dispose();
+#pragma warning disable IDE0079, CA1816 // Remove unnecessary suppression
+#pragma warning disable IDISP016, IDISP017, S3966 // Don't use disposed object, Don't use disposed member
+                wrapper.Dispose(); // Вторая попытка не должна бросать исключение (тестируем идемпотентность Dispose)
+#pragma warning restore IDISP016, IDISP017,S3966
+#pragma warning restore IDE0079, CA1816
+            };
+            act.Should().NotThrow();
+        }
+
+        [Fact]
+        public void Dispose_CanBeCalledSafely()
+        {
+            // Arrange
+            var wrapper = CreateWrapper();
+
+            // Act & Assert
+            var act = () => wrapper.Dispose();
+            act.Should().NotThrow();
+        }
+
         #endregion
 
         // Вспомогательные классы для тестов

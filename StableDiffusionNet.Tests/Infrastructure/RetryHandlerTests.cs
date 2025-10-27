@@ -632,5 +632,96 @@ namespace StableDiffusionNet.Tests.Infrastructure
                 "should log warning for each retry attempt"
             );
         }
+
+        [Fact]
+        public async Task ExecuteWithRetryAsync_RateLimitError429_LogsWithStatusCode()
+        {
+            // Arrange
+            var handler = CreateHandler();
+            var callCount = 0;
+
+            Func<Task<HttpResponseMessage>> operation = () =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    return Task.FromResult(new HttpResponseMessage((HttpStatusCode)429));
+                }
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            };
+
+            // Act
+            var result = await handler.ExecuteWithRetryAsync(operation, CancellationToken.None);
+
+            // Assert
+            result.StatusCode.Should().Be(HttpStatusCode.OK);
+            _loggerMock.Verify(
+                x =>
+                    x.Log(
+                        LogLevel.Warning,
+                        It.Is<string>(s => s.Contains("[429 TooManyRequests]"))
+                    ),
+                Times.Once,
+                "should log warning with status code"
+            );
+        }
+
+        [Fact]
+        public async Task ExecuteWithRetryAsync_NetworkErrorWithoutStatusCode_LogsNetworkError()
+        {
+            // Arrange
+            var handler = CreateHandler();
+            var callCount = 0;
+
+            Func<Task<HttpResponseMessage>> operation = () =>
+            {
+                callCount++;
+                if (callCount == 1)
+                {
+                    throw new HttpRequestException("Connection refused");
+                }
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            };
+
+            // Act
+            var result = await handler.ExecuteWithRetryAsync(operation, CancellationToken.None);
+
+            // Assert
+            result.StatusCode.Should().Be(HttpStatusCode.OK);
+            _loggerMock.Verify(
+                x => x.Log(LogLevel.Warning, It.Is<string>(s => s.Contains("[Network Error]"))),
+                Times.Once,
+                "should log warning with [Network Error] indicator"
+            );
+        }
+
+        [Fact]
+        public async Task ExecuteWithRetryAsync_MultipleTransientErrorTypes_RetriesCorrectly()
+        {
+            // Arrange
+            var handler = CreateHandler();
+            var callCount = 0;
+
+            Func<Task<HttpResponseMessage>> operation = () =>
+            {
+                callCount++;
+                return callCount switch
+                {
+                    1 => Task.FromResult(
+                        new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+                    ),
+                    2 => throw new HttpRequestException("Timeout"),
+                    3 => Task.FromResult(new HttpResponseMessage((HttpStatusCode)429)),
+                    _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)),
+                };
+            };
+
+            // Act
+            var result = await handler.ExecuteWithRetryAsync(operation, CancellationToken.None);
+
+            // Assert
+            result.StatusCode.Should().Be(HttpStatusCode.OK);
+            callCount.Should().Be(4);
+        }
     }
 }
