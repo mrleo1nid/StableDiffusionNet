@@ -1,47 +1,10 @@
 ---
-name: Bug Report (English)
-about: Create a bug report
+name: Bug Report (Русский)
+about: Создать отчет об ошибке
 title: '[BUG] '
 labels: bug
 assignees: ''
 ---
-
-## Description
-A clear and concise description of the bug.
-
-## Steps to Reproduce
-1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
-4. See error
-
-## Expected Behavior
-What should have happened.
-
-## Actual Behavior
-What actually happened.
-
-## Code to Reproduce
-```csharp
-// Your code here
-```
-
-## Environment
-- **StableDiffusionNet Version**: [e.g., 1.0.0]
-- **.NET Version**: [e.g., .NET 8.0]
-- **OS**: [e.g., Windows 11, Ubuntu 22.04]
-- **Stable Diffusion WebUI Version**: [e.g., 1.6.0]
-
-## Error Log
-```
-Paste error log or stack trace here
-```
-
-## Additional Context
-Add any other context about the problem here.
-
-## Screenshots
-If applicable, add screenshots to help explain the problem.
 
 ## Описание проблемы
 Четкое и краткое описание проблемы.

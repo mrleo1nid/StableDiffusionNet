@@ -1,35 +1,35 @@
 ---
-name: Feature Request
-about: Предложить новую функциональность
+name: Feature Request (English)
+about: Suggest a new feature
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
 ---
 
-## Описание функции
-Четкое и краткое описание того, что вы хотите добавить.
+## Feature Description
+A clear and concise description of what you want to add.
 
-## Проблема, которую решает
-Опишите проблему, которую решает эта функция.
-Например: "Мне всегда неудобно, когда [...]"
+## Problem it Solves
+Describe the problem this feature solves.
+For example: "I'm always frustrated when [...]"
 
-## Предлагаемое решение
-Опишите, как вы видите решение.
+## Proposed Solution
+Describe how you envision the solution.
 
-## Альтернативные решения
-Опишите альтернативные решения или функции, которые вы рассматривали.
+## Alternative Solutions
+Describe alternative solutions or features you've considered.
 
-## Пример использования
+## Usage Example
 ```csharp
-// Пример кода, как это могло бы выглядеть
+// Example code of how it could look
 var result = await client.NewFeature();
 ```
 
-## Дополнительный контекст
-Добавьте любую другую информацию или скриншоты о запросе функции.
+## Additional Context
+Add any other context or screenshots about the feature request.
 
-## Готовы ли вы помочь с реализацией?
-- [ ] Да, я могу сделать Pull Request
-- [ ] Нет, но могу помочь с тестированием
-- [ ] Нет
+## Are you willing to help with implementation?
+- [ ] Yes, I can make a Pull Request
+- [ ] No, but I can help with testing
+- [ ] No
 
