@@ -492,5 +492,189 @@ namespace StableDiffusionNet.Tests
                 Times.Exactly(3)
             );
         }
+
+        [Fact]
+        public void Dispose_DisposesHttpClientWrapper()
+        {
+            // Arrange
+            var client = CreateClient();
+
+            // Act
+            client.Dispose();
+
+            // Assert
+            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public void Dispose_WithAdditionalDisposable_DisposesAdditionalResource()
+        {
+            // Arrange
+            var additionalDisposableMock = new Mock<IDisposable>();
+            var client = new StableDiffusionClient(
+                _textToImageMock.Object,
+                _imageToImageMock.Object,
+                _modelServiceMock.Object,
+                _progressServiceMock.Object,
+                _optionsServiceMock.Object,
+                _samplerServiceMock.Object,
+                _schedulerServiceMock.Object,
+                _upscalerServiceMock.Object,
+                _pngInfoServiceMock.Object,
+                _extraServiceMock.Object,
+                _embeddingServiceMock.Object,
+                _loraServiceMock.Object,
+                _httpClientWrapperMock.Object,
+                _loggerMock.Object,
+                additionalDisposableMock.Object
+            );
+
+            // Act
+            client.Dispose();
+
+            // Assert
+            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public void Dispose_MultipleCalls_DisposesOnlyOnce()
+        {
+            // Arrange
+            var client = CreateClient();
+
+            // Act - Намеренно вызываем Dispose несколько раз для проверки идемпотентности
+#pragma warning disable IDE0068, CA1816, CA2000, CA2202, S3966
+            client.Dispose();
+            client.Dispose();
+            client.Dispose();
+#pragma warning restore IDE0068, CA1816, CA2000, CA2202,S3966
+
+            // Assert
+            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public void Dispose_WithAdditionalDisposable_DisposesAllResources()
+        {
+            // Arrange
+            var additionalDisposableMock = new Mock<IDisposable>();
+            var client = new StableDiffusionClient(
+                _textToImageMock.Object,
+                _imageToImageMock.Object,
+                _modelServiceMock.Object,
+                _progressServiceMock.Object,
+                _optionsServiceMock.Object,
+                _samplerServiceMock.Object,
+                _schedulerServiceMock.Object,
+                _upscalerServiceMock.Object,
+                _pngInfoServiceMock.Object,
+                _extraServiceMock.Object,
+                _embeddingServiceMock.Object,
+                _loraServiceMock.Object,
+                _httpClientWrapperMock.Object,
+                _loggerMock.Object,
+                additionalDisposableMock.Object
+            );
+
+            // Act
+            client.Dispose();
+
+            // Assert
+            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
+            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+#if NET5_0_OR_GREATER
+        [Fact]
+        public async Task DisposeAsync_DisposesHttpClientWrapper()
+        {
+            // Arrange
+            var client = CreateClient();
+
+            // Act
+            await client.DisposeAsync();
+
+            // Assert
+            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_WithAdditionalDisposable_DisposesAdditionalResource()
+        {
+            // Arrange
+            var additionalDisposableMock = new Mock<IDisposable>();
+            var client = new StableDiffusionClient(
+                _textToImageMock.Object,
+                _imageToImageMock.Object,
+                _modelServiceMock.Object,
+                _progressServiceMock.Object,
+                _optionsServiceMock.Object,
+                _samplerServiceMock.Object,
+                _schedulerServiceMock.Object,
+                _upscalerServiceMock.Object,
+                _pngInfoServiceMock.Object,
+                _extraServiceMock.Object,
+                _embeddingServiceMock.Object,
+                _loraServiceMock.Object,
+                _httpClientWrapperMock.Object,
+                _loggerMock.Object,
+                additionalDisposableMock.Object
+            );
+
+            // Act
+            await client.DisposeAsync();
+
+            // Assert
+            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_MultipleCalls_DisposesOnlyOnce()
+        {
+            // Arrange
+            var client = CreateClient();
+
+            // Act - Намеренно вызываем DisposeAsync несколько раз для проверки идемпотентности
+#pragma warning disable IDE0068, CA1816, CA2000, CA2202
+            await client.DisposeAsync();
+            await client.DisposeAsync();
+            await client.DisposeAsync();
+#pragma warning restore IDE0068, CA1816, CA2000, CA2202
+
+            // Assert
+            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [Fact]
+        public async Task DisposeAsync_WithAdditionalDisposable_DisposesAllResources()
+        {
+            // Arrange
+            var additionalDisposableMock = new Mock<IDisposable>();
+            var client = new StableDiffusionClient(
+                _textToImageMock.Object,
+                _imageToImageMock.Object,
+                _modelServiceMock.Object,
+                _progressServiceMock.Object,
+                _optionsServiceMock.Object,
+                _samplerServiceMock.Object,
+                _schedulerServiceMock.Object,
+                _upscalerServiceMock.Object,
+                _pngInfoServiceMock.Object,
+                _extraServiceMock.Object,
+                _embeddingServiceMock.Object,
+                _loraServiceMock.Object,
+                _httpClientWrapperMock.Object,
+                _loggerMock.Object,
+                additionalDisposableMock.Object
+            );
+
+            // Act
+            await client.DisposeAsync();
+
+            // Assert
+            _httpClientWrapperMock.Verify(x => x.Dispose(), Times.Once);
+            additionalDisposableMock.Verify(x => x.Dispose(), Times.Once);
+        }
+#endif
     }
 }

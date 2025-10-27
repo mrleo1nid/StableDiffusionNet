@@ -9,13 +9,6 @@ namespace StableDiffusionNet.Interfaces
     public interface IImageHelper
     {
         /// <summary>
-        /// Преобразует изображение из файла в base64 строку
-        /// </summary>
-        /// <param name="filePath">Путь к файлу изображения</param>
-        /// <returns>Base64 строка с префиксом data:image</returns>
-        string ImageToBase64(string filePath);
-
-        /// <summary>
         /// Асинхронно преобразует изображение из файла в base64 строку
         /// </summary>
         /// <param name="filePath">Путь к файлу изображения</param>
@@ -25,13 +18,6 @@ namespace StableDiffusionNet.Interfaces
             string filePath,
             CancellationToken cancellationToken = default
         );
-
-        /// <summary>
-        /// Сохраняет base64 строку как файл изображения
-        /// </summary>
-        /// <param name="base64String">Base64 строка (с или без префикса data:image)</param>
-        /// <param name="outputPath">Путь для сохранения файла</param>
-        void Base64ToImage(string base64String, string outputPath);
 
         /// <summary>
         /// Асинхронно сохраняет base64 строку как файл изображения

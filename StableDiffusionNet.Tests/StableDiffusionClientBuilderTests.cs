@@ -104,65 +104,49 @@ namespace StableDiffusionNet.Tests
         [Fact]
         public void Build_WithInvalidBaseUrl_ThrowsException()
         {
-            // Arrange
-            var builder = new StableDiffusionClientBuilder().WithBaseUrl("invalid-url");
-
-            // Act
-            Action act = () => builder.Build();
+            // Arrange & Act
+            Action act = () => new StableDiffusionClientBuilder().WithBaseUrl("invalid-url");
 
             // Assert
-            act.Should()
-                .Throw<StableDiffusionNet.Exceptions.ConfigurationException>()
-                .WithMessage("BaseUrl must be a valid URL");
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl must be a valid URL*");
         }
 
         [Fact]
         public void Build_WithEmptyBaseUrl_ThrowsException()
         {
-            // Arrange
-            var builder = new StableDiffusionClientBuilder().WithBaseUrl("");
-
-            // Act
-            Action act = () => builder.Build();
+            // Arrange & Act
+            Action act = () => new StableDiffusionClientBuilder().WithBaseUrl("");
 
             // Assert
-            act.Should()
-                .Throw<StableDiffusionNet.Exceptions.ConfigurationException>()
-                .WithMessage("BaseUrl cannot be empty");
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
         public void Build_WithNegativeTimeout_ThrowsException()
         {
-            // Arrange
-            var builder = new StableDiffusionClientBuilder()
-                .WithBaseUrl("http://localhost:7860")
-                .WithTimeout(-1);
-
-            // Act
-            Action act = () => builder.Build();
+            // Arrange & Act
+            Action act = () =>
+                new StableDiffusionClientBuilder()
+                    .WithBaseUrl("http://localhost:7860")
+                    .WithTimeout(-1);
 
             // Assert
             act.Should()
-                .Throw<StableDiffusionNet.Exceptions.ConfigurationException>()
-                .WithMessage("TimeoutSeconds must be a positive number");
+                .Throw<ArgumentException>()
+                .WithMessage("*TimeoutSeconds must be a positive number*");
         }
 
         [Fact]
         public void Build_WithNegativeRetryCount_ThrowsException()
         {
-            // Arrange
-            var builder = new StableDiffusionClientBuilder()
-                .WithBaseUrl("http://localhost:7860")
-                .WithRetry(-1);
-
-            // Act
-            Action act = () => builder.Build();
+            // Arrange & Act
+            Action act = () =>
+                new StableDiffusionClientBuilder()
+                    .WithBaseUrl("http://localhost:7860")
+                    .WithRetry(-1);
 
             // Assert
-            act.Should()
-                .Throw<StableDiffusionNet.Exceptions.ConfigurationException>()
-                .WithMessage("RetryCount cannot be negative");
+            act.Should().Throw<ArgumentException>().WithMessage("*RetryCount cannot be negative*");
         }
 
         [Fact]

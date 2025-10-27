@@ -8,6 +8,9 @@ namespace StableDiffusionNet.Interfaces
     /// Главный интерфейс клиента Stable Diffusion WebUI API
     /// </summary>
     public interface IStableDiffusionClient : IDisposable
+#if NETCOREAPP3_0_OR_GREATER || NET5_0_OR_GREATER
+            , IAsyncDisposable
+#endif
     {
         /// <summary>
         /// Сервис для генерации изображений из текста

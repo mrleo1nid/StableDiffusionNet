@@ -43,47 +43,45 @@ namespace StableDiffusionNet.Tests.Configuration
         [Fact]
         public void Validate_WithEmptyBaseUrl_ThrowsConfigurationException()
         {
-            // Arrange
-            var options = new StableDiffusionOptions { BaseUrl = string.Empty };
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+            var act = () => options.BaseUrl = string.Empty;
 
-            // Act & Assert
-            var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
+            // Assert
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
         public void Validate_WithNullBaseUrl_ThrowsConfigurationException()
         {
-            // Arrange
-            var options = new StableDiffusionOptions { BaseUrl = null! };
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+            var act = () => options.BaseUrl = null!;
 
-            // Act & Assert
-            var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
+            // Assert
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
         public void Validate_WithWhitespaceBaseUrl_ThrowsConfigurationException()
         {
-            // Arrange
-            var options = new StableDiffusionOptions { BaseUrl = "   " };
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+            var act = () => options.BaseUrl = "   ";
 
-            // Act & Assert
-            var act = () => options.Validate();
-            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
+            // Assert
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
         public void Validate_WithInvalidBaseUrl_ThrowsConfigurationException()
         {
-            // Arrange
-            var options = new StableDiffusionOptions { BaseUrl = "not a valid url" };
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+            var act = () => options.BaseUrl = "not a valid url";
 
-            // Act & Assert
-            var act = () => options.Validate();
-            act.Should()
-                .Throw<ConfigurationException>()
-                .WithMessage("*BaseUrl must be a valid URL*");
+            // Assert
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl must be a valid URL*");
         }
 
         [Theory]
@@ -92,13 +90,13 @@ namespace StableDiffusionNet.Tests.Configuration
         [InlineData(-100)]
         public void Validate_WithNonPositiveTimeout_ThrowsConfigurationException(int timeout)
         {
-            // Arrange
-            var options = new StableDiffusionOptions { TimeoutSeconds = timeout };
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+            var act = () => options.TimeoutSeconds = timeout;
 
-            // Act & Assert
-            var act = () => options.Validate();
+            // Assert
             act.Should()
-                .Throw<ConfigurationException>()
+                .Throw<ArgumentException>()
                 .WithMessage("*TimeoutSeconds must be a positive number*");
         }
 
@@ -107,14 +105,12 @@ namespace StableDiffusionNet.Tests.Configuration
         [InlineData(-10)]
         public void Validate_WithNegativeRetryCount_ThrowsConfigurationException(int retryCount)
         {
-            // Arrange
-            var options = new StableDiffusionOptions { RetryCount = retryCount };
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+            var act = () => options.RetryCount = retryCount;
 
-            // Act & Assert
-            var act = () => options.Validate();
-            act.Should()
-                .Throw<ConfigurationException>()
-                .WithMessage("*RetryCount cannot be negative*");
+            // Assert
+            act.Should().Throw<ArgumentException>().WithMessage("*RetryCount cannot be negative*");
         }
 
         [Fact]
@@ -136,13 +132,13 @@ namespace StableDiffusionNet.Tests.Configuration
             int retryDelay
         )
         {
-            // Arrange
-            var options = new StableDiffusionOptions { RetryDelayMilliseconds = retryDelay };
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+            var act = () => options.RetryDelayMilliseconds = retryDelay;
 
-            // Act & Assert
-            var act = () => options.Validate();
+            // Assert
             act.Should()
-                .Throw<ConfigurationException>()
+                .Throw<ArgumentException>()
                 .WithMessage("*RetryDelayMilliseconds cannot be negative*");
         }
 
@@ -223,6 +219,278 @@ namespace StableDiffusionNet.Tests.Configuration
 
             // Assert
             options.RetryDelayMilliseconds.Should().Be(2000);
+        }
+
+        [Fact]
+        public void BaseUrl_Setter_WithEmptyString_ThrowsArgumentException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            var act = () => options.BaseUrl = string.Empty;
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("BaseUrl")
+                .WithMessage("*BaseUrl cannot be empty*");
+        }
+
+        [Fact]
+        public void BaseUrl_Setter_WithInvalidUrl_ThrowsArgumentException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            var act = () => options.BaseUrl = "invalid-url";
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("BaseUrl")
+                .WithMessage("*BaseUrl must be a valid URL*");
+        }
+
+        [Fact]
+        public void TimeoutSeconds_Setter_WithZero_ThrowsArgumentException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            var act = () => options.TimeoutSeconds = 0;
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("TimeoutSeconds")
+                .WithMessage("*TimeoutSeconds must be a positive number*");
+        }
+
+        [Fact]
+        public void TimeoutSeconds_Setter_WithNegative_ThrowsArgumentException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            var act = () => options.TimeoutSeconds = -1;
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("TimeoutSeconds")
+                .WithMessage("*TimeoutSeconds must be a positive number*");
+        }
+
+        [Fact]
+        public void RetryCount_Setter_WithNegative_ThrowsArgumentException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            var act = () => options.RetryCount = -1;
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("RetryCount")
+                .WithMessage("*RetryCount cannot be negative*");
+        }
+
+        [Fact]
+        public void RetryDelayMilliseconds_Setter_WithNegative_ThrowsArgumentException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            var act = () => options.RetryDelayMilliseconds = -1;
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("RetryDelayMilliseconds")
+                .WithMessage("*RetryDelayMilliseconds cannot be negative*");
+        }
+
+        [Fact]
+        public void BaseUrl_Setter_WithValidUrl_SetsValue()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+            var newUrl = "https://api.example.com:8080";
+
+            // Act
+            options.BaseUrl = newUrl;
+
+            // Assert
+            options.BaseUrl.Should().Be(newUrl);
+        }
+
+        [Fact]
+        public void RetryCount_Setter_WithZero_SetsValue()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            options.RetryCount = 0;
+
+            // Assert
+            options.RetryCount.Should().Be(0);
+        }
+
+        [Fact]
+        public void RetryCount_Setter_WithPositive_SetsValue()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            options.RetryCount = 5;
+
+            // Assert
+            options.RetryCount.Should().Be(5);
+        }
+
+        [Fact]
+        public void RetryDelayMilliseconds_Setter_WithZero_SetsValue()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            options.RetryDelayMilliseconds = 0;
+
+            // Assert
+            options.RetryDelayMilliseconds.Should().Be(0);
+        }
+
+        [Fact]
+        public void Validate_WithAllPropertiesSet_DoesNotThrow()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions
+            {
+                BaseUrl = "https://api.example.com",
+                TimeoutSeconds = 600,
+                RetryCount = 5,
+                RetryDelayMilliseconds = 2000,
+                ApiKey = "test-key",
+                EnableDetailedLogging = true,
+            };
+
+            // Act & Assert
+            var act = () => options.Validate();
+            act.Should().NotThrow();
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(60)]
+        [InlineData(300)]
+        [InlineData(3600)]
+        [InlineData(int.MaxValue)]
+        public void TimeoutSeconds_Setter_WithValidPositiveValues_SetsValue(int timeout)
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            options.TimeoutSeconds = timeout;
+
+            // Assert
+            options.TimeoutSeconds.Should().Be(timeout);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(10)]
+        [InlineData(100)]
+        [InlineData(int.MaxValue)]
+        public void RetryCount_Setter_WithValidNonNegativeValues_SetsValue(int retryCount)
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            options.RetryCount = retryCount;
+
+            // Assert
+            options.RetryCount.Should().Be(retryCount);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(100)]
+        [InlineData(1000)]
+        [InlineData(5000)]
+        [InlineData(int.MaxValue)]
+        public void RetryDelayMilliseconds_Setter_WithValidNonNegativeValues_SetsValue(int delay)
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            options.RetryDelayMilliseconds = delay;
+
+            // Assert
+            options.RetryDelayMilliseconds.Should().Be(delay);
+        }
+
+        [Fact]
+        public void ApiKey_DefaultValue_IsNull()
+        {
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+
+            // Assert
+            options.ApiKey.Should().BeNull();
+        }
+
+        [Fact]
+        public void ApiKey_CanBeSetToEmptyString()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act
+            options.ApiKey = string.Empty;
+
+            // Assert
+            options.ApiKey.Should().Be(string.Empty);
+        }
+
+        [Fact]
+        public void EnableDetailedLogging_DefaultValue_IsFalse()
+        {
+            // Arrange & Act
+            var options = new StableDiffusionOptions();
+
+            // Assert
+            options.EnableDetailedLogging.Should().BeFalse();
+        }
+
+        [Fact]
+        public void EnableDetailedLogging_CanBeToggledMultipleTimes()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+
+            // Act & Assert
+            options.EnableDetailedLogging = true;
+            options.EnableDetailedLogging.Should().BeTrue();
+
+            options.EnableDetailedLogging = false;
+            options.EnableDetailedLogging.Should().BeFalse();
+
+            options.EnableDetailedLogging = true;
+            options.EnableDetailedLogging.Should().BeTrue();
         }
     }
 }

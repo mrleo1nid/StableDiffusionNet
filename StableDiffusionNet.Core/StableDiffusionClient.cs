@@ -16,6 +16,7 @@ namespace StableDiffusionNet
     {
         private readonly IStableDiffusionLogger _logger;
         private readonly IHttpClientWrapper _httpClientWrapper;
+        private readonly IDisposable? _additionalDisposable;
         private bool _disposed;
 
         /// <inheritdoc/>
@@ -57,6 +58,21 @@ namespace StableDiffusionNet
         /// <summary>
         /// Создает экземпляр клиента с внедренными зависимостями
         /// </summary>
+        /// <param name="textToImageService">Сервис генерации изображений из текста</param>
+        /// <param name="imageToImageService">Сервис генерации изображений из изображений</param>
+        /// <param name="modelService">Сервис управления моделями</param>
+        /// <param name="progressService">Сервис отслеживания прогресса</param>
+        /// <param name="optionsService">Сервис управления опциями</param>
+        /// <param name="samplerService">Сервис управления сэмплерами</param>
+        /// <param name="schedulerService">Сервис управления планировщиками</param>
+        /// <param name="upscalerService">Сервис управления апскейлерами</param>
+        /// <param name="pngInfoService">Сервис получения информации из PNG</param>
+        /// <param name="extraService">Дополнительный сервис</param>
+        /// <param name="embeddingService">Сервис управления эмбеддингами</param>
+        /// <param name="loraService">Сервис управления LoRA</param>
+        /// <param name="httpClientWrapper">HTTP клиент wrapper</param>
+        /// <param name="logger">Логгер</param>
+        /// <param name="additionalDisposable">Дополнительный ресурс для освобождения (например, HttpClient созданный в Builder)</param>
 #pragma warning disable CA1508, S107 // Избегайте неиспользуемого условного кода
         public StableDiffusionClient(
 #pragma warning restore CA1508, S107
@@ -73,7 +89,8 @@ namespace StableDiffusionNet
             IEmbeddingService embeddingService,
             ILoraService loraService,
             IHttpClientWrapper httpClientWrapper,
-            IStableDiffusionLogger logger
+            IStableDiffusionLogger logger,
+            IDisposable? additionalDisposable = null
         )
         {
             Guard.ThrowIfNull(textToImageService);
@@ -105,6 +122,7 @@ namespace StableDiffusionNet
             Loras = loraService;
             _httpClientWrapper = httpClientWrapper;
             _logger = logger;
+            _additionalDisposable = additionalDisposable;
         }
 
         /// <inheritdoc/>
@@ -147,11 +165,39 @@ namespace StableDiffusionNet
 
             if (disposing)
             {
-                // Освобождаем HttpClientWrapper, который освободит HttpClient если владеет им
+                // Освобождаем HttpClientWrapper
                 _httpClientWrapper?.Dispose();
+
+                // Освобождаем дополнительные ресурсы (например, HttpClient созданный в Builder)
+                _additionalDisposable?.Dispose();
             }
 
             _disposed = true;
         }
+
+#if NETCOREAPP3_0_OR_GREATER || NET5_0_OR_GREATER
+        /// <summary>
+        /// Асинхронно освобождает ресурсы, используемые клиентом
+        /// </summary>
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+                return;
+
+            // Освобождаем HttpClientWrapper
+            _httpClientWrapper?.Dispose();
+
+            // Освобождаем дополнительные ресурсы
+            _additionalDisposable?.Dispose();
+
+            _disposed = true;
+
+            // Подавляем вызов финализатора
+            GC.SuppressFinalize(this);
+
+            // Добавляем await для возможности будущих асинхронных операций
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
+#endif
     }
 }

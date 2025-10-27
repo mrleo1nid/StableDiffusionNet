@@ -23,7 +23,6 @@ namespace StableDiffusionNet.Infrastructure
         private readonly IStableDiffusionLogger _logger;
         private readonly StableDiffusionOptions _options;
         private readonly RetryHandler _retryHandler;
-        private readonly bool _ownsHttpClient;
         private bool _disposed;
 
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
@@ -34,15 +33,13 @@ namespace StableDiffusionNet.Infrastructure
         /// <summary>
         /// Создает новый экземпляр HTTP клиента
         /// </summary>
-        /// <param name="httpClient">HttpClient для использования</param>
+        /// <param name="httpClient">HttpClient для использования. Управление временем жизни HttpClient - ответственность вызывающего кода.</param>
         /// <param name="logger">Логгер</param>
         /// <param name="options">Опции конфигурации</param>
-        /// <param name="ownsHttpClient">Если true, HttpClient будет disposed при dispose wrapper'а</param>
         public HttpClientWrapper(
             HttpClient httpClient,
             IStableDiffusionLogger logger,
-            StableDiffusionOptions options,
-            bool ownsHttpClient = false
+            StableDiffusionOptions options
         )
         {
             Guard.ThrowIfNull(httpClient);
@@ -52,7 +49,6 @@ namespace StableDiffusionNet.Infrastructure
             _httpClient = httpClient;
             _logger = logger;
             _options = options;
-            _ownsHttpClient = ownsHttpClient;
 
             _options.Validate();
             _retryHandler = new RetryHandler(_options, _logger);
@@ -286,16 +282,18 @@ namespace StableDiffusionNet.Infrastructure
         /// Освобождает управляемые и неуправляемые ресурсы
         /// </summary>
         /// <param name="disposing">True если вызван из Dispose, false из финализатора</param>
+        /// <remarks>
+        /// HttpClient управляется вызывающим кодом (IHttpClientFactory в DI сценарии или владельцем в Builder сценарии)
+        /// и не диспозится здесь
+        /// </remarks>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
                 return;
 
-            // Освобождаем HttpClient только если мы владеем им
-            if (disposing && _ownsHttpClient)
-            {
-                _httpClient?.Dispose();
-            }
+            // HttpClient управляется извне и не диспозится здесь
+            // В DI сценарии: управляется IHttpClientFactory
+            // В Builder сценарии: управляется StableDiffusionClient
 
             _disposed = true;
         }

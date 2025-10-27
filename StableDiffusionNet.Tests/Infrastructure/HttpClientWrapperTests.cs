@@ -75,12 +75,9 @@ namespace StableDiffusionNet.Tests.Infrastructure
         [Fact]
         public void Constructor_WithInvalidOptions_ThrowsConfigurationException()
         {
-            // Arrange
-            var httpClient = new HttpClient();
-            var invalidOptions = new StableDiffusionOptions { BaseUrl = string.Empty };
-            // Act & Assert
-            var act = () => new HttpClientWrapper(httpClient, _loggerMock.Object, invalidOptions);
-            act.Should().Throw<ConfigurationException>();
+            // Act & Assert - валидация теперь происходит в setter
+            var act = () => new StableDiffusionOptions { BaseUrl = string.Empty };
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         [Fact]
@@ -708,6 +705,168 @@ namespace StableDiffusionNet.Tests.Infrastructure
             await act.Should()
                 .ThrowAsync<ApiException>()
                 .Where(e => e.StatusCode == HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task PostAsync_WithoutBody_WithHttpRequestException_ThrowsApiException()
+        {
+            // Arrange
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ThrowsAsync(new HttpRequestException("Network error"));
+
+            var wrapper = CreateWrapper();
+
+            // Act & Assert
+            var act = async () => await wrapper.PostAsync("/test");
+            await act.Should()
+                .ThrowAsync<ApiException>()
+                .WithMessage("*Error executing POST request*")
+                .Where(e => e.InnerException is HttpRequestException);
+        }
+
+        [Fact]
+        public async Task PostAsync_WithoutBody_WithException_LogsError()
+        {
+            // Arrange
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ThrowsAsync(new HttpRequestException("Network error"));
+
+            var wrapper = CreateWrapper();
+
+            // Act
+            try
+            {
+                await wrapper.PostAsync("/test");
+            }
+            catch
+            {
+                // Ignore
+            }
+
+            // Assert
+            _loggerMock.Verify(
+                l => l.Log(LogLevel.Error, It.IsAny<Exception>(), It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log error when exception occurs"
+            );
+        }
+
+        [Fact]
+        public async Task PostAsync_WithRequestNoResponse_WithHttpRequestException_ThrowsApiException()
+        {
+            // Arrange
+            var request = new TestRequest { Value = "test" };
+
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ThrowsAsync(new HttpRequestException("Connection refused"));
+
+            var wrapper = CreateWrapper();
+
+            // Act & Assert
+            var act = async () => await wrapper.PostAsync("/test", request);
+            await act.Should()
+                .ThrowAsync<ApiException>()
+                .WithMessage("*Error executing POST request*")
+                .Where(e => e.InnerException is HttpRequestException);
+        }
+
+        [Fact]
+        public async Task PostAsync_WithRequestNoResponse_WithException_LogsError()
+        {
+            // Arrange
+            var request = new TestRequest { Value = "test" };
+
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ThrowsAsync(new HttpRequestException("Connection timeout"));
+
+            var wrapper = CreateWrapper();
+
+            // Act
+            try
+            {
+                await wrapper.PostAsync("/test", request);
+            }
+            catch
+            {
+                // Ignore
+            }
+
+            // Assert
+            _loggerMock.Verify(
+                l => l.Log(LogLevel.Error, It.IsAny<Exception>(), It.IsAny<string>()),
+                Times.AtLeastOnce,
+                "Should log error when exception occurs"
+            );
+        }
+
+        [Fact]
+        public async Task PostAsync_WithoutBody_WithTaskCanceledException_ThrowsApiException()
+        {
+            // Arrange
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ThrowsAsync(new TaskCanceledException());
+
+            var wrapper = CreateWrapper();
+
+            // Act & Assert
+            var act = async () => await wrapper.PostAsync("/test");
+            await act.Should()
+                .ThrowAsync<ApiException>()
+                .Where(e => e.InnerException is TaskCanceledException);
+        }
+
+        [Fact]
+        public async Task PostAsync_WithRequestNoResponse_WithTaskCanceledException_ThrowsApiException()
+        {
+            // Arrange
+            var request = new TestRequest { Value = "test" };
+
+            _httpMessageHandlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ThrowsAsync(new TaskCanceledException());
+
+            var wrapper = CreateWrapper();
+
+            // Act & Assert
+            var act = async () => await wrapper.PostAsync("/test", request);
+            await act.Should()
+                .ThrowAsync<ApiException>()
+                .Where(e => e.InnerException is TaskCanceledException);
         }
 
         [Theory]

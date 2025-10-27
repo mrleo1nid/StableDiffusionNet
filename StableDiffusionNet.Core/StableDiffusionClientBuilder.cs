@@ -143,12 +143,10 @@ namespace StableDiffusionNet
             }
 
             // Создаем wrapper для HttpClient
-            // ownsHttpClient = true только если мы создали HttpClient сами (не был передан через WithHttpClient)
             var httpClientWrapper = new HttpClientWrapper(
                 httpClient,
                 loggerFactory.CreateLogger<HttpClientWrapper>(),
-                _options,
-                ownsHttpClient: _httpClient == null
+                _options
             );
 
             // Создаем сервисы
@@ -213,6 +211,8 @@ namespace StableDiffusionNet
             );
 
             // Создаем главный клиент
+            // Если мы создали HttpClient сами (не был передан через WithHttpClient),
+            // передаем его как дополнительный disposable ресурс для управления временем жизни
             return new StableDiffusionClient(
                 textToImageService,
                 imageToImageService,
@@ -227,7 +227,8 @@ namespace StableDiffusionNet
                 embeddingService,
                 loraService,
                 httpClientWrapper,
-                loggerFactory.CreateLogger<StableDiffusionClient>()
+                loggerFactory.CreateLogger<StableDiffusionClient>(),
+                additionalDisposable: _httpClient == null ? httpClient : null
             );
         }
 

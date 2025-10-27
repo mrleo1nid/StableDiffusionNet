@@ -138,8 +138,12 @@ namespace StableDiffusionNet.Infrastructure
             }
 
             var delay = CalculateDelay(attempt, statusCode);
+            var statusInfo = statusCode.HasValue
+                ? $"[{(int)statusCode.Value} {statusCode.Value}]"
+                : "[Network Error]";
+
             _logger.LogWarning(
-                $"{message}. Retrying in {delay}ms (attempt {attempt + 1}/{_options.RetryCount})"
+                $"{statusInfo} {message}. Retrying in {delay}ms (attempt {attempt + 1}/{_options.RetryCount})"
             );
             await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
             return true;

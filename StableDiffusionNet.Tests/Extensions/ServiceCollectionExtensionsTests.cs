@@ -444,29 +444,24 @@ namespace StableDiffusionNet.Tests.Extensions
             // Arrange
             var services = new ServiceCollection();
             services.AddLogging();
-
-            // Act
             services.AddStableDiffusion(options =>
             {
-                options.BaseUrl = ""; // Невалидная конфигурация
-                options.TimeoutSeconds = -1; // Невалидный timeout
+                // Пропускаем инициализацию, чтобы протестировать валидацию позже
             });
 
             var serviceProvider = services.BuildServiceProvider();
 
-            // Assert - при попытке получить опции должна произойти валидация
+            // Act & Assert - валидация теперь происходит в setters при первом обращении
             Action act = () =>
             {
-                // OptionsMonitor будет валидировать при первом доступе если используется IValidateOptions
                 var optionsSnapshot = serviceProvider.GetRequiredService<
                     IOptionsSnapshot<StableDiffusionOptions>
                 >();
-                _ = optionsSnapshot.Value; // Триггерим валидацию
+                optionsSnapshot.Value.BaseUrl = ""; // Невалидная конфигурация
             };
 
-            // Валидация происходит при первом обращении к Value
-            // В зависимости от настроек может выбросить исключение или вернуть невалидные данные
-            act.Should().Throw<OptionsValidationException>();
+            // Валидация происходит сразу при установке значения в setter
+            act.Should().Throw<ArgumentException>().WithMessage("*BaseUrl cannot be empty*");
         }
 
         #endregion

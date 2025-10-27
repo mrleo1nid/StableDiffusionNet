@@ -6,6 +6,12 @@ namespace StableDiffusionNet.Infrastructure
     /// </summary>
     internal static class JsonSanitizer
     {
+        /// <summary>
+        /// Максимальная длина JSON для логирования без обрезки.
+        /// 500 символов достаточно для отладки без засорения логов.
+        /// Более длинные JSON обычно содержат base64 данные изображений,
+        /// которые не имеют смысла в логах и занимают много места.
+        /// </summary>
         private const int MaxLength = 500;
 
         /// <summary>

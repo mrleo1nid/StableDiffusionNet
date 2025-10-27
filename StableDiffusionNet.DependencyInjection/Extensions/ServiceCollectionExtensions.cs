@@ -95,18 +95,107 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
             });
 
             // Регистрация сервисов
-            RegisterService<ITextToImageService, TextToImageService>(services);
-            RegisterService<IImageToImageService, ImageToImageService>(services);
-            RegisterService<IModelService, ModelService>(services);
-            RegisterService<IProgressService, ProgressService>(services);
-            RegisterService<IOptionsService, OptionsService>(services);
-            RegisterService<ISamplerService, SamplerService>(services);
-            RegisterService<ISchedulerService, SchedulerService>(services);
-            RegisterService<IUpscalerService, UpscalerService>(services);
-            RegisterService<IPngInfoService, PngInfoService>(services);
-            RegisterService<IExtraService, ExtraService>(services);
-            RegisterService<IEmbeddingService, EmbeddingService>(services);
-            RegisterService<ILoraService, LoraService>(services);
+            services.AddTransient<ITextToImageService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new TextToImageService(
+                    httpClient,
+                    loggerFactory.CreateLogger<TextToImageService>()
+                );
+            });
+
+            services.AddTransient<IImageToImageService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new ImageToImageService(
+                    httpClient,
+                    loggerFactory.CreateLogger<ImageToImageService>()
+                );
+            });
+
+            services.AddTransient<IModelService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new ModelService(httpClient, loggerFactory.CreateLogger<ModelService>());
+            });
+
+            services.AddTransient<IProgressService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new ProgressService(
+                    httpClient,
+                    loggerFactory.CreateLogger<ProgressService>()
+                );
+            });
+
+            services.AddTransient<IOptionsService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new OptionsService(httpClient, loggerFactory.CreateLogger<OptionsService>());
+            });
+
+            services.AddTransient<ISamplerService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new SamplerService(httpClient, loggerFactory.CreateLogger<SamplerService>());
+            });
+
+            services.AddTransient<ISchedulerService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new SchedulerService(
+                    httpClient,
+                    loggerFactory.CreateLogger<SchedulerService>()
+                );
+            });
+
+            services.AddTransient<IUpscalerService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new UpscalerService(
+                    httpClient,
+                    loggerFactory.CreateLogger<UpscalerService>()
+                );
+            });
+
+            services.AddTransient<IPngInfoService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new PngInfoService(httpClient, loggerFactory.CreateLogger<PngInfoService>());
+            });
+
+            services.AddTransient<IExtraService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new ExtraService(httpClient, loggerFactory.CreateLogger<ExtraService>());
+            });
+
+            services.AddTransient<IEmbeddingService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new EmbeddingService(
+                    httpClient,
+                    loggerFactory.CreateLogger<EmbeddingService>()
+                );
+            });
+
+            services.AddTransient<ILoraService>(sp =>
+            {
+                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
+                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
+                return new LoraService(httpClient, loggerFactory.CreateLogger<LoraService>());
+            });
 
             // Регистрация главного клиента
             services.AddTransient<IStableDiffusionClient>(sp =>
@@ -164,28 +253,6 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
                 {
                     options.BaseUrl = baseUrl;
                 }
-            });
-        }
-
-        /// <summary>
-        /// Регистрирует сервис в DI контейнере
-        /// </summary>
-        private static void RegisterService<TInterface, TImplementation>(
-            IServiceCollection services
-        )
-            where TInterface : class
-            where TImplementation : class, TInterface
-        {
-            services.AddTransient<TInterface>(sp =>
-            {
-                var httpClient = sp.GetRequiredService<IHttpClientWrapper>();
-                var loggerFactory = sp.GetRequiredService<IStableDiffusionLoggerFactory>();
-                return (TInterface)
-                    Activator.CreateInstance(
-                        typeof(TImplementation),
-                        httpClient,
-                        loggerFactory.CreateLogger<TImplementation>()
-                    )!;
             });
         }
     }
