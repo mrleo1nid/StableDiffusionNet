@@ -303,18 +303,18 @@ namespace StableDiffusionNet.Infrastructure
 
             if (disposing)
             {
-                // Освобождаем HttpClient только если мы его владельцы
-                // В Builder сценарии (создали сами): ownsHttpClient = true → освобождаем
-                // В DI сценарии (IHttpClientFactory): ownsHttpClient = false → не трогаем
-                // В Builder сценарии (передан извне): ownsHttpClient = false → не трогаем
-                if (_ownsHttpClient)
-                    _httpClient?.Dispose();
-
 #if !NET6_0_OR_GREATER
                 // Освобождаем RetryHandler для предотвращения утечки памяти ThreadLocal<Random>
                 (_retryHandler as IDisposable)?.Dispose();
 #endif
             }
+
+            // Освобождаем HttpClient только если мы его владельцы и вызов из Dispose (не финализатор)
+            // В Builder сценарии (создали сами): ownsHttpClient = true → освобождаем
+            // В DI сценарии (IHttpClientFactory): ownsHttpClient = false → не трогаем
+            // В Builder сценарии (передан извне): ownsHttpClient = false → не трогаем
+            if (disposing && _ownsHttpClient)
+                _httpClient?.Dispose();
 
             _disposed = true;
         }

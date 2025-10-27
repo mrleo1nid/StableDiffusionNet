@@ -122,3 +122,9 @@ docs/_site/
 
 # Example files
 /ApiExample/
+
+# cursor settings 
+/.cursor
+
+# vs code
+/.vscode
