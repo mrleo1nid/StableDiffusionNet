@@ -492,5 +492,107 @@ namespace StableDiffusionNet.Tests.Configuration
             options.EnableDetailedLogging = true;
             options.EnableDetailedLogging.Should().BeTrue();
         }
+
+        #region Validate Method Tests (для покрытия ConfigurationException при десериализации)
+
+        [Fact]
+        public void Validate_WithEmptyBaseUrl_ViaReflection_ThrowsConfigurationException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+            var field = typeof(StableDiffusionOptions).GetField(
+                "_baseUrl",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
+            field!.SetValue(options, string.Empty);
+
+            // Act
+            var act = () => options.Validate();
+
+            // Assert
+            act.Should().Throw<ConfigurationException>().WithMessage("*BaseUrl cannot be empty*");
+        }
+
+        [Fact]
+        public void Validate_WithInvalidBaseUrl_ViaReflection_ThrowsConfigurationException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+            var field = typeof(StableDiffusionOptions).GetField(
+                "_baseUrl",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
+            field!.SetValue(options, "invalid-url");
+
+            // Act
+            var act = () => options.Validate();
+
+            // Assert
+            act.Should()
+                .Throw<ConfigurationException>()
+                .WithMessage("*BaseUrl must be a valid URL*");
+        }
+
+        [Fact]
+        public void Validate_WithNonPositiveTimeout_ViaReflection_ThrowsConfigurationException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+            var field = typeof(StableDiffusionOptions).GetField(
+                "_timeoutSeconds",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
+            field!.SetValue(options, 0);
+
+            // Act
+            var act = () => options.Validate();
+
+            // Assert
+            act.Should()
+                .Throw<ConfigurationException>()
+                .WithMessage("*TimeoutSeconds must be a positive number*");
+        }
+
+        [Fact]
+        public void Validate_WithNegativeRetryCount_ViaReflection_ThrowsConfigurationException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+            var field = typeof(StableDiffusionOptions).GetField(
+                "_retryCount",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
+            field!.SetValue(options, -1);
+
+            // Act
+            var act = () => options.Validate();
+
+            // Assert
+            act.Should()
+                .Throw<ConfigurationException>()
+                .WithMessage("*RetryCount cannot be negative*");
+        }
+
+        [Fact]
+        public void Validate_WithNegativeRetryDelay_ViaReflection_ThrowsConfigurationException()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions();
+            var field = typeof(StableDiffusionOptions).GetField(
+                "_retryDelayMilliseconds",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+            );
+            field!.SetValue(options, -1);
+
+            // Act
+            var act = () => options.Validate();
+
+            // Assert
+            act.Should()
+                .Throw<ConfigurationException>()
+                .WithMessage("*RetryDelayMilliseconds cannot be negative*");
+        }
+
+        #endregion
     }
 }
