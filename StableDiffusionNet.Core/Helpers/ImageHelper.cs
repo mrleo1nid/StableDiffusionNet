@@ -100,7 +100,7 @@ namespace StableDiffusionNet.Helpers
         /// <returns>Чистая base64 строка</returns>
         public string ExtractBase64Data(string base64String)
         {
-            Guard.ThrowIfNullOrWhiteSpace(base64String, nameof(base64String));
+            Guard.ThrowIfNullOrWhiteSpace(base64String);
 
             var commaIndex = base64String.IndexOf(',');
             if (commaIndex >= 0)
@@ -196,7 +196,7 @@ namespace StableDiffusionNet.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            Guard.ThrowIfNullOrWhiteSpace(filePath, nameof(filePath));
+            Guard.ThrowIfNullOrWhiteSpace(filePath);
 
             if (!File.Exists(filePath))
                 throw new FileNotFoundException("File not found", filePath);
@@ -243,8 +243,8 @@ namespace StableDiffusionNet.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            Guard.ThrowIfNullOrWhiteSpace(base64String, nameof(base64String));
-            Guard.ThrowIfNullOrWhiteSpace(outputPath, nameof(outputPath));
+            Guard.ThrowIfNullOrWhiteSpace(base64String);
+            Guard.ThrowIfNullOrWhiteSpace(outputPath);
 
             var base64Data = ExtractBase64Data(base64String);
 
@@ -287,7 +287,7 @@ namespace StableDiffusionNet.Helpers
         /// <exception cref="ArgumentException">Выбрасывается если base64 некорректен или не содержит валидное изображение</exception>
         public void ValidateImageBase64(string base64String)
         {
-            Guard.ThrowIfNullOrWhiteSpace(base64String, nameof(base64String));
+            Guard.ThrowIfNullOrWhiteSpace(base64String);
 
             var base64Data = ExtractBase64Data(base64String);
 

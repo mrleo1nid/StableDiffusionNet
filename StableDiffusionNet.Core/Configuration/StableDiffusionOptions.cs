@@ -130,7 +130,7 @@ namespace StableDiffusionNet.Configuration
         /// </summary>
         private static void ValidateBaseUrl(string value, string paramName)
         {
-            Guard.ThrowIfNullOrWhiteSpace(value, paramName);
+            Guard.ThrowIfNullOrWhiteSpace(value);
 
             if (!Uri.TryCreate(value, UriKind.Absolute, out _))
                 throw new ArgumentException("BaseUrl must be a valid URL", paramName);

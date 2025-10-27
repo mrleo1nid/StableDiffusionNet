@@ -82,9 +82,9 @@ namespace StableDiffusionNet
             IDisposable? additionalDisposable = null
         )
         {
-            Guard.ThrowIfNull(services, nameof(services));
-            Guard.ThrowIfNull(httpClientWrapper, nameof(httpClientWrapper));
-            Guard.ThrowIfNull(logger, nameof(logger));
+            Guard.ThrowIfNull(services);
+            Guard.ThrowIfNull(httpClientWrapper);
+            Guard.ThrowIfNull(logger);
 
             // Валидируем что все сервисы инициализированы
             services.Validate();

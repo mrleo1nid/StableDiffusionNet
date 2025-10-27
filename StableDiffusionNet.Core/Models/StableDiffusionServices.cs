@@ -75,18 +75,18 @@ namespace StableDiffusionNet.Models
         /// <exception cref="System.ArgumentNullException">Если какой-либо сервис не инициализирован</exception>
         public void Validate()
         {
-            Guard.ThrowIfNull(TextToImage, nameof(TextToImage));
-            Guard.ThrowIfNull(ImageToImage, nameof(ImageToImage));
-            Guard.ThrowIfNull(Extra, nameof(Extra));
-            Guard.ThrowIfNull(Models, nameof(Models));
-            Guard.ThrowIfNull(Progress, nameof(Progress));
-            Guard.ThrowIfNull(Options, nameof(Options));
-            Guard.ThrowIfNull(Samplers, nameof(Samplers));
-            Guard.ThrowIfNull(Schedulers, nameof(Schedulers));
-            Guard.ThrowIfNull(Upscalers, nameof(Upscalers));
-            Guard.ThrowIfNull(PngInfo, nameof(PngInfo));
-            Guard.ThrowIfNull(Embeddings, nameof(Embeddings));
-            Guard.ThrowIfNull(Loras, nameof(Loras));
+            Guard.ThrowIfNull(TextToImage);
+            Guard.ThrowIfNull(ImageToImage);
+            Guard.ThrowIfNull(Extra);
+            Guard.ThrowIfNull(Models);
+            Guard.ThrowIfNull(Progress);
+            Guard.ThrowIfNull(Options);
+            Guard.ThrowIfNull(Samplers);
+            Guard.ThrowIfNull(Schedulers);
+            Guard.ThrowIfNull(Upscalers);
+            Guard.ThrowIfNull(PngInfo);
+            Guard.ThrowIfNull(Embeddings);
+            Guard.ThrowIfNull(Loras);
         }
     }
 }
