@@ -1,13 +1,15 @@
 name: SonarQube Analysis
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Build"]  # Запускается после успешного CI билда
+    types:
+      - completed
     branches:
       - master
       - main
       - develop
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:  # Ручной запуск
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -16,6 +18,8 @@ jobs:
   sonarqube:
     name: SonarQube Code Analysis
     runs-on: windows-latest
+    # Запускается только если CI билд прошел успешно (или при manual)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     
     steps:
     - name: Set up JDK 17

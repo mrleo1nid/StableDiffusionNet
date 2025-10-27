@@ -1,9 +1,10 @@
 name: "CodeQL Security Analysis"
 
 on:
-  push:
-    branches: [ master, main, develop ]
-  pull_request:
+  workflow_run:
+    workflows: ["CI Build"]  # Запускается после успешного CI билда
+    types:
+      - completed
     branches: [ master, main, develop ]
   schedule:
     - cron: '0 0 * * *'  # Каждый день в полночь (00:00 UTC)
@@ -13,6 +14,8 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    # Запускается только если CI билд прошел успешно (или при schedule/manual)
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     permissions:
       actions: read
       contents: read
