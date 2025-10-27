@@ -129,6 +129,35 @@ namespace StableDiffusionNet.Tests.Configuration
         }
 
         [Theory]
+        [InlineData(-1)]
+        [InlineData(-10)]
+        [InlineData(-1000)]
+        public void Validate_WithNegativeRetryDelayMilliseconds_ThrowsConfigurationException(
+            int retryDelay
+        )
+        {
+            // Arrange
+            var options = new StableDiffusionOptions { RetryDelayMilliseconds = retryDelay };
+
+            // Act & Assert
+            var act = () => options.Validate();
+            act.Should()
+                .Throw<ConfigurationException>()
+                .WithMessage("*RetryDelayMilliseconds cannot be negative*");
+        }
+
+        [Fact]
+        public void Validate_WithZeroRetryDelayMilliseconds_DoesNotThrow()
+        {
+            // Arrange
+            var options = new StableDiffusionOptions { RetryDelayMilliseconds = 0 };
+
+            // Act & Assert
+            var act = () => options.Validate();
+            act.Should().NotThrow();
+        }
+
+        [Theory]
         [InlineData("http://localhost:7860")]
         [InlineData("https://example.com")]
         [InlineData("http://192.168.1.1:8080")]

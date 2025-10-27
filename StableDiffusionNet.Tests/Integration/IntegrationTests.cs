@@ -212,7 +212,8 @@ namespace StableDiffusionNet.Tests.Integration
             var newModel = await _client.Models.GetCurrentModelAsync();
 
             // Assert
-            newModel.Should().Contain(targetModel);
+            // GetCurrentModelAsync возвращает имя без хеша, а Title содержит хеш в скобках
+            targetModel.Should().Contain(newModel);
 
             // Cleanup - восстанавливаем оригинальную модель
             if (originalModel != "unknown")
