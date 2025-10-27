@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Newtonsoft.Json;
 using StableDiffusionNet.Models.Requests;
-using Xunit;
 
 namespace StableDiffusionNet.Tests.Models.Requests
 {

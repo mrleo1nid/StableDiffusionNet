@@ -2,7 +2,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using StableDiffusionNet.DependencyInjection.Logging;
-using StableDiffusionNet.Logging;
 using IStableDiffusionLogger = StableDiffusionNet.Logging.IStableDiffusionLogger;
 
 namespace StableDiffusionNet.Tests.Logging
