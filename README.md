@@ -1,5 +1,7 @@
 # StableDiffusionNet
 
+**English | [Русский](README.ru.md)**
+
 [![CI Build](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/codeql.yml)
 [![SonarQube](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/sonarqube.yml/badge.svg)](https://github.com/mrleo1nid/StableDiffusionNet/actions/workflows/sonarqube.yml)
@@ -14,88 +16,78 @@
 [![NuGet DI](https://img.shields.io/nuget/v/StableDiffusionNet.DependencyInjection.svg?label=DI)](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Мощный и удобный .NET клиент для Stable Diffusion WebUI API с полной поддержкой async/await, retry-логикой и dependency injection.
+A .NET client library for Stable Diffusion WebUI API with async/await support, retry logic, and dependency injection.
 
-## 🎯 Выберите подходящий пакет
+## Package Selection
 
-StableDiffusionNet предлагает два пакета для разных сценариев использования:
+StableDiffusionNet offers two packages for different use cases:
 
 ### StableDiffusionNet.Core
-**Lightweight пакет без Dependency Injection**
+**Lightweight package without Dependency Injection**
 
 [![NuGet](https://img.shields.io/nuget/v/StableDiffusionNet.Core.svg)](https://www.nuget.org/packages/StableDiffusionNet.Core/)
 
-Идеален для:
-- ✨ Консольных приложений
-- 🚀 Простых скриптов и утилит
-- 📦 Проектов без инфраструктуры DI
-- ⚡ Минимальных зависимостей
+Ideal for:
+- Console applications
+- Simple scripts and utilities
+- Projects without DI infrastructure
+- Minimal dependencies
 
 ```bash
 dotnet add package StableDiffusionNet.Core
 ```
 
 ### StableDiffusionNet.DependencyInjection
-**Расширения для Microsoft.Extensions.DependencyInjection**
+**Extensions for Microsoft.Extensions.DependencyInjection**
 
 [![NuGet](https://img.shields.io/nuget/v/StableDiffusionNet.DependencyInjection.svg)](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/)
 
-Идеален для:
-- 🌐 ASP.NET Core приложений
-- 🏗️ Проектов с DI контейнером
-- 📊 Интеграции с Microsoft.Extensions.*
-- ⚙️ IOptions pattern и конфигурации
+Ideal for:
+- ASP.NET Core applications
+- Projects with DI container
+- Integration with Microsoft.Extensions.*
+- IOptions pattern and configuration
 
 ```bash
 dotnet add package StableDiffusionNet.DependencyInjection
 ```
 
-## Особенности
+## Features
 
-- 🎯 **Два варианта использования**: Core (без DI) или DependencyInjection (с полной интеграцией DI)
-- 🏗️ **Builder Pattern**: удобное создание клиента в Core пакете
-- 🔄 **Надежная retry-логика**: собственная быстрая реализация с экспоненциальной задержкой
-- ⚡ **Асинхронные операции**: полная поддержка async/await и CancellationToken
-- 📝 **XML документация**: для всех публичных API
-- 📊 **Гибкое логирование**: собственная абстракция в Core, интеграция с Microsoft.Extensions.Logging в DI
-- 🎨 **Multi-targeting**: .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
+- **Two usage options**: Core (without DI) or DependencyInjection (with DI integration)
+- **Builder Pattern**: convenient client creation in Core package
+- **Retry logic**: custom implementation with exponential backoff
+- **Asynchronous operations**: async/await and CancellationToken support
+- **XML documentation**: for all public APIs
+- **Flexible logging**: custom abstraction in Core, Microsoft.Extensions.Logging integration in DI
+- **Multi-targeting**: .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
 
-## 📦 Установка
+## Installation
 
-### Для проектов без DI (Console, Scripts, Utilities)
+### For projects without DI (Console, Scripts, Utilities)
 
 ```bash
 dotnet add package StableDiffusionNet.Core
 ```
 
-### Для проектов с DI (ASP.NET Core, Modern Apps)
+### For projects with DI (ASP.NET Core, Modern Apps)
 
 ```bash
 dotnet add package StableDiffusionNet.DependencyInjection
 ```
 
-Пакет `StableDiffusionNet.DependencyInjection` автоматически установит `StableDiffusionNet.Core` как зависимость.
+The `StableDiffusionNet.DependencyInjection` package will automatically install `StableDiffusionNet.Core` as a dependency.
 
-## 🚀 Быстрый старт
+## Quick Start
 
-### Вариант 1: StableDiffusionNet.Core (без DI)
+### Option 1: StableDiffusionNet.Core (without DI)
 
 ```csharp
 using StableDiffusionNet;
 using StableDiffusionNet.Models.Requests;
 
-// Создание клиента с настройками по умолчанию
 var client = StableDiffusionClientBuilder.CreateDefault("http://localhost:7860");
 
-// Или с дополнительными настройками через билдер
-var client = new StableDiffusionClientBuilder()
-    .WithBaseUrl("http://localhost:7860")
-    .WithTimeout(600)
-    .WithRetry(retryCount: 3, retryDelayMilliseconds: 1000)
-    .WithDetailedLogging()
-    .Build();
-
-// Готово! Можно использовать
 var request = new TextToImageRequest
 {
     Prompt = "a beautiful sunset",
@@ -105,53 +97,27 @@ var request = new TextToImageRequest
 var response = await client.TextToImage.GenerateAsync(request);
 ```
 
-### Вариант 2: StableDiffusionNet.DependencyInjection (с DI)
+See [StableDiffusionNet.Core README](StableDiffusionNet.Core/README.md) for detailed configuration options.
+
+### Option 2: StableDiffusionNet.DependencyInjection (with DI)
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using StableDiffusionNet.DependencyInjection.Extensions;
 
-// Настройка DI контейнера
 var services = new ServiceCollection();
-
-// Добавление логирования
-services.AddLogging(builder => builder.AddConsole());
-
-// Регистрация StableDiffusion клиента
 services.AddStableDiffusion(options =>
 {
     options.BaseUrl = "http://localhost:7860";
-    options.TimeoutSeconds = 300;
-    options.RetryCount = 3;
-    options.EnableDetailedLogging = true;
 });
 
 var serviceProvider = services.BuildServiceProvider();
 var client = serviceProvider.GetRequiredService<IStableDiffusionClient>();
 ```
 
-### ASP.NET Core Integration
+See [StableDiffusionNet.DependencyInjection README](StableDiffusionNet.DependencyInjection/README.md) for ASP.NET Core integration.
 
-```csharp
-// Program.cs
-var builder = WebApplication.CreateBuilder(args);
-
-// Простая регистрация
-builder.Services.AddStableDiffusion("http://localhost:7860");
-
-// Или с полной конфигурацией
-builder.Services.AddStableDiffusion(options =>
-{
-    builder.Configuration.GetSection("StableDiffusion").Bind(options);
-});
-
-var app = builder.Build();
-```
-
-## 📚 Примеры использования
-
-### Базовая генерация изображения
+## Usage Examples
 
 ```csharp
 using StableDiffusionNet.Models.Requests;
@@ -159,8 +125,7 @@ using StableDiffusionNet.Helpers;
 
 var request = new TextToImageRequest
 {
-    Prompt = "a beautiful sunset over mountains, highly detailed, 4k",
-    NegativePrompt = "blurry, low quality, distorted",
+    Prompt = "a beautiful sunset over mountains",
     Width = 512,
     Height = 512,
     Steps = 30
@@ -170,31 +135,31 @@ var response = await client.TextToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "output.png");
 ```
 
-### 📖 Подробная документация
+### Documentation
 
-- **[Справочник API методов](docs/API_REFERENCE.md)** - полный список всех 22 реализованных методов API
-- **[Подробные примеры](docs/EXAMPLES.md)** - примеры использования всех сервисов (txt2img, img2img, models, progress, options и др.)
-- **[Продвинутые сценарии](docs/ADVANCED.md)** - автоматизация воркфлоу, параллельная генерация, интеграция с БД, RESTful API и многое другое
+- **[API Methods Reference](docs/API_REFERENCE.md)** - list of all 22 implemented API methods
+- **[Examples](docs/EXAMPLES.md)** - examples of using all services (txt2img, img2img, models, progress, options, etc.)
+- **[Advanced Scenarios](docs/ADVANCED.md)** - workflow automation, parallel generation, database integration, RESTful API
 
-## 🔧 Конфигурация
+## Configuration
 
-### Основные опции
+### Main Options
 
 ```csharp
 services.AddStableDiffusion(options =>
 {
-    options.BaseUrl = "http://localhost:7860";    // URL вашего Stable Diffusion WebUI
-    options.TimeoutSeconds = 300;                 // Таймаут запросов
-    options.RetryCount = 3;                       // Количество повторов при ошибке
-    options.EnableDetailedLogging = false;        // Детальное логирование
+    options.BaseUrl = "http://localhost:7860";    // Your Stable Diffusion WebUI URL
+    options.TimeoutSeconds = 300;                 // Request timeout
+    options.RetryCount = 3;                       // Number of retries on error
+    options.EnableDetailedLogging = false;        // Detailed logging
 });
 ```
 
-**Важно**: Никогда не храните API ключи в коде! Используйте User Secrets, переменные окружения или Azure Key Vault.
+**Important**: Never store API keys in code! Use User Secrets, environment variables, or Azure Key Vault.
 
-## 📝 Обработка ошибок
+## Error Handling
 
-Библиотека предоставляет специализированные исключения для разных типов ошибок:
+The library provides specialized exceptions for different error types:
 
 ```csharp
 try
@@ -203,52 +168,37 @@ try
 }
 catch (ApiException ex)
 {
-    Console.WriteLine($"Ошибка API: {ex.StatusCode} - {ex.Message}");
+    Console.WriteLine($"API Error: {ex.StatusCode} - {ex.Message}");
 }
 catch (StableDiffusionException ex)
 {
-    Console.WriteLine($"Ошибка: {ex.Message}");
+    Console.WriteLine($"Error: {ex.Message}");
 }
 ```
 
-Библиотека автоматически повторяет запросы при транзитных ошибках (500, 502, 503, 504, 429) с экспоненциальной задержкой.
+The library automatically retries requests on transient errors (500, 502, 503, 504, 429) with exponential backoff.
 
-## 🔌 Реализованные методы API
+## Implemented API Methods
 
-StableDiffusionNet полностью покрывает основные методы Stable Diffusion WebUI API:
+The library implements 22 API methods across 12 service groups, covering text-to-image generation, image-to-image processing, model management, progress tracking, and more.
 
-| Группа | Методы | Описание |
-|--------|---------|----------|
-| **TextToImage** | 1 метод | Генерация изображений из текста (txt2img) |
-| **ImageToImage** | 1 метод | Генерация из изображений (img2img, inpainting) |
-| **Models** | 4 метода | Управление моделями (список, смена, обновление) |
-| **Progress** | 3 метода | Отслеживание прогресса, прерывание, пропуск |
-| **Options** | 2 метода | Управление настройками WebUI |
-| **Samplers** | 1 метод | Получение списка сэмплеров |
-| **Schedulers** | 1 метод | Получение списка планировщиков |
-| **Upscalers** | 2 метода | Информация об апскейлерах |
-| **PngInfo** | 1 метод | Извлечение метаданных из PNG |
-| **Extra** | 1 метод | Постобработка (апскейл, восстановление лиц) |
-| **Embeddings** | 2 метода | Работа с текстовыми инверсиями |
-| **Loras** | 2 метода | Работа с LoRA моделями |
+See the [API Reference](docs/API_REFERENCE.md) for the complete list of methods and their documentation.
 
-**Всего: 22 метода API** → [Подробнее в API Reference](docs/API_REFERENCE.md)
-
-## 🎯 Требования
+## Requirements
 
 - .NET Standard 2.0+ / .NET 6.0+ / .NET 8.0+
-- Stable Diffusion WebUI (AUTOMATIC1111) с включенным API (`--api` флаг)
+- Stable Diffusion WebUI (AUTOMATIC1111) with enabled API (`--api` flag)
 
-## 🤝 Вклад в проект
+## Contributing
 
-Приветствуются Pull Request'ы! Пожалуйста, добавляйте тесты для новой функциональности.
+Pull Requests are welcome! Please add tests for new functionality.
 
-## 📄 Лицензия
+## License
 
-MIT License - см. [LICENSE](LICENSE)
+MIT License - see [LICENSE](LICENSE)
 
-## 🔗 Ссылки
+## Links
 
 - [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
-- [Официальная документация API](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API)
+- [Official API Documentation](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API)
 

@@ -1,34 +1,34 @@
 # StableDiffusionNet.DependencyInjection
 
-**English | [Русский](README.ru.md)**
+**[English](README.md) | Русский**
 
-Extensions for Microsoft.Extensions.DependencyInjection to work with StableDiffusionNet.Core.
+Расширения для Microsoft.Extensions.DependencyInjection для работы с StableDiffusionNet.Core.
 
-## Features
+## Особенности
 
-- **Microsoft.Extensions.DependencyInjection**: integration with DI container
-- **Microsoft.Extensions.Logging**: automatic logging integration
-- **IOptions Pattern**: configuration via IOptions<T>
-- **IHttpClientFactory**: HttpClient management via factory
-- **All Core Features**: access to StableDiffusionNet.Core functionality
+- **Microsoft.Extensions.DependencyInjection**: интеграция с DI контейнером
+- **Microsoft.Extensions.Logging**: автоматическая интеграция с логированием
+- **IOptions Pattern**: конфигурация через IOptions<T>
+- **IHttpClientFactory**: управление HttpClient через фабрику
+- **Все возможности Core**: доступ к функционалу StableDiffusionNet.Core
 
-## Installation
+## Установка
 
 ```bash
 dotnet add package StableDiffusionNet.DependencyInjection
 ```
 
-The package will automatically install `StableDiffusionNet.Core` as a dependency.
+Пакет автоматически установит `StableDiffusionNet.Core` как зависимость.
 
-Or via NuGet Package Manager:
+Или через NuGet Package Manager:
 
 ```
 Install-Package StableDiffusionNet.DependencyInjection
 ```
 
-## Quick Start
+## Быстрый старт
 
-### Simple Registration
+### Простая регистрация
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -37,17 +37,17 @@ using StableDiffusionNet.DependencyInjection.Extensions;
 
 var services = new ServiceCollection();
 
-// Add logging (optional but recommended)
+// Добавление логирования (опционально, но рекомендуется)
 services.AddLogging(builder => builder.AddConsole());
 
-// Register StableDiffusion client (simplest option)
+// Регистрация StableDiffusion клиента (простейший вариант)
 services.AddStableDiffusion("http://localhost:7860");
 
 var serviceProvider = services.BuildServiceProvider();
 var client = serviceProvider.GetRequiredService<IStableDiffusionClient>();
 ```
 
-### Advanced Configuration
+### Расширенная конфигурация
 
 ```csharp
 services.AddStableDiffusion(options =>
@@ -57,7 +57,7 @@ services.AddStableDiffusion(options =>
     options.RetryCount = 5;
     options.RetryDelayMilliseconds = 2000;
     options.ApiKey = "your-api-key";
-    options.EnableDetailedLogging = true; // Only for debugging
+    options.EnableDetailedLogging = true; // Только для отладки
 });
 ```
 
@@ -67,7 +67,7 @@ services.AddStableDiffusion(options =>
 // Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
-// Register from configuration
+// Регистрация из конфигурации
 builder.Services.AddStableDiffusion(options =>
 {
     builder.Configuration.GetSection("StableDiffusion").Bind(options);
@@ -87,7 +87,7 @@ var app = builder.Build();
 }
 ```
 
-### Using in Controllers
+### Использование в контроллерах
 
 ```csharp
 using Microsoft.AspNetCore.Mvc;
@@ -126,9 +126,9 @@ public class ImageGenerationController : ControllerBase
 }
 ```
 
-### Using Individual Services
+### Использование отдельных сервисов
 
-You can also inject individual services:
+Вы также можете внедрять отдельные сервисы:
 
 ```csharp
 public class MyService
@@ -152,11 +152,11 @@ public class MyService
 }
 ```
 
-## API Key Security
+## Безопасность API ключей
 
-**Important**: Never store API keys in code or public repositories!
+**Важно**: Никогда не храните API ключи в коде или публичных репозиториях!
 
-### User Secrets (for development)
+### User Secrets (для разработки)
 
 ```bash
 dotnet user-secrets set "StableDiffusion:ApiKey" "your-secret-key"
@@ -169,7 +169,7 @@ services.AddStableDiffusion(options =>
 });
 ```
 
-### Environment Variables
+### Переменные окружения
 
 ```bash
 # Windows PowerShell
@@ -186,19 +186,19 @@ services.AddStableDiffusion(options =>
 });
 ```
 
-### Azure Key Vault (for production)
+### Azure Key Vault (для продакшена)
 
 ```csharp
 var keyVaultUri = new Uri(builder.Configuration["KeyVaultUri"]);
 builder.Configuration.AddAzureKeyVault(keyVaultUri, new DefaultAzureCredential());
 ```
 
-## Logging
+## Логирование
 
-The library automatically integrates with `Microsoft.Extensions.Logging`:
+Библиотека автоматически интегрируется с `Microsoft.Extensions.Logging`:
 
 ```csharp
-// Configure logging
+// Настройка логирования
 builder.Services.AddLogging(builder =>
 {
     builder.AddConsole();
@@ -207,28 +207,28 @@ builder.Services.AddLogging(builder =>
 });
 ```
 
-Logs include:
-- Request and response information
-- Errors and exceptions
-- Retry attempts
-- Operation progress
+Логи включают:
+- Информацию о запросах и ответах
+- Ошибки и исключения
+- Retry попытки
+- Прогресс операций
 
-**Warning**: The `EnableDetailedLogging` option may log sensitive data (prompts, base64 images). Use only for debugging in a safe environment!
+**Внимание**: Опция `EnableDetailedLogging` может логировать чувствительные данные (промпты, base64 изображения). Используйте только для отладки в безопасном окружении!
 
-## Available Options
+## Доступные опции
 
-| Option | Type | Default | Description |
+| Опция | Тип | По умолчанию | Описание |
 |-------|-----|--------------|----------|
-| `BaseUrl` | `string` | `"http://localhost:7860"` | Base API URL |
-| `TimeoutSeconds` | `int` | `300` | Request timeout in seconds |
-| `RetryCount` | `int` | `3` | Number of retries on error |
-| `RetryDelayMilliseconds` | `int` | `1000` | Delay between retries in ms |
-| `ApiKey` | `string?` | `null` | API key (if required) |
-| `EnableDetailedLogging` | `bool` | `false` | Detailed logging (debugging only) |
+| `BaseUrl` | `string` | `"http://localhost:7860"` | Базовый URL API |
+| `TimeoutSeconds` | `int` | `300` | Таймаут запросов в секундах |
+| `RetryCount` | `int` | `3` | Количество повторов при ошибке |
+| `RetryDelayMilliseconds` | `int` | `1000` | Задержка между повторами в мс |
+| `ApiKey` | `string?` | `null` | API ключ (если требуется) |
+| `EnableDetailedLogging` | `bool` | `false` | Детальное логирование (только для отладки) |
 
-## Need Lightweight Version without DI?
+## Нужен lightweight вариант без DI?
 
-If you don't need Dependency Injection integration, use the base `StableDiffusionNet.Core` package:
+Если вам не нужна интеграция с Dependency Injection, используйте базовый пакет `StableDiffusionNet.Core`:
 
 ```bash
 dotnet add package StableDiffusionNet.Core
@@ -238,14 +238,13 @@ dotnet add package StableDiffusionNet.Core
 var client = StableDiffusionClientBuilder.CreateDefault("http://localhost:7860");
 ```
 
-## License
+## Лицензия
 
 MIT License
 
-## Links
+## Ссылки
 
 - [GitHub Repository](https://github.com/mrleo1nid/StableDiffusionNet)
 - [StableDiffusionNet.Core](https://www.nuget.org/packages/StableDiffusionNet.Core/)
 - [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
-
 

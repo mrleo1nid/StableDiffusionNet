@@ -1,10 +1,12 @@
-# Справочник API методов StableDiffusionNet
+# StableDiffusionNet API Methods Reference
 
-> Полный список реализованных методов Stable Diffusion WebUI API
+**English | [Русский](API_REFERENCE.ru.md)**
 
-## 📋 Оглавление
+> Complete list of implemented Stable Diffusion WebUI API methods
 
-- [Обзор](#обзор)
+## Table of Contents
+
+- [Overview](#overview)
 - [Text to Image (txt2img)](#text-to-image-txt2img)
 - [Image to Image (img2img)](#image-to-image-img2img)
 - [Models](#models)
@@ -14,34 +16,34 @@
 - [Schedulers](#schedulers)
 - [Upscalers](#upscalers)
 - [PNG Info](#png-info)
-- [Extra (Постобработка)](#extra-постобработка)
+- [Extra (Post-processing)](#extra-post-processing)
 - [Embeddings](#embeddings)
 - [LoRA](#lora)
 - [Ping](#ping)
 
 ---
 
-## Обзор
+## Overview
 
-StableDiffusionNet реализует следующие группы методов Stable Diffusion WebUI API:
+StableDiffusionNet implements the following groups of Stable Diffusion WebUI API methods:
 
-| Сервис | Описание | Методы |
+| Service | Description | Methods |
 |--------|----------|---------|
-| **TextToImage** | Генерация изображений из текста | 1 метод |
-| **ImageToImage** | Генерация изображений из изображений | 1 метод |
-| **Models** | Управление моделями | 4 метода |
-| **Progress** | Отслеживание прогресса генерации | 3 метода |
-| **Options** | Управление настройками WebUI | 2 метода |
-| **Samplers** | Информация о сэмплерах | 1 метод |
-| **Schedulers** | Информация о планировщиках | 1 метод |
-| **Upscalers** | Информация об апскейлерах | 2 метода |
-| **PngInfo** | Извлечение метаданных из PNG | 1 метод |
-| **Extra** | Постобработка изображений | 1 метод |
-| **Embeddings** | Работа с текстовыми инверсиями | 2 метода |
-| **Loras** | Работа с LoRA моделями | 2 метода |
-| **Client** | Общие методы клиента | 1 метод |
+| **TextToImage** | Generate images from text | 1 method |
+| **ImageToImage** | Generate images from images | 1 method |
+| **Models** | Model management | 4 methods |
+| **Progress** | Track generation progress | 3 methods |
+| **Options** | Manage WebUI settings | 2 methods |
+| **Samplers** | Sampler information | 1 method |
+| **Schedulers** | Scheduler information | 1 method |
+| **Upscalers** | Upscaler information | 2 methods |
+| **PngInfo** | Extract metadata from PNG | 1 method |
+| **Extra** | Post-process images | 1 method |
+| **Embeddings** | Work with textual inversions | 2 methods |
+| **Loras** | Work with LoRA models | 2 methods |
+| **Client** | General client methods | 1 method |
 
-**Всего**: 22 метода API
+**Total**: 22 API methods
 
 ---
 
@@ -49,9 +51,9 @@ StableDiffusionNet реализует следующие группы метод
 
 ### `GenerateAsync`
 
-Генерирует изображения из текстового описания.
+Generates images from text description.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<TextToImageResponse> GenerateAsync(
     TextToImageRequest request,
@@ -59,34 +61,34 @@ Task<TextToImageResponse> GenerateAsync(
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/txt2img`
+**Endpoint**: `POST /sdapi/v1/txt2img`
 
-**Основные параметры:**
-- `Prompt` - текстовое описание изображения
-- `NegativePrompt` - что не должно быть на изображении
-- `Width`, `Height` - размеры изображения
-- `Steps` - количество шагов генерации
-- `CfgScale` - степень следования промпту
-- `SamplerName` - используемый сэмплер
-- `Seed` - seed для воспроизводимости
-- `BatchSize` - количество изображений за раз
-- `NIter` - количество батчей
+**Main Parameters:**
+- `Prompt` - text description of the image
+- `NegativePrompt` - what should not be in the image
+- `Width`, `Height` - image dimensions
+- `Steps` - number of generation steps
+- `CfgScale` - how closely to follow the prompt
+- `SamplerName` - sampler to use
+- `Seed` - seed for reproducibility
+- `BatchSize` - number of images at once
+- `NIter` - number of batches
 
-**Расширенные параметры:**
-- `EnableHr` - включить Hires.fix
-- `HrScale` - масштаб для Hires.fix
-- `HrUpscaler` - апскейлер для Hires.fix
-- `DenoisingStrength` - сила шумоподавления
-- `RestoreFaces` - восстановление лиц
-- `Tiling` - генерация tileable текстур
-- `OverrideSettings` - переопределение настроек для этого запроса
+**Advanced Parameters:**
+- `EnableHr` - enable Hires.fix
+- `HrScale` - scale for Hires.fix
+- `HrUpscaler` - upscaler for Hires.fix
+- `DenoisingStrength` - denoising strength
+- `RestoreFaces` - face restoration
+- `Tiling` - generate tileable textures
+- `OverrideSettings` - override settings for this request
 
-**Ответ:**
+**Response:**
 ```csharp
 public class TextToImageResponse
 {
-    public List<string> Images { get; set; }     // Base64 изображения
-    public string Info { get; set; }              // JSON с информацией о генерации
+    public List<string> Images { get; set; }     // Base64 images
+    public string Info { get; set; }              // JSON with generation info
     public Dictionary<string, object> Parameters { get; set; }
 }
 ```
@@ -97,9 +99,9 @@ public class TextToImageResponse
 
 ### `GenerateAsync`
 
-Генерирует изображение на основе существующего изображения.
+Generates an image based on an existing image.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<ImageToImageResponse> GenerateAsync(
     ImageToImageRequest request,
@@ -107,34 +109,34 @@ Task<ImageToImageResponse> GenerateAsync(
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/img2img`
+**Endpoint**: `POST /sdapi/v1/img2img`
 
-**Основные параметры:**
-- `InitImages` - исходные изображения в base64
-- `Mask` - маска для inpainting (опционально)
-- `DenoisingStrength` - сила изменения исходного изображения (0.0-1.0)
-- Все параметры из `TextToImageRequest`
+**Main Parameters:**
+- `InitImages` - source images in base64
+- `Mask` - mask for inpainting (optional)
+- `DenoisingStrength` - strength of change to source image (0.0-1.0)
+- All parameters from `TextToImageRequest`
 
-**Параметры для Inpainting:**
-- `InpaintingFill` - чем заполнять маску (0: fill, 1: original, 2: latent noise, 3: latent nothing)
-- `InpaintFullRes` - рисовать только область маски
-- `InpaintFullResPadding` - отступ при `InpaintFullRes`
-- `InpaintingMaskInvert` - инвертировать маску
-- `MaskBlur` - размытие маски
+**Inpainting Parameters:**
+- `InpaintingFill` - what to fill mask with (0: fill, 1: original, 2: latent noise, 3: latent nothing)
+- `InpaintFullRes` - paint only mask area
+- `InpaintFullResPadding` - padding when `InpaintFullRes`
+- `InpaintingMaskInvert` - invert mask
+- `MaskBlur` - mask blur
 
-**Параметры для изменения размера:**
-- `ResizeMode` - режим изменения размера:
-  - 0: Just resize (просто изменить размер)
-  - 1: Crop and resize (обрезать и изменить размер)
-  - 2: Resize and fill (изменить размер и заполнить)
+**Resize Parameters:**
+- `ResizeMode` - resize mode:
+  - 0: Just resize
+  - 1: Crop and resize
+  - 2: Resize and fill
   - 3: Just resize (latent upscale)
 
-**Ответ:**
+**Response:**
 ```csharp
 public class ImageToImageResponse
 {
-    public List<string> Images { get; set; }     // Base64 изображения
-    public string Info { get; set; }              // JSON с информацией о генерации
+    public List<string> Images { get; set; }     // Base64 images
+    public string Info { get; set; }              // JSON with generation info
     public Dictionary<string, object> Parameters { get; set; }
 }
 ```
@@ -143,54 +145,54 @@ public class ImageToImageResponse
 
 ## Models
 
-Сервис для управления моделями Stable Diffusion.
+Service for managing Stable Diffusion models.
 
 ### `GetModelsAsync`
 
-Получает список всех доступных моделей.
+Gets a list of all available models.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<IReadOnlyList<SdModel>> GetModelsAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/sd-models`
+**Endpoint**: `GET /sdapi/v1/sd-models`
 
-**Ответ:**
+**Response:**
 ```csharp
 public class SdModel
 {
-    public string Title { get; set; }          // Имя модели
-    public string ModelName { get; set; }      // Полное имя файла
-    public string Hash { get; set; }           // SHA256 хеш модели
-    public string Sha256 { get; set; }         // SHA256 хеш (полный)
-    public string Filename { get; set; }       // Путь к файлу
-    public string Config { get; set; }         // Путь к конфигу
+    public string Title { get; set; }          // Model name
+    public string ModelName { get; set; }      // Full file name
+    public string Hash { get; set; }           // SHA256 hash of model
+    public string Sha256 { get; set; }         // SHA256 hash (full)
+    public string Filename { get; set; }       // File path
+    public string Config { get; set; }         // Config path
 }
 ```
 
 ### `GetCurrentModelAsync`
 
-Получает название текущей активной модели.
+Gets the name of the current active model.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<string> GetCurrentModelAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/options` (извлекает `sd_model_checkpoint`)
+**Endpoint**: `GET /sdapi/v1/options` (extracts `sd_model_checkpoint`)
 
-**Ответ:** Строка с названием модели (например, "sd_xl_base_1.0.safetensors")
+**Response:** String with model name (e.g., "sd_xl_base_1.0.safetensors")
 
 ### `SetModelAsync`
 
-Устанавливает активную модель.
+Sets the active model.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task SetModelAsync(
     string modelName,
@@ -198,133 +200,133 @@ Task SetModelAsync(
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/options`
+**Endpoint**: `POST /sdapi/v1/options`
 
-**Параметры:**
-- `modelName` - название модели для активации
+**Parameters:**
+- `modelName` - name of model to activate
 
-**Примечание:** Смена модели может занять время, так как модель загружается в память.
+**Note:** Model switching can take time as the model loads into memory.
 
 ### `RefreshModelsAsync`
 
-Обновляет список моделей (сканирует папки с моделями заново).
+Refreshes the model list (rescans model folders).
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task RefreshModelsAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/refresh-checkpoints`
+**Endpoint**: `POST /sdapi/v1/refresh-checkpoints`
 
-**Применение:** После добавления новых моделей в папку без перезапуска WebUI.
+**Use Case:** After adding new models to folder without restarting WebUI.
 
 ---
 
 ## Progress
 
-Сервис для отслеживания прогресса генерации.
+Service for tracking generation progress.
 
 ### `GetProgressAsync`
 
-Получает текущий прогресс генерации.
+Gets the current generation progress.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<GenerationProgress> GetProgressAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/progress`
+**Endpoint**: `GET /sdapi/v1/progress`
 
-**Ответ:**
+**Response:**
 ```csharp
 public class GenerationProgress
 {
-    public double Progress { get; set; }        // Прогресс 0.0-1.0
-    public double EtaRelative { get; set; }     // ETA в секундах
-    public ProgressState State { get; set; }    // Детали прогресса
-    public string CurrentImage { get; set; }    // Превью (если включено)
+    public double Progress { get; set; }        // Progress 0.0-1.0
+    public double EtaRelative { get; set; }     // ETA in seconds
+    public ProgressState State { get; set; }    // Progress details
+    public string CurrentImage { get; set; }    // Preview (if enabled)
 }
 
 public class ProgressState
 {
-    public int SamplingStep { get; set; }       // Текущий шаг
-    public int SamplingSteps { get; set; }      // Всего шагов
-    public bool Skipped { get; set; }           // Пропущено
-    public bool Interrupted { get; set; }       // Прервано
+    public int SamplingStep { get; set; }       // Current step
+    public int SamplingSteps { get; set; }      // Total steps
+    public bool Skipped { get; set; }           // Skipped
+    public bool Interrupted { get; set; }       // Interrupted
 }
 ```
 
-**Применение:** Показ progress bar'а во время генерации.
+**Use Case:** Display progress bar during generation.
 
 ### `InterruptAsync`
 
-Прерывает текущую генерацию.
+Interrupts current generation.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task InterruptAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/interrupt`
+**Endpoint**: `POST /sdapi/v1/interrupt`
 
-**Применение:** Остановка долгой генерации пользователем.
+**Use Case:** Stop long generation by user.
 
 ### `SkipAsync`
 
-Пропускает текущее изображение при батч-генерации.
+Skips current image in batch generation.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task SkipAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/skip`
+**Endpoint**: `POST /sdapi/v1/skip`
 
-**Применение:** Пропустить неудачное изображение в батче и перейти к следующему.
+**Use Case:** Skip unsuccessful image in batch and move to next.
 
 ---
 
 ## Options
 
-Сервис для управления настройками WebUI.
+Service for managing WebUI settings.
 
 ### `GetOptionsAsync`
 
-Получает все текущие настройки WebUI.
+Gets all current WebUI settings.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<WebUIOptions> GetOptionsAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/options`
+**Endpoint**: `GET /sdapi/v1/options`
 
-**Ответ:** Объект `WebUIOptions` с сотнями настроек WebUI.
+**Response:** `WebUIOptions` object with hundreds of WebUI settings.
 
-**Основные настройки:**
-- `SdModelCheckpoint` - текущая модель
+**Main Settings:**
+- `SdModelCheckpoint` - current model
 - `ClipStopAtLastLayers` - CLIP skip
-- `EnableXformers` - использование xFormers
-- `EtaDdim`, `EtaAncestral` - параметры eta для сэмплеров
-- `SamplesFormat` - формат сохранения (png, jpg, webp)
-- `SamplesSave` - сохранять ли изображения
-- И многое другое...
+- `EnableXformers` - use xFormers
+- `EtaDdim`, `EtaAncestral` - eta parameters for samplers
+- `SamplesFormat` - save format (png, jpg, webp)
+- `SamplesSave` - whether to save images
+- And much more...
 
 ### `SetOptionsAsync`
 
-Устанавливает настройки WebUI.
+Sets WebUI settings.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task SetOptionsAsync(
     WebUIOptions options,
@@ -332,102 +334,102 @@ Task SetOptionsAsync(
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/options`
+**Endpoint**: `POST /sdapi/v1/options`
 
-**Параметры:**
-- `options` - объект с настройками (можно передать частичные изменения)
+**Parameters:**
+- `options` - object with settings (partial changes allowed)
 
-**Применение:** Изменение глобальных настроек WebUI программно.
+**Use Case:** Programmatically change global WebUI settings.
 
 ---
 
 ## Samplers
 
-Сервис для получения информации о сэмплерах.
+Service for getting sampler information.
 
 ### `GetSamplersAsync`
 
-Получает список доступных сэмплеров с полной информацией.
+Gets a list of available samplers with full information.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<IReadOnlyList<Sampler>> GetSamplersAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/samplers`
+**Endpoint**: `GET /sdapi/v1/samplers`
 
-**Ответ:** Список объектов `Sampler` с полями:
-- `Name` - название сэмплера
-- `Aliases` - список альтернативных имён
-- `Options` - словарь дополнительных опций сэмплера
+**Response:** List of `Sampler` objects with fields:
+- `Name` - sampler name
+- `Aliases` - list of alternative names
+- `Options` - dictionary of additional sampler options
 
-**Примеры сэмплеров:** Euler a, Euler, DPM++ 2M Karras, LMS Karras и другие.
+**Sampler Examples:** Euler a, Euler, DPM++ 2M Karras, LMS Karras, and others.
 
-**Применение:** Динамическое построение UI с выбором сэмплера.
+**Use Case:** Dynamic UI building with sampler selection.
 
 ---
 
 ## Schedulers
 
-Сервис для получения информации о планировщиках (schedulers).
+Service for getting scheduler information.
 
 ### `GetSchedulersAsync`
 
-Получает список доступных планировщиков шагов с полной информацией.
+Gets a list of available step schedulers with full information.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<IReadOnlyList<Scheduler>> GetSchedulersAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/schedulers`
+**Endpoint**: `GET /sdapi/v1/schedulers`
 
-**Ответ:** Список объектов `Scheduler` с полями:
-- `Name` - внутреннее имя планировщика
-- `Label` - отображаемое имя планировщика
-- `Aliases` - список альтернативных имён (может быть null)
-- `DefaultRho` - значение rho по умолчанию
-- `NeedInnerModel` - требуется ли внутренняя модель
+**Response:** List of `Scheduler` objects with fields:
+- `Name` - internal scheduler name
+- `Label` - display scheduler name
+- `Aliases` - list of alternative names (may be null)
+- `DefaultRho` - default rho value
+- `NeedInnerModel` - whether inner model is required
 
-**Примеры планировщиков:** Automatic, Karras, Exponential, Normal, Simple, Beta и другие.
+**Scheduler Examples:** Automatic, Karras, Exponential, Normal, Simple, Beta, and others.
 
-**Применение:** Выбор scheduler'а для более тонкой настройки генерации.
+**Use Case:** Select scheduler for finer generation tuning.
 
 ---
 
 ## Upscalers
 
-Сервис для получения информации об апскейлерах.
+Service for getting upscaler information.
 
 ### `GetUpscalersAsync`
 
-Получает список доступных апскейлеров.
+Gets a list of available upscalers.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<IReadOnlyList<Upscaler>> GetUpscalersAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/upscalers`
+**Endpoint**: `GET /sdapi/v1/upscalers`
 
-**Ответ:**
+**Response:**
 ```csharp
 public class Upscaler
 {
-    public string Name { get; set; }           // Название апскейлера
-    public string Model { get; set; }          // Модель (если есть)
-    public string ModelPath { get; set; }      // Путь к модели (если есть)
-    public int Scale { get; set; }             // Масштаб (например, 4x)
+    public string Name { get; set; }           // Upscaler name
+    public string Model { get; set; }          // Model (if any)
+    public string ModelPath { get; set; }      // Model path (if any)
+    public int Scale { get; set; }             // Scale (e.g., 4x)
 }
 ```
 
-**Примеры апскейлеров:**
+**Upscaler Examples:**
 - ESRGAN_4x
 - Lanczos
 - Nearest
@@ -437,34 +439,34 @@ public class Upscaler
 
 ### `GetLatentUpscaleModesAsync`
 
-Получает список доступных режимов latent upscale.
+Gets a list of available latent upscale modes.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<IReadOnlyList<LatentUpscaleMode>> GetLatentUpscaleModesAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/latent-upscale-modes`
+**Endpoint**: `GET /sdapi/v1/latent-upscale-modes`
 
-**Ответ:** Список объектов `LatentUpscaleMode` с полем `Name`, содержащим название режима.
+**Response:** List of `LatentUpscaleMode` objects with `Name` field containing mode name.
 
-**Примеры режимов:** Latent, Latent (antialiased), Latent (bicubic), Latent (bicubic antialiased), Latent (nearest), Latent (nearest-exact).
+**Mode Examples:** Latent, Latent (antialiased), Latent (bicubic), Latent (bicubic antialiased), Latent (nearest), Latent (nearest-exact).
 
-**Применение:** Используется для Hires.fix с latent upscale.
+**Use Case:** Used for Hires.fix with latent upscale.
 
 ---
 
 ## PNG Info
 
-Сервис для извлечения метаданных генерации из PNG изображений.
+Service for extracting generation metadata from PNG images.
 
 ### `GetPngInfoAsync`
 
-Извлекает параметры генерации из PNG изображения.
+Extracts generation parameters from PNG image.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<PngInfoResponse> GetPngInfoAsync(
     PngInfoRequest request,
@@ -472,41 +474,41 @@ Task<PngInfoResponse> GetPngInfoAsync(
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/png-info`
+**Endpoint**: `POST /sdapi/v1/png-info`
 
-**Параметры:**
+**Parameters:**
 ```csharp
 public class PngInfoRequest
 {
-    public string Image { get; set; }  // PNG изображение в base64
+    public string Image { get; set; }  // PNG image in base64
 }
 ```
 
-**Ответ:**
+**Response:**
 ```csharp
 public class PngInfoResponse
 {
-    public string Info { get; set; }   // Текстовая информация о генерации
-    public Dictionary<string, object> Items { get; set; } // Распарсенные параметры
+    public string Info { get; set; }   // Text information about generation
+    public Dictionary<string, object> Items { get; set; } // Parsed parameters
 }
 ```
 
-**Применение:** 
-- Извлечение промпта из сгенерированного изображения
-- Копирование параметров генерации
-- Анализ чужих изображений
+**Use Cases:** 
+- Extract prompt from generated image
+- Copy generation parameters
+- Analyze others' images
 
 ---
 
-## Extra (Постобработка)
+## Extra (Post-processing)
 
-Сервис для постобработки изображений (апскейл, восстановление лиц).
+Service for image post-processing (upscale, face restoration).
 
 ### `ProcessSingleImageAsync`
 
-Выполняет постобработку одного изображения.
+Performs post-processing on a single image.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<ExtraSingleImageResponse> ProcessSingleImageAsync(
     ExtraSingleImageRequest request,
@@ -514,207 +516,208 @@ Task<ExtraSingleImageResponse> ProcessSingleImageAsync(
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/extra-single-image`
+**Endpoint**: `POST /sdapi/v1/extra-single-image`
 
-**Параметры:**
+**Parameters:**
 ```csharp
 public class ExtraSingleImageRequest
 {
-    public string Image { get; set; }              // Изображение в base64
-    public int ResizeMode { get; set; }            // Режим изменения размера
-    public bool ShowExtrasResults { get; set; }    // Показывать результаты
-    public int GfpganVisibility { get; set; }      // Сила GFPGAN (0-1)
-    public int CodeformerVisibility { get; set; }  // Сила CodeFormer (0-1)
-    public double CodeformerWeight { get; set; }   // Вес CodeFormer
-    public int UpscalingResize { get; set; }       // Во сколько раз увеличить
-    public double UpscalingResizeW { get; set; }   // Целевая ширина
-    public double UpscalingResizeH { get; set; }   // Целевая высота
-    public bool UpscalingCrop { get; set; }        // Обрезать до целевого размера
-    public string Upscaler1 { get; set; }          // Первый апскейлер
-    public string Upscaler2 { get; set; }          // Второй апскейлер
-    public double ExtrasUpscaler2Visibility { get; set; } // Видимость второго апскейлера
-    public bool UpscaleFirst { get; set; }         // Сначала апскейл, потом face restoration
+    public string Image { get; set; }              // Image in base64
+    public int ResizeMode { get; set; }            // Resize mode
+    public bool ShowExtrasResults { get; set; }    // Show results
+    public int GfpganVisibility { get; set; }      // GFPGAN strength (0-1)
+    public int CodeformerVisibility { get; set; }  // CodeFormer strength (0-1)
+    public double CodeformerWeight { get; set; }   // CodeFormer weight
+    public int UpscalingResize { get; set; }       // How much to enlarge
+    public double UpscalingResizeW { get; set; }   // Target width
+    public double UpscalingResizeH { get; set; }   // Target height
+    public bool UpscalingCrop { get; set; }        // Crop to target size
+    public string Upscaler1 { get; set; }          // First upscaler
+    public string Upscaler2 { get; set; }          // Second upscaler
+    public double ExtrasUpscaler2Visibility { get; set; } // Second upscaler visibility
+    public bool UpscaleFirst { get; set; }         // Upscale first, then face restoration
 }
 ```
 
-**Ответ:**
+**Response:**
 ```csharp
 public class ExtraSingleImageResponse
 {
-    public string Image { get; set; }   // Обработанное изображение в base64
-    public string HtmlInfo { get; set; } // HTML информация о процессе
+    public string Image { get; set; }   // Processed image in base64
+    public string HtmlInfo { get; set; } // HTML info about process
 }
 ```
 
-**Применение:**
-- Увеличение разрешения готовых изображений
-- Восстановление лиц на изображениях
-- Улучшение качества старых изображений
+**Use Cases:**
+- Increase resolution of finished images
+- Restore faces in images
+- Improve quality of old images
 
 ---
 
 ## Embeddings
 
-Сервис для работы с embeddings (textual inversions).
+Service for working with embeddings (textual inversions).
 
 ### `GetEmbeddingsAsync`
 
-Получает список всех доступных embeddings.
+Gets a list of all available embeddings.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<IReadOnlyDictionary<string, Embedding>> GetEmbeddingsAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/embeddings`
+**Endpoint**: `GET /sdapi/v1/embeddings`
 
-**Ответ:**
+**Response:**
 ```csharp
 public class Embedding
 {
-    public int Step { get; set; }              // Номер шага обучения
-    public string SdCheckpoint { get; set; }   // Чекпоинт, на котором обучено
-    public string SdCheckpointName { get; set; } // Имя чекпоинта
-    public int Shape { get; set; }             // Размерность эмбеддинга
-    public int Vectors { get; set; }           // Количество векторов
+    public int Step { get; set; }              // Training step number
+    public string SdCheckpoint { get; set; }   // Checkpoint trained on
+    public string SdCheckpointName { get; set; } // Checkpoint name
+    public int Shape { get; set; }             // Embedding dimension
+    public int Vectors { get; set; }           // Number of vectors
 }
 ```
 
-**Применение:** 
-- Получение списка доступных текстовых инверсий
-- Использование в промптах через синтаксис `<embedding-name>`
+**Use Cases:** 
+- Get list of available textual inversions
+- Use in prompts via `<embedding-name>` syntax
 
 ### `RefreshEmbeddingsAsync`
 
-Обновляет список embeddings (сканирует папку заново).
+Refreshes embeddings list (rescans folder).
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task RefreshEmbeddingsAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/refresh-embeddings`
+**Endpoint**: `POST /sdapi/v1/refresh-embeddings`
 
-**Применение:** После добавления новых embeddings без перезапуска WebUI.
+**Use Case:** After adding new embeddings without restarting WebUI.
 
 ---
 
 ## LoRA
 
-Сервис для работы с LoRA моделями.
+Service for working with LoRA models.
 
 ### `GetLorasAsync`
 
-Получает список всех доступных LoRA моделей.
+Gets a list of all available LoRA models.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<IReadOnlyList<Lora>> GetLorasAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `GET /sdapi/v1/loras`
+**Endpoint**: `GET /sdapi/v1/loras`
 
-**Ответ:**
+**Response:**
 ```csharp
 public class Lora
 {
-    public string Name { get; set; }           // Имя LoRA
-    public string Alias { get; set; }          // Алиас
-    public string Path { get; set; }           // Путь к файлу
-    public Dictionary<string, object> Metadata { get; set; } // Метаданные
+    public string Name { get; set; }           // LoRA name
+    public string Alias { get; set; }          // Alias
+    public string Path { get; set; }           // File path
+    public Dictionary<string, object> Metadata { get; set; } // Metadata
 }
 ```
 
-**Применение:**
-- Получение списка доступных LoRA
-- Использование в промптах через синтаксис `<lora:name:weight>`
+**Use Cases:**
+- Get list of available LoRAs
+- Use in prompts via `<lora:name:weight>` syntax
 
 ### `RefreshLorasAsync`
 
-Обновляет список LoRA моделей (сканирует папку заново).
+Refreshes LoRA models list (rescans folder).
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task RefreshLorasAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: `POST /sdapi/v1/refresh-loras`
+**Endpoint**: `POST /sdapi/v1/refresh-loras`
 
-**Применение:** После добавления новых LoRA без перезапуска WebUI.
+**Use Case:** After adding new LoRAs without restarting WebUI.
 
 ---
 
 ## Ping
 
-Общий метод клиента для проверки доступности API.
+General client method for checking API availability.
 
 ### `PingAsync`
 
-Проверяет доступность API.
+Checks API availability.
 
-**Сигнатура:**
+**Signature:**
 ```csharp
 Task<bool> PingAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Эндпоинт**: Выполняет запрос к базовому URL
+**Endpoint**: Makes request to base URL
 
-**Ответ:** `true` если API доступен, `false` в противном случае.
+**Response:** `true` if API is available, `false` otherwise.
 
-**Применение:**
-- Проверка доступности перед началом работы
-- Health check для мониторинга
-- Ожидание запуска WebUI
+**Use Cases:**
+- Check availability before starting work
+- Health check for monitoring
+- Wait for WebUI startup
 
 ---
 
-## Дополнительная информация
+## Additional Information
 
-### Формат изображений
+### Image Format
 
-Все изображения передаются в формате base64. Для конвертации используйте класс `ImageHelper`:
+All images are transferred in base64 format. Use `ImageHelper` class for conversion:
 
 ```csharp
-// Изображение в base64
+// Image to base64
 var base64 = ImageHelper.ImageToBase64("input.png");
 
-// Base64 в изображение
+// Base64 to image
 ImageHelper.Base64ToImage(base64String, "output.png");
 ```
 
-### Обработка ошибок
+### Error Handling
 
-Все методы могут выбросить следующие исключения:
-- `ApiException` - ошибки API с кодом ответа и телом
-- `ConfigurationException` - ошибки конфигурации
-- `StableDiffusionException` - базовое исключение
+All methods can throw the following exceptions:
+- `ApiException` - API errors with response code and body
+- `ConfigurationException` - configuration errors
+- `StableDiffusionException` - base exception
 
 ### CancellationToken
 
-Все асинхронные методы поддерживают `CancellationToken` для отмены операций.
+All async methods support `CancellationToken` for canceling operations.
 
 ### Retry Policy
 
-Библиотека автоматически повторяет запросы при транзитных ошибках:
+The library automatically retries requests on transient errors:
 - HTTP 500, 502, 503, 504
 - HTTP 429 (Too Many Requests)
-- Ошибки сети и таймауты
+- Network errors and timeouts
 
 ---
 
-## Примеры
+## Examples
 
-Подробные примеры использования всех методов API смотрите в [EXAMPLES.md](EXAMPLES.md).
+See detailed examples of all API methods in [EXAMPLES.md](EXAMPLES.md).
 
-Продвинутые сценарии использования описаны в [ADVANCED.md](ADVANCED.md).
+Advanced usage scenarios are described in [ADVANCED.md](ADVANCED.md).
+
 

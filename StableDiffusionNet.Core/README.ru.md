@@ -1,44 +1,44 @@
 # StableDiffusionNet.Core
 
-**English | [Русский](README.ru.md)**
+**[English](README.md) | Русский**
 
-Core library for working with Stable Diffusion WebUI API.
+Core библиотека для работы с Stable Diffusion WebUI API.
 
-## Features
+## Особенности
 
-- **Minimal dependencies**: only Newtonsoft.Json for serialization
-- **No DI**: simple to use without DI infrastructure
-- **Built-in Retry**: custom retry logic implementation
-- **Asynchronous operations**: async/await and CancellationToken support
-- **XML documentation**: for all public APIs
-- **Builder Pattern**: convenient client creation
-- **Custom logging**: minimalistic abstraction without Microsoft.Extensions
-- **Multi-targeting**: supports .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
+- **Минимальные зависимости**: только Newtonsoft.Json для сериализации
+- **Без DI**: простой в использовании без инфраструктуры DI
+- **Встроенный Retry**: собственная реализация retry логики
+- **Асинхронные операции**: поддержка async/await и CancellationToken
+- **XML документация**: для всех публичных API
+- **Builder Pattern**: удобное создание клиента
+- **Собственное логирование**: минималистичная абстракция без Microsoft.Extensions
+- **Multi-targeting**: поддержка .NET Standard 2.0, 2.1, .NET 6.0, .NET 8.0
 
-## Installation
+## Установка
 
 ```bash
 dotnet add package StableDiffusionNet.Core
 ```
 
-Or via NuGet Package Manager:
+Или через NuGet Package Manager:
 
 ```
 Install-Package StableDiffusionNet.Core
 ```
 
-## Quick Start
+## Быстрый старт
 
-### Simplest Option
+### Простейший вариант
 
 ```csharp
 using StableDiffusionNet;
 using StableDiffusionNet.Models.Requests;
 
-// Create client with default settings
+// Создание клиента с настройками по умолчанию
 var client = StableDiffusionClientBuilder.CreateDefault("http://localhost:7860");
 
-// Generate image
+// Генерация изображения
 var request = new TextToImageRequest
 {
     Prompt = "a beautiful sunset over mountains, highly detailed, 4k",
@@ -51,13 +51,13 @@ var request = new TextToImageRequest
 var response = await client.TextToImage.GenerateAsync(request);
 ```
 
-### Using Builder for Configuration
+### Использование Builder для настройки
 
 ```csharp
 using StableDiffusionNet;
 using StableDiffusionNet.Logging;
 
-// Create client with additional settings
+// Создание клиента с дополнительными настройками
 var client = new StableDiffusionClientBuilder()
     .WithBaseUrl("http://localhost:7860")
     .WithTimeout(600)
@@ -67,10 +67,10 @@ var client = new StableDiffusionClientBuilder()
     .Build();
 ```
 
-### Using with Custom Logging
+### Использование с собственным логированием
 
 ```csharp
-// Implement IStableDiffusionLogger
+// Реализуйте IStableDiffusionLogger
 public class ConsoleLogger : IStableDiffusionLogger
 {
     public void Log(LogLevel logLevel, string message)
@@ -86,23 +86,23 @@ public class ConsoleLogger : IStableDiffusionLogger
     public bool IsEnabled(LogLevel logLevel) => true;
 }
 
-// Implement IStableDiffusionLoggerFactory
+// Реализуйте IStableDiffusionLoggerFactory
 public class ConsoleLoggerFactory : IStableDiffusionLoggerFactory
 {
     public IStableDiffusionLogger CreateLogger<T>() => new ConsoleLogger();
     public IStableDiffusionLogger CreateLogger(string categoryName) => new ConsoleLogger();
 }
 
-// Use with Builder
+// Используйте с Builder
 var client = new StableDiffusionClientBuilder()
     .WithBaseUrl("http://localhost:7860")
     .WithLoggerFactory(new ConsoleLoggerFactory())
     .Build();
 ```
 
-## Main Features
+## Основные возможности
 
-### Text-to-Image Generation
+### Text-to-Image генерация
 
 ```csharp
 var request = new TextToImageRequest
@@ -118,7 +118,7 @@ var response = await client.TextToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "output.png");
 ```
 
-### Image-to-Image Generation
+### Image-to-Image генерация
 
 ```csharp
 var initImage = ImageHelper.ImageToBase64("input.png");
@@ -133,36 +133,36 @@ var request = new ImageToImageRequest
 var response = await client.ImageToImage.GenerateAsync(request);
 ```
 
-### Working with Models
+### Работа с моделями
 
 ```csharp
-// Get list of models
+// Получить список моделей
 var models = await client.Models.GetModelsAsync();
 
-// Get current model
+// Получить текущую модель
 var currentModel = await client.Models.GetCurrentModelAsync();
 
-// Set model
+// Установить модель
 await client.Models.SetModelAsync("sd_xl_base_1.0.safetensors");
 ```
 
-### Monitoring Progress
+### Мониторинг прогресса
 
 ```csharp
 var progress = await client.Progress.GetProgressAsync();
 Console.WriteLine($"Progress: {progress.Progress:P}");
 ```
 
-## Retry Logic
+## Retry логика
 
-The library includes a reliable custom retry implementation with exponential backoff:
+Библиотека включает надежную собственную реализацию retry с экспоненциальной задержкой:
 
-- Automatic retries for transient errors (500, 502, 503, 504)
-- Special handling for rate limiting (HTTP 429)
-- Exponential backoff with jitter to avoid thundering herd
-- Configurable retry count and delays
+- Автоматические повторы для транзитных ошибок (500, 502, 503, 504)
+- Специальная обработка rate limiting (HTTP 429)
+- Экспоненциальный backoff с jitter для избежания thundering herd
+- Настраиваемое количество попыток и задержки
 
-## Error Handling
+## Обработка ошибок
 
 ```csharp
 using StableDiffusionNet.Exceptions;
@@ -187,9 +187,9 @@ catch (StableDiffusionException ex)
 }
 ```
 
-## Need Dependency Injection?
+## Нужен Dependency Injection?
 
-If you need integration with Microsoft.Extensions.DependencyInjection, use the `StableDiffusionNet.DependencyInjection` package:
+Если вам нужна интеграция с Microsoft.Extensions.DependencyInjection, используйте пакет `StableDiffusionNet.DependencyInjection`:
 
 ```bash
 dotnet add package StableDiffusionNet.DependencyInjection
@@ -202,14 +202,13 @@ services.AddStableDiffusion(options =>
 });
 ```
 
-## License
+## Лицензия
 
 MIT License
 
-## Links
+## Ссылки
 
 - [GitHub Repository](https://github.com/mrleo1nid/StableDiffusionNet)
 - [StableDiffusionNet.DependencyInjection](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/)
 - [Stable Diffusion WebUI](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
-
 

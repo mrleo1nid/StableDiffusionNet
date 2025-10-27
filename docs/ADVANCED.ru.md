@@ -1,27 +1,27 @@
-# Advanced Usage Examples for StableDiffusionNet
+# Продвинутые примеры использования StableDiffusionNet
 
-**English | [Русский](ADVANCED.ru.md)**
+**[English](ADVANCED.md) | Русский**
 
-> Complex scenarios and best practices for professional use
+> Сложные сценарии и best practices для профессионального использования
 
-## Table of Contents
+## Оглавление
 
-- [Workflow Automation](#workflow-automation)
-- [Parallel Generation](#parallel-generation)
-- [Performance Optimization](#performance-optimization)
-- [Advanced Inpainting](#advanced-inpainting)
-- [Working with Large Batches](#working-with-large-batches)
-- [Database Integration](#database-integration)
-- [RESTful API Service](#restful-api-service)
-- [Queue Processing](#queue-processing)
-- [Caching and Optimization](#caching-and-optimization)
-- [Monitoring and Metrics](#monitoring-and-metrics)
+- [Автоматизация воркфлоу](#автоматизация-воркфлоу)
+- [Параллельная генерация](#параллельная-генерация)
+- [Оптимизация производительности](#оптимизация-производительности)
+- [Продвинутый inpainting](#продвинутый-inpainting)
+- [Работа с большими батчами](#работа-с-большими-батчами)
+- [Интеграция с базой данных](#интеграция-с-базой-данных)
+- [RESTful API сервис](#restful-api-сервис)
+- [Обработка очередей](#обработка-очередей)
+- [Кеширование и оптимизация](#кеширование-и-оптимизация)
+- [Мониторинг и метрики](#мониторинг-и-метрики)
 
 ---
 
-## Workflow Automation
+## Автоматизация воркфлоу
 
-### Complete Generation and Post-processing Pipeline
+### Полный пайплайн генерации и постобработки
 
 ```csharp
 using StableDiffusionNet;
@@ -42,8 +42,8 @@ public class ImageGenerationPipeline
         string outputPath,
         CancellationToken cancellationToken = default)
     {
-        // 1. Generate base image
-        Console.WriteLine("Step 1/3: Generating base image...");
+        // 1. Генерация базового изображения
+        Console.WriteLine("Шаг 1/3: Генерация базового изображения...");
         var generateRequest = new TextToImageRequest
         {
             Prompt = prompt,
@@ -59,8 +59,8 @@ public class ImageGenerationPipeline
             cancellationToken
         );
         
-        // 2. Upscale with face restoration
-        Console.WriteLine("Step 2/3: Upscaling and restoring details...");
+        // 2. Апскейл с восстановлением лиц
+        Console.WriteLine("Шаг 2/3: Увеличение разрешения и восстановление деталей...");
         var upscaleRequest = new ExtraSingleImageRequest
         {
             Image = generated.Images[0],
@@ -77,13 +77,13 @@ public class ImageGenerationPipeline
             cancellationToken
         );
         
-        // 3. Final refinement via img2img
-        Console.WriteLine("Step 3/3: Final detail refinement...");
+        // 3. Финальная доработка через img2img
+        Console.WriteLine("Шаг 3/3: Финальная доработка деталей...");
         var refineRequest = new ImageToImageRequest
         {
             InitImages = new List<string> { upscaled.Image },
             Prompt = prompt + ", highly detailed, sharp, professional",
-            DenoisingStrength = 0.2,  // Small correction
+            DenoisingStrength = 0.2,  // Небольшая коррекция
             Steps = 20,
             Width = 1024,
             Height = 1024
@@ -94,15 +94,15 @@ public class ImageGenerationPipeline
             cancellationToken
         );
         
-        // 4. Save result
+        // 4. Сохранение результата
         ImageHelper.Base64ToImage(refined.Images[0], outputPath);
-        Console.WriteLine($"✓ Image saved: {outputPath}");
+        Console.WriteLine($"✓ Изображение сохранено: {outputPath}");
         
         return outputPath;
     }
 }
 
-// Usage
+// Использование
 var pipeline = new ImageGenerationPipeline(client);
 await pipeline.GenerateAndEnhanceAsync(
     "a beautiful fantasy landscape",
@@ -110,7 +110,7 @@ await pipeline.GenerateAndEnhanceAsync(
 );
 ```
 
-### Automatic Optimal Parameter Selection
+### Автоматический выбор оптимальных параметров
 
 ```csharp
 public class SmartGenerationService
@@ -126,7 +126,7 @@ public class SmartGenerationService
             Prompt = prompt
         };
         
-        // Determine optimal parameters by category
+        // Определяем оптимальные параметры по категории
         switch (category.ToLower())
         {
             case "portrait":
@@ -153,7 +153,7 @@ public class SmartGenerationService
                 request.CfgScale = 8.0;
                 request.SamplerName = "Euler a";
                 
-                // Switch to anime model
+                // Меняем модель на аниме
                 var models = await _client.Models.GetModelsAsync();
                 var animeModel = models.FirstOrDefault(m => 
                     m.Title.Contains("anime", StringComparison.OrdinalIgnoreCase));
@@ -187,7 +187,7 @@ public class SmartGenerationService
     }
 }
 
-// Usage
+// Использование
 var service = new SmartGenerationService(client);
 var request = await service.OptimizeRequestAsync(
     "beautiful woman portrait", 
@@ -196,7 +196,7 @@ var request = await service.OptimizeRequestAsync(
 var response = await client.TextToImage.GenerateAsync(request);
 ```
 
-### Generating Variations with Evolution
+### Генерация вариаций с эволюцией
 
 ```csharp
 public class ImageEvolutionService
@@ -212,8 +212,8 @@ public class ImageEvolutionService
         Directory.CreateDirectory(outputFolder);
         var results = new List<string>();
         
-        // Generate initial generation
-        Console.WriteLine($"Generation 0: Initial generation");
+        // Генерация начального поколения
+        Console.WriteLine($"Поколение 0: Начальная генерация");
         var request = new TextToImageRequest
         {
             Prompt = initialPrompt,
@@ -226,7 +226,7 @@ public class ImageEvolutionService
         var response = await _client.TextToImage.GenerateAsync(request);
         string bestImage = response.Images[0];
         
-        // Save initial variants
+        // Сохраняем начальные варианты
         for (int i = 0; i < response.Images.Count; i++)
         {
             var path = Path.Combine(outputFolder, $"gen0_var{i}.png");
@@ -234,23 +234,23 @@ public class ImageEvolutionService
             results.Add(path);
         }
         
-        // Evolution via img2img
+        // Эволюция через img2img
         for (int gen = 1; gen < generations; gen++)
         {
-            Console.WriteLine($"Generation {gen}: Evolution...");
+            Console.WriteLine($"Поколение {gen}: Эволюция...");
             
             var evolutionRequest = new ImageToImageRequest
             {
                 InitImages = new List<string> { bestImage },
                 Prompt = initialPrompt + ", improved, enhanced, refined",
-                DenoisingStrength = 0.4 - (gen * 0.05),  // Reduce strength each generation
+                DenoisingStrength = 0.4 - (gen * 0.05),  // Уменьшаем силу с каждым поколением
                 BatchSize = variantsPerGeneration,
                 Steps = 25
             };
             
             var evolutionResponse = await _client.ImageToImage.GenerateAsync(evolutionRequest);
             
-            // Save variants of current generation
+            // Сохраняем варианты текущего поколения
             for (int i = 0; i < evolutionResponse.Images.Count; i++)
             {
                 var path = Path.Combine(outputFolder, $"gen{gen}_var{i}.png");
@@ -258,16 +258,16 @@ public class ImageEvolutionService
                 results.Add(path);
             }
             
-            // Select best for next generation (in reality - through quality assessment)
+            // Выбираем лучшее для следующего поколения (в реальности - через оценку качества)
             bestImage = evolutionResponse.Images[0];
         }
         
-        Console.WriteLine($"✓ Evolution completed: {results.Count} images");
+        Console.WriteLine($"✓ Эволюция завершена: {results.Count} изображений");
         return results;
     }
 }
 
-// Usage
+// Использование
 var evolution = new ImageEvolutionService(client);
 var images = await evolution.EvolveImageAsync(
     "a futuristic city",
@@ -278,26 +278,26 @@ var images = await evolution.EvolveImageAsync(
 
 ---
 
-## Parallel Generation
+## Параллельная генерация
 
-### Generating Multiple Prompts in Parallel
+### Генерация нескольких промптов параллельно
 
 ```csharp
 public async Task BatchGenerateAsync(List<string> prompts, string outputFolder)
 {
     Directory.CreateDirectory(outputFolder);
     
-    // Configure parallelism (depends on GPU memory)
+    // Настраиваем параллельность (зависит от GPU памяти)
     var options = new ParallelOptions
     {
-        MaxDegreeOfParallelism = 2  // 2 generations simultaneously
+        MaxDegreeOfParallelism = 2  // Одновременно 2 генерации
     };
     
     await Parallel.ForEachAsync(prompts, options, async (prompt, ct) =>
     {
         try
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Starting: {prompt}");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Начало: {prompt}");
             
             var request = new TextToImageRequest
             {
@@ -309,7 +309,7 @@ public async Task BatchGenerateAsync(List<string> prompts, string outputFolder)
             
             var response = await client.TextToImage.GenerateAsync(request, ct);
             
-            // Safe file name
+            // Безопасное имя файла
             var fileName = string.Join("_", 
                 prompt.Split(Path.GetInvalidFileNameChars()))
                 .Substring(0, Math.Min(50, prompt.Length));
@@ -317,18 +317,18 @@ public async Task BatchGenerateAsync(List<string> prompts, string outputFolder)
             var path = Path.Combine(outputFolder, $"{fileName}.png");
             ImageHelper.Base64ToImage(response.Images[0], path);
             
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ✓ Done: {prompt}");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ✓ Готово: {prompt}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] × Error for '{prompt}': {ex.Message}");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] × Ошибка для '{prompt}': {ex.Message}");
         }
     });
     
-    Console.WriteLine("✓ Batch generation completed");
+    Console.WriteLine("✓ Батч-генерация завершена");
 }
 
-// Usage
+// Использование
 var prompts = new List<string>
 {
     "a beautiful sunset",
@@ -340,22 +340,22 @@ var prompts = new List<string>
 await BatchGenerateAsync(prompts, "batch_output");
 ```
 
-### Parallel Processing with Different Models
+### Параллельная обработка с разными моделями
 
 ```csharp
 public async Task CompareModelsAsync(string prompt, List<string> modelNames)
 {
     var tasks = new List<Task<(string model, byte[] image)>>();
     
-    // Create separate client for each model (if multiple GPUs)
-    // Or execute sequentially
+    // Создаем отдельного клиента для каждой модели (если есть несколько GPU)
+    // Или выполняем последовательно
     foreach (var modelName in modelNames)
     {
         tasks.Add(Task.Run(async () =>
         {
-            // Switch model
+            // Меняем модель
             await client.Models.SetModelAsync(modelName);
-            await Task.Delay(2000); // Wait for model to load
+            await Task.Delay(2000); // Ждем загрузки модели
             
             var request = new TextToImageRequest
             {
@@ -363,7 +363,7 @@ public async Task CompareModelsAsync(string prompt, List<string> modelNames)
                 Width = 512,
                 Height = 512,
                 Steps = 20,
-                Seed = 12345  // Same seed for comparison
+                Seed = 12345  // Одинаковый seed для сравнения
             };
             
             var response = await client.TextToImage.GenerateAsync(request);
@@ -375,17 +375,17 @@ public async Task CompareModelsAsync(string prompt, List<string> modelNames)
     
     var results = await Task.WhenAll(tasks);
     
-    // Save results
+    // Сохраняем результаты
     foreach (var (model, imageData) in results)
     {
         var fileName = $"model_{model.Replace(".", "_")}.png";
         File.WriteAllBytes(fileName, imageData);
-        Console.WriteLine($"✓ Saved: {fileName}");
+        Console.WriteLine($"✓ Сохранено: {fileName}");
     }
 }
 ```
 
-### Asynchronous Queue Processing
+### Асинхронная обработка очереди
 
 ```csharp
 using System.Threading.Channels;
@@ -404,7 +404,7 @@ public class GenerationQueueService
     public async Task EnqueueAsync(GenerationTask task)
     {
         await _queue.Writer.WriteAsync(task);
-        Console.WriteLine($"✓ Task added to queue: {task.Id}");
+        Console.WriteLine($"✓ Задача добавлена в очередь: {task.Id}");
     }
     
     public async Task ProcessQueueAsync(CancellationToken cancellationToken)
@@ -413,7 +413,7 @@ public class GenerationQueueService
         {
             try
             {
-                Console.WriteLine($"Processing task {task.Id}...");
+                Console.WriteLine($"Обработка задачи {task.Id}...");
                 
                 var response = await _client.TextToImage.GenerateAsync(
                     task.Request, 
@@ -423,11 +423,11 @@ public class GenerationQueueService
                 ImageHelper.Base64ToImage(response.Images[0], task.OutputPath);
                 
                 task.CompletionSource.SetResult(task.OutputPath);
-                Console.WriteLine($"✓ Task {task.Id} completed");
+                Console.WriteLine($"✓ Задача {task.Id} завершена");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"× Task {task.Id} error: {ex.Message}");
+                Console.WriteLine($"× Ошибка задачи {task.Id}: {ex.Message}");
                 task.CompletionSource.SetException(ex);
             }
         }
@@ -442,14 +442,14 @@ public class GenerationTask
     public TaskCompletionSource<string> CompletionSource { get; set; } = new();
 }
 
-// Usage
+// Использование
 var queueService = new GenerationQueueService(client);
 
-// Start queue processor in background
+// Запускаем обработчик очереди в фоне
 var cts = new CancellationTokenSource();
 var processingTask = Task.Run(() => queueService.ProcessQueueAsync(cts.Token));
 
-// Add tasks
+// Добавляем задачи
 for (int i = 0; i < 10; i++)
 {
     var task = new GenerationTask
@@ -464,23 +464,23 @@ for (int i = 0; i < 10; i++)
     
     await queueService.EnqueueAsync(task);
     
-    // Wait for task completion
+    // Ждем завершения задачи
     _ = task.CompletionSource.Task.ContinueWith(t =>
     {
         if (t.IsCompletedSuccessfully)
-            Console.WriteLine($"Result received: {t.Result}");
+            Console.WriteLine($"Результат получен: {t.Result}");
     });
 }
 
-// When done, stop processing
+// Когда закончили, останавливаем обработку
 // cts.Cancel();
 ```
 
 ---
 
-## Performance Optimization
+## Оптимизация производительности
 
-### Request Reuse
+### Переиспользование запросов
 
 ```csharp
 public class OptimizedGenerator
@@ -492,7 +492,7 @@ public class OptimizedGenerator
     {
         _client = client;
         
-        // Base request to reuse
+        // Базовый запрос, который будем переиспользовать
         _baseRequest = new TextToImageRequest
         {
             Width = 512,
@@ -506,7 +506,7 @@ public class OptimizedGenerator
     
     public async Task<TextToImageResponse> QuickGenerateAsync(string prompt)
     {
-        // Clone base request and change only prompt
+        // Клонируем базовый запрос и меняем только промпт
         var request = new TextToImageRequest
         {
             Prompt = prompt,
@@ -523,7 +523,7 @@ public class OptimizedGenerator
 }
 ```
 
-### Result Caching
+### Кеширование результатов
 
 ```csharp
 using System.Security.Cryptography;
@@ -544,7 +544,7 @@ public class CachedGenerationService
     
     private string GetCacheKey(TextToImageRequest request)
     {
-        // Create unique key based on request parameters
+        // Создаем уникальный ключ на основе параметров запроса
         var json = JsonSerializer.Serialize(request);
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(json));
         return Convert.ToHexString(hash).ToLower();
@@ -557,10 +557,10 @@ public class CachedGenerationService
         var cachePath = Path.Combine(_cacheFolder, $"{cacheKey}.png");
         var metadataPath = Path.Combine(_cacheFolder, $"{cacheKey}.json");
         
-        // Check cache
+        // Проверяем кеш
         if (File.Exists(cachePath))
         {
-            Console.WriteLine("✓ Result from cache");
+            Console.WriteLine("✓ Результат взят из кеша");
             var cachedImage = ImageHelper.ImageToBase64(cachePath);
             var metadata = File.Exists(metadataPath) 
                 ? JsonSerializer.Deserialize<Dictionary<string, object>>(
@@ -574,8 +574,8 @@ public class CachedGenerationService
             };
         }
         
-        // Generate and cache
-        Console.WriteLine("Generating new image...");
+        // Генерируем и кешируем
+        Console.WriteLine("Генерация нового изображения...");
         var response = await _client.TextToImage.GenerateAsync(request);
         
         ImageHelper.Base64ToImage(response.Images[0], cachePath);
@@ -585,7 +585,7 @@ public class CachedGenerationService
                 JsonSerializer.Serialize(response.Parameters));
         }
         
-        Console.WriteLine("✓ Result saved to cache");
+        Console.WriteLine("✓ Результат сохранен в кеш");
         return response;
     }
     
@@ -595,12 +595,12 @@ public class CachedGenerationService
         {
             Directory.Delete(_cacheFolder, true);
             Directory.CreateDirectory(_cacheFolder);
-            Console.WriteLine("✓ Cache cleared");
+            Console.WriteLine("✓ Кеш очищен");
         }
     }
 }
 
-// Usage
+// Использование
 var cachedService = new CachedGenerationService(client);
 
 var request = new TextToImageRequest
@@ -609,14 +609,14 @@ var request = new TextToImageRequest
     Steps = 20
 };
 
-// First call - generation
+// Первый вызов - генерация
 var response1 = await cachedService.GenerateWithCacheAsync(request);
 
-// Second call - from cache
+// Второй вызов - из кеша
 var response2 = await cachedService.GenerateWithCacheAsync(request);
 ```
 
-### Resource Preloading
+### Предзагрузка ресурсов
 
 ```csharp
 public class PreloadedGenerationService
@@ -628,9 +628,9 @@ public class PreloadedGenerationService
     
     public async Task InitializeAsync()
     {
-        Console.WriteLine("Preloading resources...");
+        Console.WriteLine("Предзагрузка ресурсов...");
         
-        // Load all lists ahead of time
+        // Загружаем все списки заранее
         var tasks = new[]
         {
             _client.Samplers.GetSamplersAsync()
@@ -643,9 +643,9 @@ public class PreloadedGenerationService
         
         await Task.WhenAll(tasks);
         
-        Console.WriteLine("✓ Resources preloaded");
-        Console.WriteLine($"  Samplers: {_samplers.Count}");
-        Console.WriteLine($"  Upscalers: {_upscalers.Count}");
+        Console.WriteLine("✓ Ресурсы предзагружены");
+        Console.WriteLine($"  Сэмплеров: {_samplers.Count}");
+        Console.WriteLine($"  Апскейлеров: {_upscalers.Count}");
         Console.WriteLine($"  Embeddings: {_embeddings.Count}");
     }
     
@@ -660,21 +660,21 @@ public class PreloadedGenerationService
     }
 }
 
-// Usage
+// Использование
 var service = new PreloadedGenerationService(client);
 await service.InitializeAsync();
 
 if (service.IsSamplerAvailable("DPM++ 2M Karras"))
 {
-    Console.WriteLine("Sampler available");
+    Console.WriteLine("Сэмплер доступен");
 }
 ```
 
 ---
 
-## Advanced Inpainting
+## Продвинутый Inpainting
 
-### Automatic Mask Creation
+### Автоматическое создание масок
 
 ```csharp
 using SixLabors.ImageSharp;
@@ -683,7 +683,7 @@ using SixLabors.ImageSharp.Processing;
 
 public class MaskGenerator
 {
-    // Create mask by color
+    // Создание маски по цвету
     public string CreateColorMask(string imagePath, Rgb24 targetColor, int tolerance = 30)
     {
         using var image = Image.Load<Rgb24>(imagePath);
@@ -707,7 +707,7 @@ public class MaskGenerator
                             Math.Pow(pixel.B - targetColor.B, 2)
                         );
                         
-                        // White = editable area
+                        // Белый = редактируемая область
                         maskRow[x] = distance <= tolerance 
                             ? new Rgb24(255, 255, 255) 
                             : new Rgb24(0, 0, 0);
@@ -721,7 +721,7 @@ public class MaskGenerator
         return maskPath;
     }
     
-    // Create rectangular area mask
+    // Создание маски прямоугольной области
     public string CreateRectangleMask(
         int imageWidth, 
         int imageHeight,
@@ -731,9 +731,9 @@ public class MaskGenerator
         
         mask.Mutate(ctx =>
         {
-            // Black background
+            // Черный фон
             ctx.Fill(Color.Black);
-            // White rectangle
+            // Белый прямоугольник
             ctx.Fill(Color.White, area);
         });
         
@@ -743,10 +743,10 @@ public class MaskGenerator
     }
 }
 
-// Usage
+// Использование
 var maskGen = new MaskGenerator();
 
-// Replace red areas
+// Замена красных областей
 var mask = maskGen.CreateColorMask("photo.png", new Rgb24(255, 0, 0), tolerance: 50);
 
 var initImage = ImageHelper.ImageToBase64("photo.png");
@@ -766,7 +766,7 @@ var request = new ImageToImageRequest
 var response = await client.ImageToImage.GenerateAsync(request);
 ```
 
-### Multi-Step Inpainting
+### Многошаговый inpainting
 
 ```csharp
 public class MultiStepInpaintingService
@@ -782,9 +782,9 @@ public class MultiStepInpaintingService
         
         foreach (var (area, prompt) in tasks)
         {
-            Console.WriteLine($"Processing area: {prompt}");
+            Console.WriteLine($"Обработка области: {prompt}");
             
-            // Create mask for current area
+            // Создаем маску для текущей области
             var maskGen = new MaskGenerator();
             var maskPath = maskGen.CreateRectangleMask(
                 image.Width, 
@@ -793,7 +793,7 @@ public class MultiStepInpaintingService
             );
             var maskBase64 = ImageHelper.ImageToBase64(maskPath);
             
-            // Inpaint current area
+            // Inpainting текущей области
             var request = new ImageToImageRequest
             {
                 InitImages = new List<string> { currentImageBase64 },
@@ -809,11 +809,11 @@ public class MultiStepInpaintingService
             var response = await _client.ImageToImage.GenerateAsync(request);
             currentImageBase64 = response.Images[0];
             
-            // Delete temporary mask
+            // Удаляем временную маску
             File.Delete(maskPath);
         }
         
-        // Save final result
+        // Сохраняем финальный результат
         var outputPath = "multi_inpaint_result.png";
         ImageHelper.Base64ToImage(currentImageBase64, outputPath);
         
@@ -821,7 +821,7 @@ public class MultiStepInpaintingService
     }
 }
 
-// Usage
+// Использование
 var service = new MultiStepInpaintingService(client);
 
 var tasks = new List<(Rectangle, string)>
@@ -836,9 +836,9 @@ var result = await service.InpaintMultipleAreasAsync("room.png", tasks);
 
 ---
 
-## Working with Large Batches
+## Работа с большими батчами
 
-### Generating Image Dataset
+### Генерация датасета изображений
 
 ```csharp
 public class DatasetGenerator
@@ -858,12 +858,12 @@ public class DatasetGenerator
         var progressBar = new Progress<int>(value =>
         {
             var percentage = (value * 100.0) / totalImages;
-            Console.Write($"\rProgress: {value}/{totalImages} ({percentage:F1}%)");
+            Console.Write($"\rПрогресс: {value}/{totalImages} ({percentage:F1}%)");
         });
         
         foreach (var prompt in prompts)
         {
-            // Safe folder name
+            // Безопасное имя папки
             var folderName = string.Join("_", 
                 prompt.Split(Path.GetInvalidFileNameChars()))
                 .Substring(0, Math.Min(30, prompt.Length));
@@ -879,7 +879,7 @@ public class DatasetGenerator
                     Width = 512,
                     Height = 512,
                     Steps = 20,
-                    Seed = -1  // Different seeds
+                    Seed = -1  // Разные seed'ы
                 };
                 
                 var response = await _client.TextToImage.GenerateAsync(request);
@@ -887,7 +887,7 @@ public class DatasetGenerator
                 var imagePath = Path.Combine(promptFolder, $"image_{i:D4}.png");
                 ImageHelper.Base64ToImage(response.Images[0], imagePath);
                 
-                // Save metadata
+                // Сохраняем метаданные
                 var metadataPath = Path.Combine(promptFolder, $"image_{i:D4}.json");
                 File.WriteAllText(metadataPath, response.Info);
                 
@@ -896,11 +896,11 @@ public class DatasetGenerator
             }
         }
         
-        Console.WriteLine($"\n✓ Dataset created: {totalImages} images");
+        Console.WriteLine($"\n✓ Датасет создан: {totalImages} изображений");
     }
 }
 
-// Usage
+// Использование
 var generator = new DatasetGenerator(client);
 
 var prompts = new List<string>
@@ -914,7 +914,7 @@ var prompts = new List<string>
 await generator.GenerateDatasetAsync(prompts, imagesPerPrompt: 100, "dataset");
 ```
 
-### Smart Memory Management for Large Batches
+### Умное управление памятью при больших батчах
 
 ```csharp
 public class MemoryEfficientBatchGenerator
@@ -936,16 +936,16 @@ public class MemoryEfficientBatchGenerator
     {
         Directory.CreateDirectory(outputFolder);
         
-        // Determine sub-batch size based on available memory
-        var estimatedImageSizeMb = 2; // Approximate size of one image in memory
+        // Определяем размер под-батча исходя из доступной памяти
+        var estimatedImageSizeMb = 2; // Примерный размер одного изображения в памяти
         var batchSize = Math.Max(1, _maxMemoryMb / estimatedImageSizeMb / 2);
         
-        Console.WriteLine($"Sub-batch size: {batchSize}");
+        Console.WriteLine($"Размер под-батча: {batchSize}");
         
         for (int i = 0; i < prompts.Count; i += batchSize)
         {
             var batch = prompts.Skip(i).Take(batchSize).ToList();
-            Console.WriteLine($"Processing batch {i / batchSize + 1}...");
+            Console.WriteLine($"Обработка батча {i / batchSize + 1}...");
             
             foreach (var prompt in batch)
             {
@@ -959,15 +959,15 @@ public class MemoryEfficientBatchGenerator
                 var path = Path.Combine(outputFolder, $"image_{i}.png");
                 ImageHelper.Base64ToImage(response.Images[0], path);
                 
-                // Free memory
+                // Освобождаем память
                 response = null;
             }
             
-            // Force garbage collection between batches
+            // Принудительная сборка мусора между батчами
             GC.Collect();
             GC.WaitForPendingFinalizers();
             
-            Console.WriteLine($"✓ Batch {i / batchSize + 1} completed");
+            Console.WriteLine($"✓ Батч {i / batchSize + 1} завершен");
         }
     }
 }
@@ -975,9 +975,9 @@ public class MemoryEfficientBatchGenerator
 
 ---
 
-## Database Integration
+## Интеграция с базой данных
 
-### Saving Generation History in SQLite
+### Сохранение истории генераций в SQLite
 
 ```csharp
 using Microsoft.Data.Sqlite;
@@ -1027,15 +1027,15 @@ public class GenerationHistoryService
     {
         Directory.CreateDirectory(outputFolder);
         
-        // Generation
+        // Генерация
         var response = await _client.TextToImage.GenerateAsync(request);
         
-        // Save image
+        // Сохранение изображения
         var fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}.png";
         var imagePath = Path.Combine(outputFolder, fileName);
         ImageHelper.Base64ToImage(response.Images[0], imagePath);
         
-        // Save to DB
+        // Сохранение в БД
         using var connection = new SqliteConnection(_connectionString);
         connection.Open();
         
@@ -1063,7 +1063,7 @@ public class GenerationHistoryService
         
         var id = (long)command.ExecuteScalar();
         
-        Console.WriteLine($"✓ Generation saved: ID {id}");
+        Console.WriteLine($"✓ Генерация сохранена: ID {id}");
         return id;
     }
     
@@ -1106,7 +1106,7 @@ public class GenerationRecord
     public DateTime CreatedAt { get; set; }
 }
 
-// Usage
+// Использование
 var historyService = new GenerationHistoryService(client);
 
 var request = new TextToImageRequest
@@ -1117,19 +1117,19 @@ var request = new TextToImageRequest
 
 var id = await historyService.GenerateAndSaveAsync(request);
 
-// Search history
+// Поиск по истории
 var results = historyService.SearchByPrompt("sunset");
 foreach (var record in results)
 {
-    Console.WriteLine($"ID: {record.Id}, Prompt: {record.Prompt}");
+    Console.WriteLine($"ID: {record.Id}, Промпт: {record.Prompt}");
 }
 ```
 
 ---
 
-## RESTful API Service
+## RESTful API сервис
 
-### Creating ASP.NET Core API
+### Создание ASP.NET Core API
 
 ```csharp
 // Program.cs
@@ -1143,7 +1143,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register StableDiffusion client
+// Регистрация StableDiffusion клиента
 builder.Services.AddStableDiffusion(options =>
 {
     options.BaseUrl = builder.Configuration["StableDiffusion:BaseUrl"] 
@@ -1159,7 +1159,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Generation endpoint
+// Эндпоинт для генерации
 app.MapPost("/api/generate", async (
     [FromBody] GenerateRequest request,
     [FromServices] IStableDiffusionClient client) =>
@@ -1197,7 +1197,7 @@ app.MapPost("/api/generate", async (
 .WithName("Generate")
 .WithOpenApi();
 
-// Get models endpoint
+// Эндпоинт для получения списка моделей
 app.MapGet("/api/models", async ([FromServices] IStableDiffusionClient client) =>
 {
     var models = await client.Models.GetModelsAsync();
@@ -1211,7 +1211,7 @@ app.MapGet("/api/models", async ([FromServices] IStableDiffusionClient client) =
 .WithName("GetModels")
 .WithOpenApi();
 
-// Health check endpoint
+// Эндпоинт для проверки статуса
 app.MapGet("/api/health", async ([FromServices] IStableDiffusionClient client) =>
 {
     var isAvailable = await client.PingAsync();
@@ -1226,7 +1226,7 @@ app.MapGet("/api/health", async ([FromServices] IStableDiffusionClient client) =
 
 app.Run();
 
-// DTO models
+// DTO модели
 public record GenerateRequest(
     string Prompt,
     string? NegativePrompt = null,
@@ -1239,9 +1239,9 @@ public record GenerateRequest(
 
 ---
 
-## Monitoring and Metrics
+## Мониторинг и метрики
 
-### Collecting Generation Metrics
+### Сбор метрик генерации
 
 ```csharp
 using System.Diagnostics;
@@ -1295,25 +1295,25 @@ public class MetricsCollector
     {
         if (_metrics.Count == 0)
         {
-            Console.WriteLine("No data for statistics");
+            Console.WriteLine("Нет данных для статистики");
             return;
         }
         
         var successful = _metrics.Where(m => m.Success).ToList();
         
-        Console.WriteLine("\n=== Generation Statistics ===");
-        Console.WriteLine($"Total generations: {_metrics.Count}");
-        Console.WriteLine($"Successful: {successful.Count}");
-        Console.WriteLine($"Errors: {_metrics.Count - successful.Count}");
+        Console.WriteLine("\n=== Статистика генераций ===");
+        Console.WriteLine($"Всего генераций: {_metrics.Count}");
+        Console.WriteLine($"Успешных: {successful.Count}");
+        Console.WriteLine($"Ошибок: {_metrics.Count - successful.Count}");
         
         if (successful.Any())
         {
-            Console.WriteLine($"\nGeneration time:");
-            Console.WriteLine($"  Average: {successful.Average(m => m.DurationSeconds):F2}s");
-            Console.WriteLine($"  Minimum: {successful.Min(m => m.DurationSeconds):F2}s");
-            Console.WriteLine($"  Maximum: {successful.Max(m => m.DurationSeconds):F2}s");
+            Console.WriteLine($"\nВремя генерации:");
+            Console.WriteLine($"  Среднее: {successful.Average(m => m.DurationSeconds):F2}с");
+            Console.WriteLine($"  Минимум: {successful.Min(m => m.DurationSeconds):F2}с");
+            Console.WriteLine($"  Максимум: {successful.Max(m => m.DurationSeconds):F2}с");
             
-            Console.WriteLine($"\nTotal images generated: {successful.Sum(m => m.ImageCount)}");
+            Console.WriteLine($"\nВсего сгенерировано изображений: {successful.Sum(m => m.ImageCount)}");
         }
     }
     
@@ -1333,7 +1333,7 @@ public class MetricsCollector
                            $"\"{m.ErrorMessage}\"");
         }
         
-        Console.WriteLine($"✓ Metrics exported: {filePath}");
+        Console.WriteLine($"✓ Метрики экспортированы: {filePath}");
     }
 }
 
@@ -1350,7 +1350,7 @@ public class GenerationMetrics
     public string ErrorMessage { get; set; }
 }
 
-// Usage
+// Использование
 var collector = new MetricsCollector();
 
 for (int i = 0; i < 10; i++)
@@ -1362,7 +1362,7 @@ for (int i = 0; i < 10; i++)
     };
     
     var (response, metrics) = await collector.GenerateWithMetricsAsync(client, request);
-    Console.WriteLine($"Generation completed in {metrics.DurationSeconds:F2}s");
+    Console.WriteLine($"Генерация завершена за {metrics.DurationSeconds:F2}с");
 }
 
 collector.PrintStatistics();
@@ -1371,8 +1371,7 @@ collector.ExportToCsv("metrics.csv");
 
 ---
 
-For basic examples see [EXAMPLES.md](EXAMPLES.md).
+Для базовых примеров смотрите [EXAMPLES.ru.md](EXAMPLES.ru.md).
 
-Complete API reference: [API_REFERENCE.md](API_REFERENCE.md).
-
+Полный справочник API: [API_REFERENCE.ru.md](API_REFERENCE.ru.md).
 

@@ -1,45 +1,45 @@
-# Detailed Usage Examples for StableDiffusionNet
+# Подробные примеры использования StableDiffusionNet
 
-**English | [Русский](EXAMPLES.ru.md)**
+**[English](EXAMPLES.md) | Русский**
 
-> Practical examples for all library services
+> Практические примеры для всех сервисов библиотеки
 
-## Table of Contents
+## Оглавление
 
-- [Getting Started](#getting-started)
+- [Начало работы](#начало-работы)
 - [Text to Image](#text-to-image)
 - [Image to Image](#image-to-image)
-- [Model Management](#model-management)
-- [Progress Tracking](#progress-tracking)
-- [WebUI Settings](#webui-settings)
-- [Getting Information](#getting-information)
-- [PNG Metadata](#png-metadata)
-- [Post-processing](#post-processing)
-- [Embeddings and LoRA](#embeddings-and-lora)
-- [Error Handling](#error-handling)
+- [Управление моделями](#управление-моделями)
+- [Отслеживание прогресса](#отслеживание-прогресса)
+- [Настройки WebUI](#настройки-webui)
+- [Получение информации](#получение-информации)
+- [PNG метаданные](#png-метаданные)
+- [Постобработка](#постобработка)
+- [Embeddings и LoRA](#embeddings-и-lora)
+- [Обработка ошибок](#обработка-ошибок)
 
 ---
 
-## Getting Started
+## Начало работы
 
-### Creating Client (Core Package)
+### Создание клиента (Core пакет)
 
 ```csharp
 using StableDiffusionNet;
 
-// Simple way
+// Простой способ
 var client = StableDiffusionClientBuilder.CreateDefault("http://localhost:7860");
 
-// With settings
+// С настройками
 var client = new StableDiffusionClientBuilder()
     .WithBaseUrl("http://localhost:7860")
-    .WithTimeout(600) // 10 minutes
+    .WithTimeout(600) // 10 минут
     .WithRetry(retryCount: 3, retryDelayMilliseconds: 1000)
     .WithDetailedLogging()
     .Build();
 ```
 
-### Creating Client (DI Package)
+### Создание клиента (DI пакет)
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -58,24 +58,24 @@ var serviceProvider = services.BuildServiceProvider();
 var client = serviceProvider.GetRequiredService<IStableDiffusionClient>();
 ```
 
-### Checking API Availability
+### Проверка доступности API
 
 ```csharp
 var isAvailable = await client.PingAsync();
 if (!isAvailable)
 {
-    Console.WriteLine("API is unavailable. Make sure WebUI is running with --api flag.");
+    Console.WriteLine("API недоступен. Убедитесь, что WebUI запущен с --api флагом.");
     return;
 }
 
-Console.WriteLine("✓ API is available");
+Console.WriteLine("✓ API доступен");
 ```
 
 ---
 
 ## Text to Image
 
-### Basic Generation
+### Базовая генерация
 
 ```csharp
 using StableDiffusionNet.Models.Requests;
@@ -90,17 +90,17 @@ var request = new TextToImageRequest
     Steps = 30,
     CfgScale = 7.5,
     SamplerName = "Euler a",
-    Seed = -1 // Random seed
+    Seed = -1 // Случайный seed
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
 
-// Save image
+// Сохранение изображения
 ImageHelper.Base64ToImage(response.Images[0], "output.png");
-Console.WriteLine($"Image saved: output.png");
+Console.WriteLine($"Изображение сохранено: output.png");
 ```
 
-### Generation with Fixed Seed
+### Генерация с фиксированным seed
 
 ```csharp
 var request = new TextToImageRequest
@@ -109,14 +109,14 @@ var request = new TextToImageRequest
     Width = 512,
     Height = 512,
     Steps = 20,
-    Seed = 12345 // Fixed seed for reproducibility
+    Seed = 12345 // Фиксированный seed для воспроизводимости
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
-// Repeated request with same seed will produce identical image
+// При повторном запросе с тем же seed получится идентичное изображение
 ```
 
-### Batch Generation
+### Батч-генерация
 
 ```csharp
 var request = new TextToImageRequest
@@ -125,19 +125,19 @@ var request = new TextToImageRequest
     Width = 512,
     Height = 512,
     Steps = 25,
-    BatchSize = 4,  // 4 images at once
-    NIter = 2       // 2 batches (total 8 images)
+    BatchSize = 4,  // 4 изображения за раз
+    NIter = 2       // 2 батча (итого 8 изображений)
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
 
-// Save all images
+// Сохранение всех изображений
 for (int i = 0; i < response.Images.Count; i++)
 {
     ImageHelper.Base64ToImage(response.Images[i], $"output_{i:D3}.png");
 }
 
-Console.WriteLine($"Generated {response.Images.Count} images");
+Console.WriteLine($"Сгенерировано {response.Images.Count} изображений");
 ```
 
 ### High Resolution (Hires.fix)
@@ -150,19 +150,19 @@ var request = new TextToImageRequest
     Height = 512,
     Steps = 30,
     
-    // Enable Hires.fix
+    // Включение Hires.fix
     EnableHr = true,
-    HrScale = 2.0,              // 2x upscale (total 1024x1024)
-    HrUpscaler = "Latent",      // Upscaler to use
-    HrSecondPassSteps = 20,     // Steps for second pass
-    DenoisingStrength = 0.7     // Denoising strength
+    HrScale = 2.0,              // Увеличение в 2 раза (итого 1024x1024)
+    HrUpscaler = "Latent",      // Используемый апскейлер
+    HrSecondPassSteps = 20,     // Шаги для второго прохода
+    DenoisingStrength = 0.7     // Сила шумоподавления
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "hires_output.png");
 ```
 
-### Generation with Face Restoration
+### Генерация с восстановлением лиц
 
 ```csharp
 var request = new TextToImageRequest
@@ -171,14 +171,14 @@ var request = new TextToImageRequest
     Width = 512,
     Height = 768,
     Steps = 30,
-    RestoreFaces = true  // Automatic face restoration
+    RestoreFaces = true  // Автоматическое восстановление лиц
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "portrait.png");
 ```
 
-### Tileable Textures
+### Tileable текстуры
 
 ```csharp
 var request = new TextToImageRequest
@@ -187,14 +187,14 @@ var request = new TextToImageRequest
     Width = 512,
     Height = 512,
     Steps = 25,
-    Tiling = true  // Generate seamless texture
+    Tiling = true  // Генерация бесшовной текстуры
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "texture.png");
 ```
 
-### Override Settings for Single Request
+### Переопределение настроек для одного запроса
 
 ```csharp
 var request = new TextToImageRequest
@@ -202,7 +202,7 @@ var request = new TextToImageRequest
     Prompt = "anime style character",
     Steps = 20,
     
-    // Temporarily change settings only for this request
+    // Временно изменить настройки только для этого запроса
     OverrideSettings = new Dictionary<string, object>
     {
         { "CLIP_stop_at_last_layers", 2 },      // CLIP skip 2
@@ -212,10 +212,10 @@ var request = new TextToImageRequest
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
-// After execution, settings return to original
+// После выполнения настройки вернутся к исходным
 ```
 
-### Using Different Samplers
+### Использование разных сэмплеров
 
 ```csharp
 var samplers = new[] { "Euler a", "DPM++ 2M", "DPM++ SDE Karras" };
@@ -230,12 +230,12 @@ foreach (var sampler in samplers)
         Height = 512,
         Steps = 20,
         SamplerName = sampler,
-        Seed = 12345  // Same seed for comparison
+        Seed = 12345  // Одинаковый seed для сравнения
     };
     
     var response = await client.TextToImage.GenerateAsync(request);
     ImageHelper.Base64ToImage(response.Images[0], $"sampler_{sampler.Replace(" ", "_")}.png");
-    Console.WriteLine($"Generated with {sampler}");
+    Console.WriteLine($"Сгенерировано с {sampler}");
 }
 ```
 
@@ -243,13 +243,13 @@ foreach (var sampler in samplers)
 
 ## Image to Image
 
-### Basic Image Transformation
+### Базовая трансформация изображения
 
 ```csharp
 using StableDiffusionNet.Models.Requests;
 using StableDiffusionNet.Helpers;
 
-// Load source image
+// Загрузка исходного изображения
 var initImage = ImageHelper.ImageToBase64("input.png");
 
 var request = new ImageToImageRequest
@@ -258,7 +258,7 @@ var request = new ImageToImageRequest
     Prompt = "transform into a watercolor painting",
     NegativePrompt = "photo, realistic",
     
-    DenoisingStrength = 0.75,  // Strength of change (0.0 = no change, 1.0 = full redraw)
+    DenoisingStrength = 0.75,  // Сила изменения (0.0 = без изменений, 1.0 = полная перерисовка)
     Width = 512,
     Height = 512,
     Steps = 30,
@@ -269,21 +269,21 @@ var response = await client.ImageToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "watercolor.png");
 ```
 
-### Variations of Single Image
+### Вариации одного изображения
 
 ```csharp
 var initImage = ImageHelper.ImageToBase64("photo.png");
 
-// Low strength - more similar to original
+// Небольшая сила - больше похоже на оригинал
 for (int i = 0; i < 4; i++)
 {
     var request = new ImageToImageRequest
     {
         InitImages = new List<string> { initImage },
         Prompt = "professional photo, high quality",
-        DenoisingStrength = 0.3,  // Small changes
+        DenoisingStrength = 0.3,  // Небольшие изменения
         Steps = 20,
-        Seed = -1  // Different seed for variations
+        Seed = -1  // Разный seed для вариаций
     };
     
     var response = await client.ImageToImage.GenerateAsync(request);
@@ -291,7 +291,7 @@ for (int i = 0; i < 4; i++)
 }
 ```
 
-### Photo Stylization
+### Стилизация фотографии
 
 ```csharp
 var photo = ImageHelper.ImageToBase64("portrait.png");
@@ -317,15 +317,15 @@ foreach (var style in styles)
     
     var response = await client.ImageToImage.GenerateAsync(request);
     ImageHelper.Base64ToImage(response.Images[0], $"style_{style.Key}.png");
-    Console.WriteLine($"Created style: {style.Key}");
+    Console.WriteLine($"Создан стиль: {style.Key}");
 }
 ```
 
-### Inpainting - Drawing by Mask
+### Inpainting - рисование по маске
 
 ```csharp
 var initImage = ImageHelper.ImageToBase64("room.png");
-var mask = ImageHelper.ImageToBase64("mask.png");  // White areas will be redrawn
+var mask = ImageHelper.ImageToBase64("mask.png");  // Белые области будут перерисованы
 
 var request = new ImageToImageRequest
 {
@@ -337,22 +337,22 @@ var request = new ImageToImageRequest
     DenoisingStrength = 0.9,
     Steps = 30,
     
-    // Inpainting parameters
+    // Параметры inpainting
     InpaintingFill = 1,        // 0: fill, 1: original, 2: latent noise, 3: latent nothing
-    InpaintFullRes = true,     // Draw only mask area in high resolution
-    InpaintFullResPadding = 32, // Padding around mask
-    MaskBlur = 4              // Mask edge blur
+    InpaintFullRes = true,     // Рисовать только область маски в высоком разрешении
+    InpaintFullResPadding = 32, // Отступ вокруг маски
+    MaskBlur = 4              // Размытие краев маски
 };
 
 var response = await client.ImageToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "inpainted.png");
 ```
 
-### Outpainting - Image Expansion
+### Outpainting - расширение изображения
 
 ```csharp
-// Create mask where to draw (white areas)
-// For example, extend canvas and make new areas white
+// Создайте маску где нужно дорисовать (белые области)
+// Например, расширьте canvas и сделайте новые области белыми
 
 var image = ImageHelper.ImageToBase64("original.png");
 var mask = ImageHelper.ImageToBase64("outpaint_mask.png");
@@ -365,7 +365,7 @@ var request = new ImageToImageRequest
     
     DenoisingStrength = 0.9,
     Steps = 30,
-    InpaintingFill = 2,  // Latent noise for outpainting
+    InpaintingFill = 2,  // Latent noise для outpainting
     MaskBlur = 8
 };
 
@@ -373,7 +373,7 @@ var response = await client.ImageToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "outpainted.png");
 ```
 
-### Resizing with Different Modes
+### Изменение размера с разными режимами
 
 ```csharp
 var image = ImageHelper.ImageToBase64("input.png");
@@ -395,7 +395,7 @@ foreach (var mode in resizeModes)
         
         Width = 768,
         Height = 768,
-        ResizeMode = mode.Key,  // Resize mode
+        ResizeMode = mode.Key,  // Режим изменения размера
         
         DenoisingStrength = 0.5,
         Steps = 25
@@ -403,14 +403,14 @@ foreach (var mode in resizeModes)
     
     var response = await client.ImageToImage.GenerateAsync(request);
     ImageHelper.Base64ToImage(response.Images[0], $"resize_mode_{mode.Key}.png");
-    Console.WriteLine($"Mode {mode.Key}: {mode.Value}");
+    Console.WriteLine($"Режим {mode.Key}: {mode.Value}");
 }
 ```
 
 ### Sketch to Image
 
 ```csharp
-// Turn sketch into detailed image
+// Превращение наброска в детализированное изображение
 var sketch = ImageHelper.ImageToBase64("sketch.png");
 
 var request = new ImageToImageRequest
@@ -419,9 +419,9 @@ var request = new ImageToImageRequest
     Prompt = "professional concept art, highly detailed, realistic lighting",
     NegativePrompt = "sketch, rough, unfinished",
     
-    DenoisingStrength = 0.85,  // High strength for detail
+    DenoisingStrength = 0.85,  // Высокая сила для детализации
     Steps = 40,
-    CfgScale = 9.0  // High CFG to follow prompt
+    CfgScale = 9.0  // Высокий CFG для следования промпту
 };
 
 var response = await client.ImageToImage.GenerateAsync(request);
@@ -430,44 +430,44 @@ ImageHelper.Base64ToImage(response.Images[0], "detailed_art.png");
 
 ---
 
-## Model Management
+## Управление моделями
 
-### Getting List of Available Models
+### Получение списка доступных моделей
 
 ```csharp
 var models = await client.Models.GetModelsAsync();
 
-Console.WriteLine("Available models:");
+Console.WriteLine("Доступные модели:");
 foreach (var model in models)
 {
     Console.WriteLine($"  - {model.Title}");
-    Console.WriteLine($"    File: {model.ModelName}");
+    Console.WriteLine($"    Файл: {model.ModelName}");
     Console.WriteLine($"    Hash: {model.Hash?.Substring(0, 8)}...");
     Console.WriteLine();
 }
 ```
 
-### Getting Current Model
+### Получение текущей модели
 
 ```csharp
 var currentModel = await client.Models.GetCurrentModelAsync();
-Console.WriteLine($"Current model: {currentModel}");
+Console.WriteLine($"Текущая модель: {currentModel}");
 ```
 
-### Switching Models
+### Смена модели
 
 ```csharp
-Console.WriteLine("Switching model...");
+Console.WriteLine("Смена модели...");
 await client.Models.SetModelAsync("sd_xl_base_1.0.safetensors");
 
-// Wait for model to load
+// Ожидание загрузки модели
 await Task.Delay(5000);
 
 var newModel = await client.Models.GetCurrentModelAsync();
-Console.WriteLine($"Active model: {newModel}");
+Console.WriteLine($"Активна модель: {newModel}");
 ```
 
-### Automatic Model Selection by Task
+### Автоматический выбор модели по задаче
 
 ```csharp
 async Task<string> SelectModelForTask(string task)
@@ -476,14 +476,14 @@ async Task<string> SelectModelForTask(string task)
     
     if (task.Contains("anime"))
     {
-        // Find anime model
+        // Ищем аниме модель
         var animeModel = models.FirstOrDefault(m => 
             m.Title.Contains("anime", StringComparison.OrdinalIgnoreCase));
         return animeModel?.ModelName ?? models[0].ModelName;
     }
     else if (task.Contains("realistic"))
     {
-        // Find realistic model
+        // Ищем реалистичную модель
         var realisticModel = models.FirstOrDefault(m => 
             m.Title.Contains("realistic", StringComparison.OrdinalIgnoreCase));
         return realisticModel?.ModelName ?? models[0].ModelName;
@@ -492,22 +492,22 @@ async Task<string> SelectModelForTask(string task)
     return models[0].ModelName;
 }
 
-// Usage
+// Использование
 var modelName = await SelectModelForTask("generate realistic portrait");
 await client.Models.SetModelAsync(modelName);
 ```
 
-### Refreshing Model List
+### Обновление списка моделей
 
 ```csharp
-Console.WriteLine("Scanning models folder...");
+Console.WriteLine("Сканирование папки с моделями...");
 await client.Models.RefreshModelsAsync();
 
 var models = await client.Models.GetModelsAsync();
-Console.WriteLine($"Found models: {models.Count}");
+Console.WriteLine($"Найдено моделей: {models.Count}");
 ```
 
-### Generation with Different Models
+### Генерация с разными моделями
 
 ```csharp
 var models = new[] 
@@ -520,10 +520,10 @@ var prompt = "beautiful landscape";
 
 foreach (var model in models)
 {
-    Console.WriteLine($"Generating with model: {model}");
+    Console.WriteLine($"Генерация с моделью: {model}");
     
     await client.Models.SetModelAsync(model);
-    await Task.Delay(3000); // Wait for model to load
+    await Task.Delay(3000); // Ожидание загрузки модели
     
     var request = new TextToImageRequest
     {
@@ -541,9 +541,9 @@ foreach (var model in models)
 
 ---
 
-## Progress Tracking
+## Отслеживание прогресса
 
-### Simple Progress Bar
+### Простой progress bar
 
 ```csharp
 var request = new TextToImageRequest
@@ -554,26 +554,26 @@ var request = new TextToImageRequest
     Steps = 50
 };
 
-// Start generation in separate task
+// Запуск генерации в отдельной задаче
 var generateTask = client.TextToImage.GenerateAsync(request);
 
-// Track progress
+// Отслеживание прогресса
 while (!generateTask.IsCompleted)
 {
     var progress = await client.Progress.GetProgressAsync();
     
-    // Percentage progress
+    // Процент прогресса
     var percentage = progress.Progress * 100;
-    Console.Write($"\rProgress: {percentage:F1}%");
+    Console.Write($"\rПрогресс: {percentage:F1}%");
     
     await Task.Delay(500);
 }
 
-Console.WriteLine("\n✓ Generation completed");
+Console.WriteLine("\n✓ Генерация завершена");
 var result = await generateTask;
 ```
 
-### Detailed Progress with ETA
+### Детальный прогресс с ETA
 
 ```csharp
 var generateTask = client.TextToImage.GenerateAsync(request);
@@ -586,8 +586,8 @@ while (!generateTask.IsCompleted)
     {
         var eta = TimeSpan.FromSeconds(progress.EtaRelative);
         
-        Console.WriteLine($"Progress: {progress.Progress:P}");
-        Console.WriteLine($"Step: {progress.State.SamplingStep}/{progress.State.SamplingSteps}");
+        Console.WriteLine($"Прогресс: {progress.Progress:P}");
+        Console.WriteLine($"Шаг: {progress.State.SamplingStep}/{progress.State.SamplingSteps}");
         Console.WriteLine($"ETA: {eta:mm\\:ss}");
         Console.WriteLine(new string('-', 50));
     }
@@ -598,7 +598,7 @@ while (!generateTask.IsCompleted)
 var result = await generateTask;
 ```
 
-### Saving Intermediate Results
+### Сохранение промежуточных результатов
 
 ```csharp
 var generateTask = client.TextToImage.GenerateAsync(request);
@@ -608,14 +608,14 @@ while (!generateTask.IsCompleted)
 {
     var progress = await client.Progress.GetProgressAsync();
     
-    // If preview is available
+    // Если доступно превью
     if (!string.IsNullOrEmpty(progress.CurrentImage))
     {
         ImageHelper.Base64ToImage(
             progress.CurrentImage, 
             $"preview_{previewCount++:D3}.png"
         );
-        Console.WriteLine($"Saved preview #{previewCount}");
+        Console.WriteLine($"Сохранено превью #{previewCount}");
     }
     
     await Task.Delay(2000);
@@ -624,16 +624,16 @@ while (!generateTask.IsCompleted)
 var result = await generateTask;
 ```
 
-### User Interruption of Generation
+### Прерывание генерации пользователем
 
 ```csharp
 var cts = new CancellationTokenSource();
 
-// Ctrl+C handler
+// Обработчик Ctrl+C
 Console.CancelKeyPress += async (sender, e) =>
 {
     e.Cancel = true;
-    Console.WriteLine("\nInterrupting generation...");
+    Console.WriteLine("\nПрерывание генерации...");
     await client.Progress.InterruptAsync();
     cts.Cancel();
 };
@@ -651,20 +651,20 @@ try
     while (!generateTask.IsCompleted)
     {
         var progress = await client.Progress.GetProgressAsync();
-        Console.Write($"\rProgress: {progress.Progress:P}");
+        Console.Write($"\rПрогресс: {progress.Progress:P}");
         await Task.Delay(500);
     }
     
     var result = await generateTask;
-    Console.WriteLine("\n✓ Generation completed");
+    Console.WriteLine("\n✓ Генерация завершена");
 }
 catch (OperationCanceledException)
 {
-    Console.WriteLine("\n× Generation interrupted by user");
+    Console.WriteLine("\n× Генерация прервана пользователем");
 }
 ```
 
-### Skipping Image in Batch
+### Пропуск изображения в батче
 
 ```csharp
 var request = new TextToImageRequest
@@ -676,7 +676,7 @@ var request = new TextToImageRequest
 
 var generateTask = client.TextToImage.GenerateAsync(request);
 
-// Skip 5th image
+// Пропускаем 5-е изображение
 var imageCount = 0;
 while (!generateTask.IsCompleted)
 {
@@ -687,7 +687,7 @@ while (!generateTask.IsCompleted)
         var currentImage = (int)(progress.Progress * 10);
         if (currentImage == 5 && imageCount != currentImage)
         {
-            Console.WriteLine("Skipping image #5...");
+            Console.WriteLine("Пропускаем изображение #5...");
             await client.Progress.SkipAsync();
         }
         imageCount = currentImage;
@@ -701,219 +701,219 @@ var result = await generateTask;
 
 ---
 
-## WebUI Settings
+## Настройки WebUI
 
-### Getting Current Settings
+### Получение текущих настроек
 
 ```csharp
 var options = await client.Options.GetOptionsAsync();
 
-Console.WriteLine("Current settings:");
-Console.WriteLine($"  Model: {options.SdModelCheckpoint}");
+Console.WriteLine("Текущие настройки:");
+Console.WriteLine($"  Модель: {options.SdModelCheckpoint}");
 Console.WriteLine($"  CLIP skip: {options.ClipStopAtLastLayers}");
 Console.WriteLine($"  xFormers: {options.EnableXformers}");
-Console.WriteLine($"  Save format: {options.SamplesFormat}");
+Console.WriteLine($"  Формат сохранения: {options.SamplesFormat}");
 ```
 
-### Changing Settings
+### Изменение настроек
 
 ```csharp
 var options = await client.Options.GetOptionsAsync();
 
-// Change settings
+// Изменяем настройки
 options.ClipStopAtLastLayers = 2;
 options.EnableXformers = true;
 options.SamplesFormat = "png";
 options.SamplesSave = true;
 
-// Apply changes
+// Применяем изменения
 await client.Options.SetOptionsAsync(options);
-Console.WriteLine("✓ Settings updated");
+Console.WriteLine("✓ Настройки обновлены");
 ```
 
-### Optimization for Speed
+### Оптимизация для скорости
 
 ```csharp
 var options = await client.Options.GetOptionsAsync();
 
-// Settings for fast generation
-options.EnableXformers = true;              // Use xFormers
-options.AlwaysBatchCondUncond = false;     // Don't batch cond/uncond
+// Настройки для быстрой генерации
+options.EnableXformers = true;              // Использовать xFormers
+options.AlwaysBatchCondUncond = false;     // Не батчить cond/uncond
 options.UseOldHiresFixWidthHeight = false;
 
 await client.Options.SetOptionsAsync(options);
-Console.WriteLine("✓ Configured for speed");
+Console.WriteLine("✓ Настроено для скорости");
 ```
 
-### Optimization for Quality
+### Оптимизация для качества
 
 ```csharp
 var options = await client.Options.GetOptionsAsync();
 
-// Settings for maximum quality
-options.NoHalfVae = true;                  // Full VAE precision
+// Настройки для максимального качества
+options.NoHalfVae = true;                  // Полная точность VAE
 options.EnableXformers = true;
-options.SamplesFormat = "png";             // Lossless
+options.SamplesFormat = "png";             // Без потерь
 
 await client.Options.SetOptionsAsync(options);
-Console.WriteLine("✓ Configured for quality");
+Console.WriteLine("✓ Настроено для качества");
 ```
 
-### Temporary Settings Change
+### Временное изменение настроек
 
 ```csharp
-// Save current settings
+// Сохраняем текущие настройки
 var originalOptions = await client.Options.GetOptionsAsync();
 
 try
 {
-    // Temporarily change settings
+    // Временно меняем настройки
     var tempOptions = await client.Options.GetOptionsAsync();
     tempOptions.ClipStopAtLastLayers = 2;
     await client.Options.SetOptionsAsync(tempOptions);
     
-    // Generate with new settings
+    // Генерируем с новыми настройками
     var response = await client.TextToImage.GenerateAsync(request);
 }
 finally
 {
-    // Restore original settings
+    // Восстанавливаем исходные настройки
     await client.Options.SetOptionsAsync(originalOptions);
 }
 ```
 
 ---
 
-## Getting Information
+## Получение информации
 
-### Available Samplers
+### Доступные сэмплеры
 
 ```csharp
 var samplers = await client.Samplers.GetSamplersAsync();
 
-Console.WriteLine("Available samplers:");
+Console.WriteLine("Доступные сэмплеры:");
 foreach (var sampler in samplers)
 {
     Console.WriteLine($"  - {sampler.Name}");
     if (sampler.Aliases.Count > 0)
     {
-        Console.WriteLine($"    Aliases: {string.Join(", ", sampler.Aliases)}");
+        Console.WriteLine($"    Алиасы: {string.Join(", ", sampler.Aliases)}");
     }
     if (sampler.Options.Count > 0)
     {
-        Console.WriteLine($"    Options: {sampler.Options.Count}");
+        Console.WriteLine($"    Опции: {sampler.Options.Count}");
     }
 }
 ```
 
-### Available Schedulers
+### Доступные планировщики
 
 ```csharp
 var schedulers = await client.Schedulers.GetSchedulersAsync();
 
-Console.WriteLine("Available schedulers:");
+Console.WriteLine("Доступные планировщики:");
 foreach (var scheduler in schedulers)
 {
     Console.WriteLine($"  - {scheduler.Name} ({scheduler.Label})");
     if (scheduler.Aliases != null && scheduler.Aliases.Count > 0)
     {
-        Console.WriteLine($"    Aliases: {string.Join(", ", scheduler.Aliases)}");
+        Console.WriteLine($"    Алиасы: {string.Join(", ", scheduler.Aliases)}");
     }
     Console.WriteLine($"    Default Rho: {scheduler.DefaultRho}");
-    Console.WriteLine($"    Requires inner model: {scheduler.NeedInnerModel}");
+    Console.WriteLine($"    Требует внутреннюю модель: {scheduler.NeedInnerModel}");
 }
 ```
 
-### Available Upscalers
+### Доступные апскейлеры
 
 ```csharp
 var upscalers = await client.Upscalers.GetUpscalersAsync();
 
-Console.WriteLine("Available upscalers:");
+Console.WriteLine("Доступные апскейлеры:");
 foreach (var upscaler in upscalers)
 {
     Console.WriteLine($"  - {upscaler.Name} ({upscaler.Scale}x)");
     if (!string.IsNullOrEmpty(upscaler.ModelPath))
     {
-        Console.WriteLine($"    Path: {upscaler.ModelPath}");
+        Console.WriteLine($"    Путь: {upscaler.ModelPath}");
     }
 }
 ```
 
-### Latent Upscale Modes
+### Latent upscale режимы
 
 ```csharp
 var modes = await client.Upscalers.GetLatentUpscaleModesAsync();
 
-Console.WriteLine("Latent upscale modes:");
+Console.WriteLine("Latent upscale режимы:");
 foreach (var mode in modes)
 {
     Console.WriteLine($"  - {mode.Name}");
 }
 ```
 
-### Available Embeddings
+### Доступные embeddings
 
 ```csharp
 var embeddings = await client.Embeddings.GetEmbeddingsAsync();
 
-Console.WriteLine($"Found embeddings: {embeddings.Count}");
+Console.WriteLine($"Найдено embeddings: {embeddings.Count}");
 foreach (var embedding in embeddings)
 {
     Console.WriteLine($"  - {embedding.Key}");
-    Console.WriteLine($"    Steps: {embedding.Value.Step}");
-    Console.WriteLine($"    Vectors: {embedding.Value.Vectors}");
+    Console.WriteLine($"    Шаги: {embedding.Value.Step}");
+    Console.WriteLine($"    Векторов: {embedding.Value.Vectors}");
 }
 
-// Refresh list
+// Обновление списка
 await client.Embeddings.RefreshEmbeddingsAsync();
 ```
 
-### Available LoRAs
+### Доступные LoRA
 
 ```csharp
 var loras = await client.Loras.GetLorasAsync();
 
-Console.WriteLine($"Found LoRAs: {loras.Count}");
+Console.WriteLine($"Найдено LoRA: {loras.Count}");
 foreach (var lora in loras)
 {
     Console.WriteLine($"  - {lora.Name}");
-    Console.WriteLine($"    Path: {lora.Path}");
+    Console.WriteLine($"    Путь: {lora.Path}");
 }
 
-// Refresh list
+// Обновление списка
 await client.Loras.RefreshLorasAsync();
 ```
 
-### Building UI with Dynamic Selection
+### Создание UI с динамическим выбором
 
 ```csharp
-// Load all options for UI
+// Загружаем все опции для UI
 var samplers = await client.Samplers.GetSamplersAsync();
 var schedulers = await client.Schedulers.GetSchedulersAsync();
 var upscalers = await client.Upscalers.GetUpscalersAsync();
 var models = await client.Models.GetModelsAsync();
 
-// Now can build dropdowns in UI
-Console.WriteLine("Select options for generation:");
-Console.WriteLine($"Available samplers: {samplers.Count}");
-Console.WriteLine($"Available schedulers: {schedulers.Count}");
-Console.WriteLine($"Available models: {models.Count}");
-Console.WriteLine($"Available upscalers: {upscalers.Count}");
+// Теперь можно построить dropdown'ы в UI
+Console.WriteLine("Выберите опции для генерации:");
+Console.WriteLine($"Доступно сэмплеров: {samplers.Count}");
+Console.WriteLine($"Доступно планировщиков: {schedulers.Count}");
+Console.WriteLine($"Доступно моделей: {models.Count}");
+Console.WriteLine($"Доступно апскейлеров: {upscalers.Count}");
 
-// Example building scheduler list for UI
+// Пример построения списка планировщиков для UI
 foreach (var scheduler in schedulers)
 {
-    // In UI can show Label, use Name
-    Console.WriteLine($"Scheduler: {scheduler.Label} (ID: {scheduler.Name})");
+    // В UI можно показать Label, а использовать Name
+    Console.WriteLine($"Планировщик: {scheduler.Label} (ID: {scheduler.Name})");
 }
 ```
 
 ---
 
-## PNG Metadata
+## PNG метаданные
 
-### Extracting Information from Image
+### Извлечение информации из изображения
 
 ```csharp
 using StableDiffusionNet.Models.Requests;
@@ -927,10 +927,10 @@ var request = new PngInfoRequest
 
 var response = await client.PngInfo.GetPngInfoAsync(request);
 
-Console.WriteLine("Generation information:");
+Console.WriteLine("Информация о генерации:");
 Console.WriteLine(response.Info);
 
-// Parse parameters
+// Парсинг параметров
 if (response.Items != null)
 {
     foreach (var item in response.Items)
@@ -940,7 +940,7 @@ if (response.Items != null)
 }
 ```
 
-### Copying Parameters from Image
+### Копирование параметров из изображения
 
 ```csharp
 var sourceImage = ImageHelper.ImageToBase64("source.png");
@@ -948,23 +948,23 @@ var sourceImage = ImageHelper.ImageToBase64("source.png");
 var pngInfoRequest = new PngInfoRequest { Image = sourceImage };
 var pngInfo = await client.PngInfo.GetPngInfoAsync(pngInfoRequest);
 
-// Parse parameters (this is simplified example)
+// Парсим параметры (это упрощенный пример)
 var info = pngInfo.Info;
-// Here need to parse info string and extract parameters
+// Здесь нужно распарсить строку info и извлечь параметры
 
-// Create request with same parameters
+// Создаем запрос с теми же параметрами
 var request = new TextToImageRequest
 {
     Prompt = "...extracted from info...",
     Steps = 30, // extracted
     CfgScale = 7.5, // extracted
-    // etc.
+    // и т.д.
 };
 
 var response = await client.TextToImage.GenerateAsync(request);
 ```
 
-### Analyzing Others' Images
+### Анализ чужих изображений
 
 ```csharp
 async Task AnalyzeImage(string imagePath)
@@ -977,16 +977,16 @@ async Task AnalyzeImage(string imagePath)
         
         if (!string.IsNullOrEmpty(response.Info))
         {
-            Console.WriteLine($"✓ Image contains generation metadata");
+            Console.WriteLine($"✓ Изображение содержит метаданные генерации");
             Console.WriteLine(response.Info);
             return;
         }
         
-        Console.WriteLine("× Image doesn't contain generation metadata");
+        Console.WriteLine("× Изображение не содержит метаданных генерации");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Error analyzing: {ex.Message}");
+        Console.WriteLine($"Ошибка при анализе: {ex.Message}");
     }
 }
 
@@ -995,9 +995,9 @@ await AnalyzeImage("downloaded_image.png");
 
 ---
 
-## Post-processing
+## Постобработка
 
-### Image Upscale
+### Апскейл изображения
 
 ```csharp
 using StableDiffusionNet.Models.Requests;
@@ -1007,18 +1007,18 @@ var imageBase64 = ImageHelper.ImageToBase64("input.png");
 var request = new ExtraSingleImageRequest
 {
     Image = imageBase64,
-    ResizeMode = 0,             // 0: by scale, 1: to specific size
-    UpscalingResize = 4,        // Upscale 4x
-    Upscaler1 = "R-ESRGAN 4x+", // Main upscaler
-    Upscaler2 = "None"          // Second upscaler
+    ResizeMode = 0,             // 0: по масштабу, 1: до конкретного размера
+    UpscalingResize = 4,        // Увеличить в 4 раза
+    Upscaler1 = "R-ESRGAN 4x+", // Основной апскейлер
+    Upscaler2 = "None"          // Второй апскейлер
 };
 
 var response = await client.Extra.ProcessSingleImageAsync(request);
 ImageHelper.Base64ToImage(response.Image, "upscaled_4x.png");
-Console.WriteLine("✓ Image upscaled 4x");
+Console.WriteLine("✓ Изображение увеличено в 4 раза");
 ```
 
-### Upscale to Specific Size
+### Апскейл до конкретного размера
 
 ```csharp
 var imageBase64 = ImageHelper.ImageToBase64("small.png");
@@ -1026,10 +1026,10 @@ var imageBase64 = ImageHelper.ImageToBase64("small.png");
 var request = new ExtraSingleImageRequest
 {
     Image = imageBase64,
-    ResizeMode = 1,              // To specific size
-    UpscalingResizeW = 1920,     // Target width
-    UpscalingResizeH = 1080,     // Target height
-    UpscalingCrop = false,       // Don't crop
+    ResizeMode = 1,              // До конкретного размера
+    UpscalingResizeW = 1920,     // Целевая ширина
+    UpscalingResizeH = 1080,     // Целевая высота
+    UpscalingCrop = false,       // Не обрезать
     Upscaler1 = "Lanczos"
 };
 
@@ -1037,7 +1037,7 @@ var response = await client.Extra.ProcessSingleImageAsync(request);
 ImageHelper.Base64ToImage(response.Image, "resized_1920x1080.png");
 ```
 
-### Face Restoration
+### Восстановление лиц
 
 ```csharp
 var imageBase64 = ImageHelper.ImageToBase64("photo.png");
@@ -1046,15 +1046,15 @@ var request = new ExtraSingleImageRequest
 {
     Image = imageBase64,
     ResizeMode = 0,
-    CodeformerVisibility = 1,    // CodeFormer strength (0-1)
-    CodeformerWeight = 0.5       // Balance between original and restoration
+    CodeformerVisibility = 1,    // Сила CodeFormer (0-1)
+    CodeformerWeight = 0.5       // Баланс между оригиналом и восстановлением
 };
 
 var response = await client.Extra.ProcessSingleImageAsync(request);
 ImageHelper.Base64ToImage(response.Image, "faces_restored.png");
 ```
 
-### Combined Processing
+### Комбинированная обработка
 
 ```csharp
 var imageBase64 = ImageHelper.ImageToBase64("old_photo.png");
@@ -1063,25 +1063,25 @@ var request = new ExtraSingleImageRequest
 {
     Image = imageBase64,
     
-    // Upscale
+    // Апскейл
     ResizeMode = 0,
     UpscalingResize = 2,
     Upscaler1 = "R-ESRGAN 4x+",
     
-    // Face restoration
+    // Восстановление лиц
     CodeformerVisibility = 1,
     CodeformerWeight = 0.7,
     
-    // Order: upscale first, then face restoration
+    // Порядок: сначала апскейл, потом восстановление лиц
     UpscaleFirst = true
 };
 
 var response = await client.Extra.ProcessSingleImageAsync(request);
 ImageHelper.Base64ToImage(response.Image, "enhanced.png");
-Console.WriteLine("✓ Image enhanced");
+Console.WriteLine("✓ Изображение улучшено");
 ```
 
-### Using Two Upscalers
+### Использование двух апскейлеров
 
 ```csharp
 var imageBase64 = ImageHelper.ImageToBase64("input.png");
@@ -1092,19 +1092,19 @@ var request = new ExtraSingleImageRequest
     ResizeMode = 0,
     UpscalingResize = 4,
     
-    // First upscaler
+    // Первый апскейлер
     Upscaler1 = "R-ESRGAN 4x+",
     
-    // Second upscaler (mixed with first)
+    // Второй апскейлер (смешивается с первым)
     Upscaler2 = "R-ESRGAN 4x+ Anime6B",
-    ExtrasUpscaler2Visibility = 0.5  // 50% of second upscaler
+    ExtrasUpscaler2Visibility = 0.5  // 50% второго апскейлера
 };
 
 var response = await client.Extra.ProcessSingleImageAsync(request);
 ImageHelper.Base64ToImage(response.Image, "mixed_upscale.png");
 ```
 
-### Batch Processing Images
+### Батч-обработка изображений
 
 ```csharp
 var inputFiles = Directory.GetFiles("input_folder", "*.png");
@@ -1126,25 +1126,25 @@ foreach (var file in inputFiles)
     var outputPath = Path.Combine("output_folder", Path.GetFileName(file));
     ImageHelper.Base64ToImage(response.Image, outputPath);
     
-    Console.WriteLine($"✓ Processed: {file}");
+    Console.WriteLine($"✓ Обработано: {file}");
 }
 ```
 
 ---
 
-## Embeddings and LoRA
+## Embeddings и LoRA
 
-### Using Embeddings in Prompts
+### Использование embeddings в промптах
 
 ```csharp
-// First get list of available embeddings
+// Сначала получаем список доступных embeddings
 var embeddings = await client.Embeddings.GetEmbeddingsAsync();
 
 if (embeddings.ContainsKey("my_style"))
 {
     var request = new TextToImageRequest
     {
-        // Use embedding in prompt
+        // Используем embedding в промпте
         Prompt = "a beautiful portrait, <my_style>",
         Steps = 30
     };
@@ -1154,16 +1154,16 @@ if (embeddings.ContainsKey("my_style"))
 }
 ```
 
-### Using LoRA in Prompts
+### Использование LoRA в промптах
 
 ```csharp
-// Get LoRA list
+// Получаем список LoRA
 var loras = await client.Loras.GetLorasAsync();
 
 var request = new TextToImageRequest
 {
-    // Syntax: <lora:name:weight>
-    // weight usually from 0.0 to 1.0
+    // Синтаксис: <lora:name:weight>
+    // weight обычно от 0.0 до 1.0
     Prompt = "beautiful landscape, <lora:fantasy_style:0.8>",
     NegativePrompt = "low quality",
     Steps = 30
@@ -1173,12 +1173,12 @@ var response = await client.TextToImage.GenerateAsync(request);
 ImageHelper.Base64ToImage(response.Images[0], "with_lora.png");
 ```
 
-### Combining Multiple LoRAs
+### Комбинирование нескольких LoRA
 
 ```csharp
 var request = new TextToImageRequest
 {
-    // Can use multiple LoRAs simultaneously
+    // Можно использовать несколько LoRA одновременно
     Prompt = "anime girl, <lora:anime_style:0.7>, <lora:detailed_eyes:0.5>",
     Steps = 30
 };
@@ -1186,7 +1186,7 @@ var request = new TextToImageRequest
 var response = await client.TextToImage.GenerateAsync(request);
 ```
 
-### Testing Different LoRA Weights
+### Тестирование разных весов LoRA
 
 ```csharp
 var loraName = "style_lora";
@@ -1198,20 +1198,20 @@ foreach (var weight in weights)
     {
         Prompt = $"portrait, <lora:{loraName}:{weight:F1}>",
         Steps = 20,
-        Seed = 12345  // Same seed for comparison
+        Seed = 12345  // Одинаковый seed для сравнения
     };
     
     var response = await client.TextToImage.GenerateAsync(request);
     ImageHelper.Base64ToImage(response.Images[0], $"lora_weight_{weight:F1}.png");
-    Console.WriteLine($"Generated with weight {weight:F1}");
+    Console.WriteLine($"Сгенерировано с весом {weight:F1}");
 }
 ```
 
 ---
 
-## Error Handling
+## Обработка ошибок
 
-### Basic Error Handling
+### Базовая обработка ошибок
 
 ```csharp
 using StableDiffusionNet.Exceptions;
@@ -1222,25 +1222,25 @@ try
 }
 catch (ApiException ex)
 {
-    Console.WriteLine($"API Error: {ex.Message}");
-    Console.WriteLine($"Status Code: {ex.StatusCode}");
-    Console.WriteLine($"Response Body: {ex.ResponseBody}");
+    Console.WriteLine($"Ошибка API: {ex.Message}");
+    Console.WriteLine($"Код ответа: {ex.StatusCode}");
+    Console.WriteLine($"Тело ответа: {ex.ResponseBody}");
 }
 catch (ConfigurationException ex)
 {
-    Console.WriteLine($"Configuration Error: {ex.Message}");
+    Console.WriteLine($"Ошибка конфигурации: {ex.Message}");
 }
 catch (StableDiffusionException ex)
 {
-    Console.WriteLine($"StableDiffusion Error: {ex.Message}");
+    Console.WriteLine($"Ошибка StableDiffusion: {ex.Message}");
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Unexpected Error: {ex.Message}");
+    Console.WriteLine($"Неожиданная ошибка: {ex.Message}");
 }
 ```
 
-### Retry with Error Handling
+### Retry с обработкой ошибок
 
 ```csharp
 async Task<TextToImageResponse?> GenerateWithRetry(
@@ -1251,24 +1251,24 @@ async Task<TextToImageResponse?> GenerateWithRetry(
     {
         try
         {
-            Console.WriteLine($"Attempt {attempt}/{maxAttempts}...");
+            Console.WriteLine($"Попытка {attempt}/{maxAttempts}...");
             return await client.TextToImage.GenerateAsync(request);
         }
         catch (ApiException ex) when (ex.StatusCode == 503)
         {
-            // Server busy
+            // Сервер занят
             if (attempt < maxAttempts)
             {
-                Console.WriteLine("Server busy, waiting...");
+                Console.WriteLine("Сервер занят, ожидание...");
                 await Task.Delay(5000);
                 continue;
             }
-            Console.WriteLine("Server unavailable after all attempts");
+            Console.WriteLine("Сервер недоступен после всех попыток");
             return null;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine($"Ошибка: {ex.Message}");
             if (attempt == maxAttempts)
                 throw;
         }
@@ -1277,7 +1277,7 @@ async Task<TextToImageResponse?> GenerateWithRetry(
     return null;
 }
 
-// Usage
+// Использование
 var response = await GenerateWithRetry(request);
 if (response != null)
 {
@@ -1285,7 +1285,7 @@ if (response != null)
 }
 ```
 
-### Checking Availability Before Request
+### Проверка доступности перед запросом
 
 ```csharp
 async Task<bool> WaitForApi(int timeoutSeconds = 60)
@@ -1296,7 +1296,7 @@ async Task<bool> WaitForApi(int timeoutSeconds = 60)
     {
         if (await client.PingAsync())
         {
-            Console.WriteLine("✓ API available");
+            Console.WriteLine("✓ API доступен");
             return true;
         }
         
@@ -1304,43 +1304,43 @@ async Task<bool> WaitForApi(int timeoutSeconds = 60)
         await Task.Delay(1000);
     }
     
-    Console.WriteLine("\n× API unavailable");
+    Console.WriteLine("\n× API недоступен");
     return false;
 }
 
-// Usage
+// Использование
 if (await WaitForApi())
 {
     var response = await client.TextToImage.GenerateAsync(request);
 }
 ```
 
-### Request Logging
+### Логирование запросов
 
 ```csharp
 async Task<TextToImageResponse> GenerateWithLogging(TextToImageRequest request)
 {
     var sw = Stopwatch.StartNew();
     
-    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Starting generation");
-    Console.WriteLine($"  Prompt: {request.Prompt}");
-    Console.WriteLine($"  Size: {request.Width}x{request.Height}");
-    Console.WriteLine($"  Steps: {request.Steps}");
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Запуск генерации");
+    Console.WriteLine($"  Промпт: {request.Prompt}");
+    Console.WriteLine($"  Размер: {request.Width}x{request.Height}");
+    Console.WriteLine($"  Шаги: {request.Steps}");
     
     try
     {
         var response = await client.TextToImage.GenerateAsync(request);
         
         sw.Stop();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ✓ Generation completed in {sw.Elapsed.TotalSeconds:F1}s");
-        Console.WriteLine($"  Generated images: {response.Images.Count}");
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ✓ Генерация завершена за {sw.Elapsed.TotalSeconds:F1}с");
+        Console.WriteLine($"  Сгенерировано изображений: {response.Images.Count}");
         
         return response;
     }
     catch (Exception ex)
     {
         sw.Stop();
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] × Error after {sw.Elapsed.TotalSeconds:F1}s");
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] × Ошибка после {sw.Elapsed.TotalSeconds:F1}с");
         Console.WriteLine($"  {ex.Message}");
         throw;
     }
@@ -1349,10 +1349,9 @@ async Task<TextToImageResponse> GenerateWithLogging(TextToImageRequest request)
 
 ---
 
-## Additional Examples
+## Дополнительные примеры
 
-For advanced usage scenarios see [ADVANCED.md](ADVANCED.md).
+Для продвинутых сценариев использования смотрите [ADVANCED.ru.md](ADVANCED.ru.md).
 
-Complete API methods reference: [API_REFERENCE.md](API_REFERENCE.md).
-
+Полный справочник по API методам: [API_REFERENCE.ru.md](API_REFERENCE.ru.md).
 
