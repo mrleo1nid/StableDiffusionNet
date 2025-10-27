@@ -13,7 +13,9 @@
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=mrleo1nid_StableDiffusionNet&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=mrleo1nid_StableDiffusionNet)
 
 [![NuGet Core](https://img.shields.io/nuget/v/StableDiffusionNet.Core.svg?label=Core)](https://www.nuget.org/packages/StableDiffusionNet.Core/)
+[![NuGet Core Downloads](https://img.shields.io/nuget/dt/StableDiffusionNet.Core.svg?label=Core%20Downloads)](https://www.nuget.org/packages/StableDiffusionNet.Core/)
 [![NuGet DI](https://img.shields.io/nuget/v/StableDiffusionNet.DependencyInjection.svg?label=DI)](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/)
+[![NuGet DI Downloads](https://img.shields.io/nuget/dt/StableDiffusionNet.DependencyInjection.svg?label=DI%20Downloads)](https://www.nuget.org/packages/StableDiffusionNet.DependencyInjection/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A .NET client library for Stable Diffusion WebUI API with async/await support, retry logic, and dependency injection.
