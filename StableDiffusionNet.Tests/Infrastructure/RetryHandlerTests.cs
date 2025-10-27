@@ -574,5 +574,63 @@ namespace StableDiffusionNet.Tests.Infrastructure
             // Используем широкий диапазон для учета вариаций на CI/CD серверах
             observedDelay!.Value.TotalMilliseconds.Should().BeInRange(400, 900);
         }
+
+        [Fact]
+        public async Task ExecuteWithRetryAsync_TaskCanceledExceptionMaxRetries_ThrowsException()
+        {
+            // Arrange
+            var handler = CreateHandler();
+            var callCount = 0;
+
+            Func<Task<HttpResponseMessage>> operation = () =>
+            {
+                callCount++;
+                // Симулируем timeout (TaskCanceledException без отмены токена)
+                throw new TaskCanceledException("Request timed out");
+            };
+
+            // Act
+            var act = async () =>
+                await handler.ExecuteWithRetryAsync(operation, CancellationToken.None);
+
+            // Assert
+            await act.Should().ThrowAsync<TaskCanceledException>().WithMessage("Request timed out");
+            callCount.Should().Be(_options.RetryCount + 1);
+            _loggerMock.Verify(
+                x => x.Log(LogLevel.Warning, It.Is<string>(s => s.Contains("timed out"))),
+                Times.Exactly(_options.RetryCount),
+                "should log warning for each retry attempt"
+            );
+        }
+
+        [Fact]
+        public async Task ExecuteWithRetryAsync_HttpRequestExceptionAfterAllRetries_ThrowsOriginalException()
+        {
+            // Arrange
+            var handler = CreateHandler();
+            var callCount = 0;
+            var expectedException = new HttpRequestException("Persistent network error");
+
+            Func<Task<HttpResponseMessage>> operation = () =>
+            {
+                callCount++;
+                throw expectedException;
+            };
+
+            // Act
+            var act = async () =>
+                await handler.ExecuteWithRetryAsync(operation, CancellationToken.None);
+
+            // Assert
+            var exception = await act.Should().ThrowAsync<HttpRequestException>();
+            exception.Which.Should().BeSameAs(expectedException);
+            callCount.Should().Be(_options.RetryCount + 1);
+            _loggerMock.Verify(
+                x =>
+                    x.Log(LogLevel.Warning, It.Is<string>(s => s.Contains("HttpRequestException"))),
+                Times.Exactly(_options.RetryCount),
+                "should log warning for each retry attempt"
+            );
+        }
     }
 }
