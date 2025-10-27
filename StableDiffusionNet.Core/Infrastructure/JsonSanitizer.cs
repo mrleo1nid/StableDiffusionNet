@@ -1,17 +1,19 @@
-using StableDiffusionNet.Interfaces;
-
 namespace StableDiffusionNet.Infrastructure
 {
     /// <summary>
     /// Санитизатор JSON для безопасного логирования
     /// Single Responsibility - отвечает только за санитизацию JSON
     /// </summary>
-    internal class JsonSanitizer : IJsonSanitizer
+    internal static class JsonSanitizer
     {
         private const int MaxLength = 500;
 
-        /// <inheritdoc/>
-        public string SanitizeForLogging(string json)
+        /// <summary>
+        /// Очищает JSON для безопасного логирования
+        /// </summary>
+        /// <param name="json">JSON строка для санитизации</param>
+        /// <returns>Санитизированная JSON строка</returns>
+        public static string SanitizeForLogging(string json)
         {
             if (json.Length <= MaxLength)
                 return json;

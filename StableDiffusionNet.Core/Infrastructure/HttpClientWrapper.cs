@@ -23,7 +23,6 @@ namespace StableDiffusionNet.Infrastructure
         private readonly IStableDiffusionLogger _logger;
         private readonly StableDiffusionOptions _options;
         private readonly RetryHandler _retryHandler;
-        private readonly JsonSanitizer _jsonSanitizer;
         private readonly bool _ownsHttpClient;
         private bool _disposed;
 
@@ -54,7 +53,6 @@ namespace StableDiffusionNet.Infrastructure
             _logger = logger;
             _options = options;
             _ownsHttpClient = ownsHttpClient;
-            _jsonSanitizer = new JsonSanitizer();
 
             _options.Validate();
             _retryHandler = new RetryHandler(_options, _logger);
@@ -106,7 +104,7 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        $"POST request to {endpoint} with body: {_jsonSanitizer.SanitizeForLogging(json)}"
+                        $"POST request to {endpoint} with body: {JsonSanitizer.SanitizeForLogging(json)}"
                     );
                 }
 
@@ -170,7 +168,7 @@ namespace StableDiffusionNet.Infrastructure
                 if (_options.EnableDetailedLogging)
                 {
                     _logger.LogDebug(
-                        $"POST request to {endpoint} with body: {_jsonSanitizer.SanitizeForLogging(json)}"
+                        $"POST request to {endpoint} with body: {JsonSanitizer.SanitizeForLogging(json)}"
                     );
                 }
 
@@ -226,7 +224,7 @@ namespace StableDiffusionNet.Infrastructure
             if (_options.EnableDetailedLogging)
             {
                 _logger.LogDebug(
-                    $"Successful response from {endpoint}: {_jsonSanitizer.SanitizeForLogging(content)}"
+                    $"Successful response from {endpoint}: {JsonSanitizer.SanitizeForLogging(content)}"
                 );
             }
 

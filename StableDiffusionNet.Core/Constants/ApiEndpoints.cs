@@ -81,11 +81,6 @@ namespace StableDiffusionNet.Constants
         public const string ExtraSingleImage = $"{ApiPrefix}/extra-single-image";
 
         /// <summary>
-        /// Эндпоинт для постобработки батча изображений
-        /// </summary>
-        public const string ExtraBatchImages = $"{ApiPrefix}/extra-batch-images";
-
-        /// <summary>
         /// Эндпоинт для получения списка доступных embeddings
         /// </summary>
         public const string Embeddings = $"{ApiPrefix}/embeddings";
