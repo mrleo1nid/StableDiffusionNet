@@ -121,10 +121,13 @@ $RECYCLE.BIN/
 docs/_site/
 
 # Example files
-/ApiExample/
+/api_examples
 
 # cursor settings 
 /.cursor
 
 # vs code
 /.vscode
+
+# development files
+/develop_docs
