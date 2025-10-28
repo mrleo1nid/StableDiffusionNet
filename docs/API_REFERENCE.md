@@ -19,7 +19,7 @@
 - [Extra (Post-processing)](#extra-post-processing)
 - [Embeddings](#embeddings)
 - [LoRA](#lora)
-- [Ping](#ping)
+- [Health Check](#health-check)
 
 ---
 
@@ -654,29 +654,40 @@ Task RefreshLorasAsync(
 
 ---
 
-## Ping
+## Health Check
 
-General client method for checking API availability.
+General client method for checking API availability and health status.
 
-### `PingAsync`
+### `HealthCheckAsync`
 
-Checks API availability.
+Performs detailed API health check with response time and error information.
 
 **Signature:**
 ```csharp
-Task<bool> PingAsync(
+Task<HealthCheckResult> HealthCheckAsync(
     CancellationToken cancellationToken = default
 )
 ```
 
-**Endpoint**: Makes request to base URL
+**Endpoint**: `GET /internal/ping`
 
-**Response:** `true` if API is available, `false` otherwise.
+**Response:**
+```csharp
+public class HealthCheckResult
+{
+    public bool IsHealthy { get; set; }           // API availability status
+    public TimeSpan? ResponseTime { get; set; }   // Response time
+    public string? Error { get; set; }            // Error message if failed
+    public string Endpoint { get; set; }          // Checked endpoint
+    public DateTime Timestamp { get; set; }       // Check timestamp
+}
+```
 
 **Use Cases:**
 - Check availability before starting work
 - Health check for monitoring
 - Wait for WebUI startup
+- Performance monitoring
 
 ---
 

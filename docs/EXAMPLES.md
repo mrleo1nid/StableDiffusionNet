@@ -61,14 +61,15 @@ var client = serviceProvider.GetRequiredService<IStableDiffusionClient>();
 ### Checking API Availability
 
 ```csharp
-var isAvailable = await client.PingAsync();
-if (!isAvailable)
+var healthCheck = await client.HealthCheckAsync();
+if (!healthCheck.IsHealthy)
 {
-    Console.WriteLine("API is unavailable. Make sure WebUI is running with --api flag.");
+    Console.WriteLine($"API is unavailable: {healthCheck.Error}");
+    Console.WriteLine("Make sure WebUI is running with --api flag.");
     return;
 }
 
-Console.WriteLine("✓ API is available");
+Console.WriteLine($"✓ API is available (Response time: {healthCheck.ResponseTime?.TotalMilliseconds}ms)");
 ```
 
 ---
@@ -1294,9 +1295,10 @@ async Task<bool> WaitForApi(int timeoutSeconds = 60)
     
     while (stopwatch.Elapsed.TotalSeconds < timeoutSeconds)
     {
-        if (await client.PingAsync())
+        var healthCheck = await client.HealthCheckAsync();
+        if (healthCheck.IsHealthy)
         {
-            Console.WriteLine("✓ API available");
+            Console.WriteLine($"✓ API available (Response time: {healthCheck.ResponseTime?.TotalMilliseconds}ms)");
             return true;
         }
         

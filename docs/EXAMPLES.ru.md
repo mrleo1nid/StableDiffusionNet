@@ -61,14 +61,15 @@ var client = serviceProvider.GetRequiredService<IStableDiffusionClient>();
 ### Проверка доступности API
 
 ```csharp
-var isAvailable = await client.PingAsync();
-if (!isAvailable)
+var healthCheck = await client.HealthCheckAsync();
+if (!healthCheck.IsHealthy)
 {
-    Console.WriteLine("API недоступен. Убедитесь, что WebUI запущен с --api флагом.");
+    Console.WriteLine($"API недоступен: {healthCheck.Error}");
+    Console.WriteLine("Убедитесь, что WebUI запущен с --api флагом.");
     return;
 }
 
-Console.WriteLine("✓ API доступен");
+Console.WriteLine($"✓ API доступен (Время ответа: {healthCheck.ResponseTime?.TotalMilliseconds}мс)");
 ```
 
 ---

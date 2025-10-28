@@ -182,7 +182,7 @@ The library automatically retries requests on transient errors (500, 502, 503, 5
 
 ## Implemented API Methods
 
-The library implements 22 API methods across 12 service groups, covering text-to-image generation, image-to-image processing, model management, progress tracking, and more.
+The library implements 22 API methods across 12 service groups, covering text-to-image generation, image-to-image processing, model management, progress tracking, health monitoring, and more.
 
 See the [API Reference](docs/API_REFERENCE.md) for the complete list of methods and their documentation.
 
