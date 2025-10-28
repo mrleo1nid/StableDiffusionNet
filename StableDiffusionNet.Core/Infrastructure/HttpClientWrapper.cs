@@ -311,8 +311,8 @@ namespace StableDiffusionNet.Infrastructure
                 // В Builder сценарии (создали сами): ownsHttpClient = true → освобождаем
                 // В DI сценарии (IHttpClientFactory): ownsHttpClient = false → не трогаем
                 // В Builder сценарии (передан извне): ownsHttpClient = false → не трогаем
-                if (_ownsHttpClient)
-                    _httpClient?.Dispose();
+                if (_ownsHttpClient && _httpClient != null)
+                    _httpClient.Dispose();
             }
 
             _disposed = true;
