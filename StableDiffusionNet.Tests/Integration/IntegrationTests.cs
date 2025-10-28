@@ -860,7 +860,7 @@ namespace StableDiffusionNet.Tests.Integration
 
                 // Проверяем, что модель действительно переключилась
                 var currentModel = await _client.Models.GetCurrentModelAsync();
-                targetModel.Should().Contain(currentModel);
+                currentModel.Should().Contain(targetModel);
             }
             finally
             {
