@@ -280,7 +280,7 @@ namespace StableDiffusionNet.Models.Requests
             string? paramName = null
         )
         {
-            Guard.ThrowIfNullOrWhiteSpace(Prompt);
+            Guard.ThrowIfNullOrWhiteSpaceWithName(Prompt, paramName ?? nameof(Prompt));
 
             // Используем переданные опции или создаем новые по умолчанию для обратной совместимости
             var options = validationOptions ?? new ValidationOptions();

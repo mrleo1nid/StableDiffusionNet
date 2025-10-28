@@ -85,6 +85,29 @@ namespace StableDiffusionNet.Helpers
         }
 
         /// <summary>
+        /// Выбрасывает ArgumentException если строка null, пустая или содержит только пробелы.
+        /// Эта перегрузка принимает явное имя параметра и не использует CallerArgumentExpression.
+        /// Используется для вспомогательных методов валидации где нужно сохранить оригинальное имя параметра.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNullOrWhiteSpaceWithName(
+#if NET6_0_OR_GREATER
+            [NotNull]
+#endif
+            string? argument,
+            string paramName
+        )
+        {
+            if (string.IsNullOrWhiteSpace(argument))
+            {
+                throw new ArgumentException(
+                    "Value cannot be null, empty, or whitespace",
+                    paramName
+                );
+            }
+        }
+
+        /// <summary>
         /// Выбрасывает ArgumentOutOfRangeException если значение вне допустимого диапазона
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
