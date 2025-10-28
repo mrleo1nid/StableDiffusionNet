@@ -220,23 +220,4 @@ namespace StableDiffusionNet.DependencyInjection.Extensions
             return services;
         }
     }
-
-    /// <summary>
-    /// Валидатор для StableDiffusionOptions
-    /// </summary>
-    internal class StableDiffusionOptionsValidator : IValidateOptions<StableDiffusionOptions>
-    {
-        public ValidateOptionsResult Validate(string? name, StableDiffusionOptions options)
-        {
-            try
-            {
-                options.Validate();
-                return ValidateOptionsResult.Success;
-            }
-            catch (Exception ex)
-            {
-                return ValidateOptionsResult.Fail(ex.Message);
-            }
-        }
-    }
 }
