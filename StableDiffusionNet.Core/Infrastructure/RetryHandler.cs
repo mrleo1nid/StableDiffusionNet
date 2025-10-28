@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -165,19 +166,23 @@ namespace StableDiffusionNet.Infrastructure
         /// <summary>
         /// Определяет, является ли ошибка транзитной (временной)
         /// </summary>
+        private static readonly HashSet<HttpStatusCode> TransientStatusCodes =
+            new HashSet<HttpStatusCode>
+            {
+                HttpStatusCode.RequestTimeout, // 408
+                (HttpStatusCode)429, // Too Many Requests
+                HttpStatusCode.InternalServerError, // 500
+                HttpStatusCode.BadGateway, // 502
+                HttpStatusCode.ServiceUnavailable, // 503
+                HttpStatusCode.GatewayTimeout, // 504
+            };
+
+        /// <summary>
+        /// Определяет, является ли ошибка транзитной (временной)
+        /// </summary>
         private static bool IsTransientError(HttpStatusCode statusCode)
         {
-            return statusCode == HttpStatusCode.RequestTimeout
-                || // 408
-                statusCode == (HttpStatusCode)429
-                || // Too Many Requests
-                statusCode == HttpStatusCode.InternalServerError
-                || // 500
-                statusCode == HttpStatusCode.BadGateway
-                || // 502
-                statusCode == HttpStatusCode.ServiceUnavailable
-                || // 503
-                statusCode == HttpStatusCode.GatewayTimeout; // 504
+            return TransientStatusCodes.Contains(statusCode);
         }
 
         /// <summary>

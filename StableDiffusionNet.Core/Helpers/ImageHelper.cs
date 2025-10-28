@@ -169,17 +169,21 @@ namespace StableDiffusionNet.Helpers
         private static string? ValidateWebP(byte[] bytes, string mimeType)
         {
             // RIFF формат: проверяем наличие "WEBP" на позиции 8-11
-            if (
-                bytes.Length >= 12
-                && bytes[8] == 0x57
-                && bytes[9] == 0x45
-                && bytes[10] == 0x42
-                && bytes[11] == 0x50
-            )
+            const int minWebPLength = 12;
+            const int webpMarkerStart = 8;
+
+            if (bytes.Length < minWebPLength)
+                return null;
+
+            // Проверяем "WEBP" маркер
+            var webpMarker = new byte[] { 0x57, 0x45, 0x42, 0x50 }; // "WEBP"
+            for (int i = 0; i < webpMarker.Length; i++)
             {
-                return mimeType;
+                if (bytes[webpMarkerStart + i] != webpMarker[i])
+                    return null;
             }
-            return null;
+
+            return mimeType;
         }
 
         /// <summary>

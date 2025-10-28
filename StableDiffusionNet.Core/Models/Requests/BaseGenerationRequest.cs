@@ -286,18 +286,62 @@ namespace StableDiffusionNet.Models.Requests
             var options = validationOptions ?? new ValidationOptions();
             var validator = new ImageRequestValidator(options);
 
+            ValidateDimensions(validator);
+            ValidateGenerationParameters(paramName);
+        }
+
+        /// <summary>
+        /// Валидирует размеры изображения
+        /// </summary>
+        private void ValidateDimensions(ImageRequestValidator validator)
+        {
             validator.ValidateImageDimension(Width, nameof(Width));
             validator.ValidateImageDimension(Height, nameof(Height));
+        }
 
+        /// <summary>
+        /// Валидирует параметры генерации
+        /// </summary>
+        private void ValidateGenerationParameters(string? paramName)
+        {
+            ValidateSteps(paramName);
+            ValidateCfgScale(paramName);
+            ValidateBatchSize(paramName);
+            ValidateNIter(paramName);
+        }
+
+        /// <summary>
+        /// Валидирует количество шагов
+        /// </summary>
+        private void ValidateSteps(string? paramName)
+        {
             if (Steps <= 0)
                 throw new ArgumentException("Steps must be greater than 0", paramName);
+        }
 
+        /// <summary>
+        /// Валидирует CFG Scale
+        /// </summary>
+        private void ValidateCfgScale(string? paramName)
+        {
             if (CfgScale < 1 || CfgScale > 30)
                 throw new ArgumentException("CfgScale must be between 1 and 30", paramName);
+        }
 
+        /// <summary>
+        /// Валидирует размер батча
+        /// </summary>
+        private void ValidateBatchSize(string? paramName)
+        {
             if (BatchSize <= 0)
                 throw new ArgumentException("BatchSize must be greater than 0", paramName);
+        }
 
+        /// <summary>
+        /// Валидирует количество итераций
+        /// </summary>
+        private void ValidateNIter(string? paramName)
+        {
             if (NIter <= 0)
                 throw new ArgumentException("NIter must be greater than 0", paramName);
         }
