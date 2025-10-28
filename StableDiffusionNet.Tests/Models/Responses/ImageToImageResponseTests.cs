@@ -1,66 +1,77 @@
-using System.Collections.Generic;
 using FluentAssertions;
-using Newtonsoft.Json;
 using StableDiffusionNet.Models.Responses;
 
 namespace StableDiffusionNet.Tests.Models.Responses
 {
     /// <summary>
-    /// Тесты для ImageToImageResponse
+    /// Тесты для модели ImageToImageResponse
     /// </summary>
     public class ImageToImageResponseTests
     {
         [Fact]
-        public void ImageToImageResponse_SerializesCorrectly()
+        public void Constructor_DefaultValues_InitializesCorrectly()
+        {
+            // Act
+            var response = new ImageToImageResponse();
+
+            // Assert
+            response.Images.Should().BeNull();
+            response.Parameters.Should().BeNull();
+            response.Info.Should().BeNull();
+        }
+
+        [Fact]
+        public void Constructor_WithValues_InitializesCorrectly()
         {
             // Arrange
+            var images = new List<string> { "image1", "image2" };
+            var parameters = new Dictionary<string, object>
+            {
+                { "steps", 20 },
+                { "cfg_scale", 7.5 },
+            };
+            var info = "Generation info";
+
+            // Act
             var response = new ImageToImageResponse
             {
-                Images = new List<string> { "base64_image_1", "base64_image_2" },
-                Parameters = new Dictionary<string, object>
-                {
-                    ["prompt"] = "test prompt",
-                    ["steps"] = 20,
-                },
-                Info = "Generation completed successfully",
+                Images = images,
+                Parameters = parameters,
+                Info = info,
             };
 
-            // Act
-            var json = JsonConvert.SerializeObject(response);
-            var deserialized = JsonConvert.DeserializeObject<ImageToImageResponse>(json);
-
             // Assert
-            deserialized.Should().NotBeNull();
-            deserialized!.Images.Should().NotBeNull();
-            deserialized.Images.Should().HaveCount(2);
-            deserialized.Images![0].Should().Be("base64_image_1");
-            deserialized.Images[1].Should().Be("base64_image_2");
-            deserialized.Parameters.Should().NotBeNull();
-            deserialized.Parameters.Should().ContainKey("prompt");
-            deserialized.Info.Should().Be("Generation completed successfully");
+            response.Images.Should().BeEquivalentTo(images);
+            response.Parameters.Should().BeEquivalentTo(parameters);
+            response.Info.Should().Be(info);
         }
 
         [Fact]
-        public void ImageToImageResponse_DeserializesCorrectly()
+        public void Constructor_WithEmptyImages_InitializesCorrectly()
         {
             // Arrange
-            var json =
-                "{\"images\":[\"img1\",\"img2\"],\"parameters\":{\"seed\":123},\"info\":\"test info\"}";
+            var emptyImages = new List<string>();
+            var parameters = new Dictionary<string, object> { { "steps", 10 } };
+            var info = "No images generated";
 
             // Act
-            var response = JsonConvert.DeserializeObject<ImageToImageResponse>(json);
+            var response = new ImageToImageResponse
+            {
+                Images = emptyImages,
+                Parameters = parameters,
+                Info = info,
+            };
 
             // Assert
-            response.Should().NotBeNull();
-            response!.Images.Should().HaveCount(2);
-            response.Parameters.Should().ContainKey("seed");
-            response.Info.Should().Be("test info");
+            response.Images.Should().BeEmpty();
+            response.Parameters.Should().BeEquivalentTo(parameters);
+            response.Info.Should().Be(info);
         }
 
         [Fact]
-        public void ImageToImageResponse_WithNullValues_SerializesCorrectly()
+        public void Constructor_WithNullValues_InitializesCorrectly()
         {
-            // Arrange
+            // Act
             var response = new ImageToImageResponse
             {
                 Images = null,
@@ -68,127 +79,223 @@ namespace StableDiffusionNet.Tests.Models.Responses
                 Info = null,
             };
 
-            // Act
-            var json = JsonConvert.SerializeObject(response);
-            var deserialized = JsonConvert.DeserializeObject<ImageToImageResponse>(json);
-
             // Assert
-            deserialized.Should().NotBeNull();
-            deserialized!.Images.Should().BeNull();
-            deserialized.Parameters.Should().BeNull();
-            deserialized.Info.Should().BeNull();
+            response.Images.Should().BeNull();
+            response.Parameters.Should().BeNull();
+            response.Info.Should().BeNull();
         }
 
         [Fact]
-        public void ImageToImageResponse_WithEmptyLists_SerializesCorrectly()
+        public void Constructor_WithComplexParameters_InitializesCorrectly()
         {
             // Arrange
-            var response = new ImageToImageResponse
+            var images = new List<string> { "image1" };
+            var complexParameters = new Dictionary<string, object>
             {
-                Images = new List<string>(),
-                Parameters = new Dictionary<string, object>(),
-                Info = string.Empty,
+                { "steps", 25 },
+                { "cfg_scale", 8.0 },
+                { "sampler_name", "Euler a" },
+                { "width", 512 },
+                { "height", 512 },
+                { "denoising_strength", 0.75 },
+                { "enable_hr", true },
+                { "hr_scale", 2.0 },
             };
+            var info = "Complex generation completed";
 
             // Act
-            var json = JsonConvert.SerializeObject(response);
-            var deserialized = JsonConvert.DeserializeObject<ImageToImageResponse>(json);
+            var response = new ImageToImageResponse
+            {
+                Images = images,
+                Parameters = complexParameters,
+                Info = info,
+            };
 
             // Assert
-            deserialized.Should().NotBeNull();
-            deserialized!.Images.Should().NotBeNull();
-            deserialized.Images.Should().BeEmpty();
-            deserialized.Parameters.Should().NotBeNull();
-            deserialized.Parameters.Should().BeEmpty();
-            deserialized.Info.Should().Be(string.Empty);
+            response.Images.Should().BeEquivalentTo(images);
+            response.Parameters.Should().BeEquivalentTo(complexParameters);
+            response.Info.Should().Be(info);
         }
 
         [Fact]
-        public void ImageToImageResponse_JsonPropertyNames_AreCorrect()
+        public void Record_Equality_WorksCorrectly()
         {
             // Arrange
-            var response = new ImageToImageResponse
+            var images = new List<string> { "image1", "image2" };
+            var parameters = new Dictionary<string, object> { { "steps", 20 } };
+            var info = "Generation info";
+
+            var response1 = new ImageToImageResponse
             {
-                Images = new List<string> { "test" },
-                Parameters = new Dictionary<string, object> { ["key"] = "value" },
-                Info = "info",
+                Images = images,
+                Parameters = parameters,
+                Info = info,
             };
 
-            // Act
-            var json = JsonConvert.SerializeObject(response);
+            var response2 = new ImageToImageResponse
+            {
+                Images = images,
+                Parameters = parameters,
+                Info = info,
+            };
 
-            // Assert
-            json.Should().Contain("\"images\":");
-            json.Should().Contain("\"parameters\":");
-            json.Should().Contain("\"info\":");
+            // Act & Assert
+            response1.Should().Be(response2);
+            response1.GetHashCode().Should().Be(response2.GetHashCode());
         }
 
         [Fact]
-        public void ImageToImageResponse_WithComplexParameters_SerializesCorrectly()
+        public void Record_Inequality_WorksCorrectly()
         {
             // Arrange
-            var response = new ImageToImageResponse
+            var response1 = new ImageToImageResponse
             {
-                Images = new List<string> { "image_data" },
-                Parameters = new Dictionary<string, object>
-                {
-                    ["prompt"] = "beautiful landscape",
-                    ["negative_prompt"] = "ugly",
-                    ["steps"] = 30,
-                    ["cfg_scale"] = 7.5,
-                    ["seed"] = 123456789,
-                    ["width"] = 512,
-                    ["height"] = 512,
-                },
-                Info = "{\"seed\":123456789}",
+                Images = new List<string> { "image1" },
+                Parameters = new Dictionary<string, object> { { "steps", 10 } },
+                Info = "Info 1",
             };
 
-            // Act
-            var json = JsonConvert.SerializeObject(response);
-            var deserialized = JsonConvert.DeserializeObject<ImageToImageResponse>(json);
+            var response2 = new ImageToImageResponse
+            {
+                Images = new List<string> { "image2" },
+                Parameters = new Dictionary<string, object> { { "steps", 20 } },
+                Info = "Info 2",
+            };
 
-            // Assert
-            deserialized.Should().NotBeNull();
-            deserialized!.Parameters.Should().HaveCount(7);
-            deserialized.Parameters.Should().ContainKey("prompt");
-            deserialized.Parameters.Should().ContainKey("seed");
+            // Act & Assert
+            response1.Should().NotBe(response2);
+            response1.GetHashCode().Should().NotBe(response2.GetHashCode());
         }
 
         [Fact]
-        public void ImageToImageResponse_WithSingleImage_SerializesCorrectly()
+        public void Record_ToString_ContainsRelevantInformation()
         {
             // Arrange
+            var images = new List<string> { "image1", "image2" };
+            var parameters = new Dictionary<string, object> { { "steps", 20 } };
+            var info = "Generation info";
+
             var response = new ImageToImageResponse
             {
-                Images = new List<string> { "single_image_base64" },
+                Images = images,
+                Parameters = parameters,
+                Info = info,
             };
 
             // Act
-            var json = JsonConvert.SerializeObject(response);
-            var deserialized = JsonConvert.DeserializeObject<ImageToImageResponse>(json);
+            var toString = response.ToString();
 
             // Assert
-            deserialized.Should().NotBeNull();
-            deserialized!.Images.Should().HaveCount(1);
-            deserialized.Images![0].Should().Be("single_image_base64");
+            toString.Should().Contain("Images = System.Collections.Generic.List`1[System.String]");
+            toString
+                .Should()
+                .Contain(
+                    "Parameters = System.Collections.Generic.Dictionary`2[System.String,System.Object]"
+                );
+            toString.Should().Contain("Info = Generation info");
+        }
+
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData(new[] { "image1" }, "Info")]
+        [InlineData(new[] { "image1", "image2" }, "Complete info")]
+        public void Constructor_WithVariousValues_InitializesCorrectly(
+            string[]? imagesArray,
+            string? info
+        )
+        {
+            // Arrange
+            var images = imagesArray?.ToList();
+            var parameters =
+                imagesArray != null ? new Dictionary<string, object> { { "steps", 10 } } : null;
+
+            // Act
+            var response = new ImageToImageResponse
+            {
+                Images = images,
+                Parameters = parameters,
+                Info = info,
+            };
+
+            // Assert
+            response.Images.Should().BeEquivalentTo(images);
+            response.Parameters.Should().BeEquivalentTo(parameters);
+            response.Info.Should().Be(info);
         }
 
         [Fact]
-        public void ImageToImageResponse_WithMultipleImages_SerializesCorrectly()
+        public void Constructor_WithSingleImage_InitializesCorrectly()
         {
             // Arrange
-            var response = new ImageToImageResponse
-            {
-                Images = new List<string> { "image1", "image2", "image3", "image4" },
-            };
+            var singleImage = new List<string> { "single_image_base64" };
+            var parameters = new Dictionary<string, object> { { "steps", 15 } };
+            var info = "Single image generated";
 
             // Act
-            var json = JsonConvert.SerializeObject(response);
-            var deserialized = JsonConvert.DeserializeObject<ImageToImageResponse>(json);
+            var response = new ImageToImageResponse
+            {
+                Images = singleImage,
+                Parameters = parameters,
+                Info = info,
+            };
 
             // Assert
-            deserialized.Should().NotBeNull();
-            deserialized!.Images.Should().HaveCount(4);
+            response.Images.Should().HaveCount(1);
+            response.Images.Should().Contain("single_image_base64");
+            response.Parameters.Should().BeEquivalentTo(parameters);
+            response.Info.Should().Be(info);
+        }
+
+        [Fact]
+        public void Constructor_WithMultipleImages_InitializesCorrectly()
+        {
+            // Arrange
+            var multipleImages = new List<string>
+            {
+                "image1_base64",
+                "image2_base64",
+                "image3_base64",
+            };
+            var parameters = new Dictionary<string, object> { { "batch_size", 3 } };
+            var info = "Multiple images generated";
+
+            // Act
+            var response = new ImageToImageResponse
+            {
+                Images = multipleImages,
+                Parameters = parameters,
+                Info = info,
+            };
+
+            // Assert
+            response.Images.Should().HaveCount(3);
+            response.Images.Should().Contain("image1_base64");
+            response.Images.Should().Contain("image2_base64");
+            response.Images.Should().Contain("image3_base64");
+            response.Parameters.Should().BeEquivalentTo(parameters);
+            response.Info.Should().Be(info);
+        }
+
+        [Fact]
+        public void Constructor_WithLongInfo_InitializesCorrectly()
+        {
+            // Arrange
+            var images = new List<string> { "image1" };
+            var parameters = new Dictionary<string, object> { { "steps", 10 } };
+            var longInfo = new string('A', 1000); // Длинная строка с информацией
+
+            // Act
+            var response = new ImageToImageResponse
+            {
+                Images = images,
+                Parameters = parameters,
+                Info = longInfo,
+            };
+
+            // Assert
+            response.Images.Should().BeEquivalentTo(images);
+            response.Parameters.Should().BeEquivalentTo(parameters);
+            response.Info.Should().Be(longInfo);
         }
     }
 }

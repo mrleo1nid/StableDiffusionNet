@@ -810,6 +810,68 @@ namespace StableDiffusionNet.Tests.Helpers
                 .WithMessage("*not contain a valid image*");
         }
 
+        [Fact]
+        public void ValidateImageBase64_WebpTooShort_ThrowsArgumentException()
+        {
+            // Arrange - WebP файл короче минимальной длины (12 байт)
+            // RIFF заголовок но без WEBP маркера
+            var shortWebpBytes = new byte[]
+            {
+                0x52,
+                0x49,
+                0x46,
+                0x46, // RIFF
+                0x00,
+                0x00,
+                0x00,
+                0x00, // размер
+                0x57,
+                0x45,
+                0x42, // WEB (неполный WEBP)
+            };
+            var base64 = Convert.ToBase64String(shortWebpBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("base64String")
+                .WithMessage("*not contain a valid image*");
+        }
+
+        [Fact]
+        public void ValidateImageBase64_WebpInvalidMarker_ThrowsArgumentException()
+        {
+            // Arrange - WebP файл с правильной длиной но неправильным маркером
+            var invalidWebpBytes = new byte[]
+            {
+                0x52,
+                0x49,
+                0x46,
+                0x46, // RIFF
+                0x00,
+                0x00,
+                0x00,
+                0x00, // размер
+                0x57,
+                0x45,
+                0x42,
+                0x51, // WEBQ вместо WEBP
+            };
+            var base64 = Convert.ToBase64String(invalidWebpBytes);
+
+            // Act
+            var act = () => _imageHelper.ValidateImageBase64(base64);
+
+            // Assert
+            act.Should()
+                .Throw<ArgumentException>()
+                .WithParameterName("base64String")
+                .WithMessage("*not contain a valid image*");
+        }
+
         #endregion
 
         public void Dispose()
