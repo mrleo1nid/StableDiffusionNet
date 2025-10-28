@@ -4,7 +4,7 @@ using Moq;
 using StableDiffusionNet.DependencyInjection.Logging;
 using IStableDiffusionLogger = StableDiffusionNet.Logging.IStableDiffusionLogger;
 
-namespace StableDiffusionNet.Tests.Logging
+namespace StableDiffusionNet.Tests.DependencyInjection.Logging
 {
     /// <summary>
     /// Тесты для MicrosoftLoggerFactory
@@ -41,7 +41,10 @@ namespace StableDiffusionNet.Tests.Logging
             logger.Should().NotBeNull();
             logger.Should().BeAssignableTo<IStableDiffusionLogger>();
             mockLoggerFactory.Verify(
-                x => x.CreateLogger("StableDiffusionNet.Tests.Logging.MicrosoftLoggerFactoryTests"),
+                x =>
+                    x.CreateLogger(
+                        "StableDiffusionNet.Tests.DependencyInjection.Logging.MicrosoftLoggerFactoryTests"
+                    ),
                 Times.Once
             );
         }
@@ -133,7 +136,10 @@ namespace StableDiffusionNet.Tests.Logging
 
             // Assert
             mockLoggerFactory.Verify(
-                x => x.CreateLogger("StableDiffusionNet.Tests.Logging.MicrosoftLoggerFactoryTests"),
+                x =>
+                    x.CreateLogger(
+                        "StableDiffusionNet.Tests.DependencyInjection.Logging.MicrosoftLoggerFactoryTests"
+                    ),
                 Times.Once
             );
             // Microsoft LoggerFactory использует TypeNameHelper который возвращает "string" вместо "System.String"

@@ -5,7 +5,7 @@ using StableDiffusionNet.Configuration;
 using StableDiffusionNet.DependencyInjection.Extensions;
 using StableDiffusionNet.Interfaces;
 
-namespace StableDiffusionNet.Tests.Extensions
+namespace StableDiffusionNet.Tests.DependencyInjection.Extensions
 {
     /// <summary>
     /// Тесты для ServiceCollectionExtensions

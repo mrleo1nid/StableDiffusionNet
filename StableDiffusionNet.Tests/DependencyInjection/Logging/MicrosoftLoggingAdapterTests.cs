@@ -5,7 +5,7 @@ using StableDiffusionNet.DependencyInjection.Logging;
 using MsftLogLevel = Microsoft.Extensions.Logging.LogLevel;
 using SdLogLevel = StableDiffusionNet.Logging.LogLevel;
 
-namespace StableDiffusionNet.Tests.Logging
+namespace StableDiffusionNet.Tests.DependencyInjection.Logging
 {
     /// <summary>
     /// Тесты для MicrosoftLoggingAdapter
